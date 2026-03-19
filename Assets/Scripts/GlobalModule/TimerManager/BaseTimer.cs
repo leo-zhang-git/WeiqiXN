@@ -1,11 +1,19 @@
+using System;
+
 public abstract class BaseTimer
 {
-    public string timerId;
-    public System.Object owner;
+    public readonly string timerId;
+    public ITimerAttacher owner;
+    protected Action timerCB;
 
-    public BaseTimer(System.Object owner)
+    public bool isStopped;
+
+    public BaseTimer(ITimerAttacher owner, string timerId, Action timerCB)
     {
         this.owner = owner;
+        this.timerId = timerId;
+        this.timerCB = timerCB;
+
     }
 
     public abstract void OnTimerStart();
