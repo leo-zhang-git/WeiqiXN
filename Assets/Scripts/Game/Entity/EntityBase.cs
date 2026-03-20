@@ -1,4 +1,4 @@
-public class EntityBase : ECSBase
+public class EntityBase
 {
 
 }

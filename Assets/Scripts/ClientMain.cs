@@ -38,7 +38,7 @@ public class ClientMain
 
 #if UNITY_EDITOR
     [InitializeOnLoadMethod]
-    public static void onEditorLoaded()
+    public static void OnEditorLoaded()
     {
         // 设置编辑器启动时的入口场景
         var startScene = UnityEditor.SceneManagement.EditorSceneManager.playModeStartScene;
@@ -62,7 +62,7 @@ public class ClientMain
     }
 #endif
 
-    struct CustomUpdate
+    private struct CustomUpdate
     {
         public UnityEngine.LowLevel.PlayerLoopSystem func;
         public System.Type insertPosition;
