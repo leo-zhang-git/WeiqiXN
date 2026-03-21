@@ -3,11 +3,13 @@ using System.Collections.Generic;
 
 public class SystemEventHandler
 {
-    public string receiver;
+    public SystemEventType eventName;
+    public IEventReceiver receiver;
     public Action<SystemEventParam> callback;
 
-    public SystemEventHandler(string receiver, Action<SystemEventParam> callback)
+    public SystemEventHandler(SystemEventType eventName, IEventReceiver receiver, Action<SystemEventParam> callback)
     {
+        this.eventName = eventName;
         this.receiver = receiver;
         this.callback = callback;
     }

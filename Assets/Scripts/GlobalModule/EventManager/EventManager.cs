@@ -36,9 +36,9 @@ public class EventManager : BaseModule
         }
     }
 
-    public SystemEventHandler RegisterSystemEvent(SystemEventType eventName, string receiver, Action<SystemEventParam> cb)
+    public SystemEventHandler RegisterSystemEvent(SystemEventType eventName, IEventReceiver receiver, Action<SystemEventParam> eventCB)
     {
-        SystemEventHandler handler = new SystemEventHandler(receiver, cb);
+        SystemEventHandler handler = new SystemEventHandler(eventName, receiver, eventCB);
         HashSet<SystemEventHandler> handlerSet;
         if (!systemEventHandlers.TryGetValue(eventName, out handlerSet)) {
             handlerSet = new HashSet<SystemEventHandler>();
@@ -48,9 +48,9 @@ public class EventManager : BaseModule
         return handler;
     }
 
-    public void UnregisterSystemEvent(SystemEventType eventName, SystemEventHandler handler)
+    public void UnregisterSystemEvent(SystemEventHandler handler)
     {
-        if (systemEventHandlers.TryGetValue(eventName, out var handlerSet)) {
+        if (systemEventHandlers.TryGetValue(handler.eventName, out var handlerSet)) {
             handlerSet.Remove(handler);
         }
     }
@@ -62,26 +62,28 @@ public class EventManager : BaseModule
             return;
         }
         Type eventType = EntityEventDefine.eventParamTypeMap[eventName];
-        if (eventParam != null && eventParam.GetType() != eventType) {
+        if (eventParam != null && eventParam != null && eventParam.GetType() != eventType) {
             Logger.LogError($"Entity event instance type not match, emit entity event failed. eventName: {eventName}");
             return;
         }
 
         if (entityEventHandlers.TryGetValue(eventName, out var handlerSet)) {
             foreach (var handler in handlerSet) {
-                // TODO
+                if (handler.expectEntityTypes.Contains(entity.entityType)) {
+                    handler.callback.Invoke(entity, eventParam);
+                }
             }
         }
     }
 
-    public EntityEventHandler RegisterEntityEvent(EntityEventType eventName, string receiver, string expectEntityType, Action<Entity, EntityEventParam> cb)
+    public EntityEventHandler RegisterEntityEvent(EntityEventType eventName, IEventReceiver receiver, string expectEntityType, Action<EntityBase, EntityEventParam> eventCB)
     {
-        return RegisterEntityEvent(eventName, receiver, new HashSet<string>() { expectEntityType }, cb);
+        return RegisterEntityEvent(eventName, receiver, new HashSet<string>() { expectEntityType }, eventCB);
     }
 
-    public EntityEventHandler RegisterEntityEvent(EntityEventType eventName, string receiver, HashSet<string> expectEntityTypes, Action<Entity, EntityEventParam> cb)
+    public EntityEventHandler RegisterEntityEvent(EntityEventType eventName, IEventReceiver receiver, HashSet<string> expectEntityTypes, Action<EntityBase, EntityEventParam> eventCB)
     {
-        EntityEventHandler handler = new EntityEventHandler(receiver, expectEntityTypes, cb);
+        EntityEventHandler handler = new EntityEventHandler(eventName, receiver, expectEntityTypes, eventCB);
         HashSet<EntityEventHandler> handlerSet;
         if (!entityEventHandlers.TryGetValue(eventName, out handlerSet)) {
             handlerSet = new HashSet<EntityEventHandler>();
@@ -91,9 +93,9 @@ public class EventManager : BaseModule
         return handler;
     }
 
-    public void UnregisterEntityEvent(EntityEventType eventName, EntityEventHandler handler)
+    public void UnregisterEntityEvent(EntityEventHandler handler)
     {
-        if (entityEventHandlers.TryGetValue(eventName, out var handlerSet)) {
+        if (entityEventHandlers.TryGetValue(handler.eventName, out var handlerSet)) {
             handlerSet.Remove(handler);
         }
     }

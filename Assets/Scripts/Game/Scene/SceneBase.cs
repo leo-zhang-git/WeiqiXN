@@ -1,7 +1,18 @@
 using System;
+using System.Collections.Generic;
 
-public class SceneBase : ITimerAttacher
+public class SceneBase : ITimerAttacher, IEventReceiver
 {
+    private List<SystemBase> systemList = new List<SystemBase>();
+    private HashSet<string> systemNames = new HashSet<string>();
+
+    protected virtual void OnUpdate()
+    {
+        foreach (var system in systemList) {
+            system.OnUpdate();
+        }
+    }
+
     protected virtual void OnDestroy()
     {
         Global.Instance.timerManager.RemoveTimersByAttacher(this);
@@ -12,7 +23,7 @@ public class SceneBase : ITimerAttacher
 
     }
 
-    #region timer
+    #region Timer
     public void SetSecondTimeout(float targetSeconds, Action timerCB)
     {
         Global.Instance.timerManager.SetSecondTimeout(this, targetSeconds, timerCB);
@@ -35,14 +46,50 @@ public class SceneBase : ITimerAttacher
     #endregion
 
     #region Event
-    public void EmitSystemEvent()
-    {
+    private List<SystemEventHandler> registeredSystemEventHandlers = new List<SystemEventHandler>();
+    private List<EntityEventHandler> registeredEntityEventHandlers = new List<EntityEventHandler>();
 
+    public void EmitSystemEvent(SystemEventType eventName, SystemEventParam eventParam = null)
+    {
+        Global.Instance.eventManager.EmitSystemEvent(eventName, eventParam);
     }
 
-    public void EmitEntityEvent()
+    public void RegisterSystemEvent(SystemEventType evetnName, Action<SystemEventParam> eventCB)
     {
+        SystemEventHandler handler = Global.Instance.eventManager.RegisterSystemEvent(evetnName, this, eventCB);
+        registeredSystemEventHandlers.Add(handler);
+    }
 
+    public void UnregisterSystemEvent(SystemEventHandler handler)
+    {
+        Global.Instance.eventManager.UnregisterSystemEvent(handler);
+        registeredSystemEventHandlers.Remove(handler);
+    }
+
+    public void EmitEntityEvent(EntityEventType eventName, EntityBase entity, EntityEventParam eventParam = null)
+    {
+        Global.Instance.eventManager.EmitEntityEvent(eventName, entity, eventParam);
+    }
+
+    public void RegisterEntityEvent(EntityEventType eventName, string expectEntityType, Action<EntityBase, EntityEventParam> eventCB)
+    {
+        EntityEventHandler handler = Global.Instance.eventManager.RegisterEntityEvent(eventName, this, expectEntityType, eventCB);
+    }
+
+    public void UnregisterEntityEvent(EntityEventHandler handler)
+    {
+        Global.Instance.eventManager.UnregisterEntityEvent(handler);
+        registeredEntityEventHandlers.Remove(handler);
     }
     #endregion
+
+    protected void AddSystem(SystemBase system)
+    {
+        if (systemNames.Contains(system.systemName)) {
+            Logger.LogError($"Duplicated system add to same scene. systemName:{system.systemName}");
+            return;
+        }
+        systemList.Add(system);
+        systemNames.Add(system.systemName);
+    }
 }

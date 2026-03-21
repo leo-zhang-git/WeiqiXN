@@ -2,34 +2,40 @@ using System;
 
 public abstract class SystemBase
 {
-    public SceneBase owner;
+    public abstract string systemName { get; }
+    public SceneBase scene;
 
-    public SystemBase(SceneBase owner)
+    public SystemBase(SceneBase scene)
     {
-        this.owner = owner;
+        this.scene = scene;
     }
 
     public abstract void Init();
 
+    public virtual void OnUpdate()
+    {
+
+    }
+
     #region Timer
     public void SetSecondTimeout(float targetSeconds, Action timerCB)
     {
-        owner.SetSecondTimeout(targetSeconds, timerCB);
+        scene.SetSecondTimeout(targetSeconds, timerCB);
     }
 
     public void SetSecondInterval(float intervalSeconds, Action timerCB, int targetRepeatTimes = -1, float firstDelaySeconds = 0)
     {
-        owner.SetSecondInterval(intervalSeconds, timerCB, targetRepeatTimes, firstDelaySeconds);
+        scene.SetSecondInterval(intervalSeconds, timerCB, targetRepeatTimes, firstDelaySeconds);
     }
 
     public void SetFrameTimeout(int targetFrames, Action timerCB)
     {
-        owner.SetFrameTimeout(targetFrames, timerCB);
+        scene.SetFrameTimeout(targetFrames, timerCB);
     }
 
     public void SetFrameInterval(int intervalFrames, Action timerCB, int targetRepeatTimes = -1, int firstDelayFrames = 0)
     {
-        owner.SetFrameInterval(intervalFrames, timerCB, targetRepeatTimes, firstDelayFrames);
+        scene.SetFrameInterval(intervalFrames, timerCB, targetRepeatTimes, firstDelayFrames);
     }
     #endregion
 }

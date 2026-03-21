@@ -2,6 +2,8 @@ using System;
 
 public abstract class EntityBase : ITimerAttacher
 {
+    public abstract string entityType { get; }
+
     protected virtual void OnDestroy()
     {
         Global.Instance.timerManager.RemoveTimersByAttacher(this);

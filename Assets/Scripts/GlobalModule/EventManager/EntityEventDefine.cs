@@ -3,12 +3,14 @@ using System.Collections.Generic;
 
 public class EntityEventHandler
 {
-    public string receiver;
+    public EntityEventType eventName;
+    public IEventReceiver receiver;
     public HashSet<string> expectEntityTypes;
-    public Action<Entity, EntityEventParam> callback;
+    public Action<EntityBase, EntityEventParam> callback;
 
-    public EntityEventHandler(string receiver, HashSet<string> expectEntityTypes, Action<Entity, EntityEventParam> callback)
+    public EntityEventHandler(EntityEventType eventName, IEventReceiver receiver, HashSet<string> expectEntityTypes, Action<EntityBase, EntityEventParam> callback)
     {
+        this.eventName = eventName;
         this.receiver = receiver;
         this.expectEntityTypes = expectEntityTypes;
         this.callback = callback;
