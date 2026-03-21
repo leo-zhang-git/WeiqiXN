@@ -16,11 +16,15 @@ public class Global
     public List<BaseModule> moduleList = new List<BaseModule>();
 
     public TimerManager timerManager;
+    public EventManager eventManager;
 
     public void Start()
     {
         timerManager = new TimerManager();
         moduleList.Add(timerManager);
+
+        eventManager = new EventManager();
+        moduleList.Add(eventManager);
     }
 
     public void Update()

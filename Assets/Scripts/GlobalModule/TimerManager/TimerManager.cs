@@ -51,7 +51,6 @@ public class TimerManager : BaseModule
 
         if (timerDict.TryAdd(timerId, timer)) {
             timer.OnTimerStart();
-            timerAttacher.OnTimerAdded(timerId);
         } else {
             Logger.LogError($"Carete second timeout timer failed. timerId:{timerId} attacherType:{timerAttacher.GetType().Name}");
         }
@@ -64,7 +63,6 @@ public class TimerManager : BaseModule
 
         if (timerDict.TryAdd(timerId, timer)) {
             timer.OnTimerStart();
-            timerAttacher.OnTimerAdded(timerId);
         } else {
             Logger.LogError($"Carete second interval timer failed. timerId:{timerId} attacherType:{timerAttacher.GetType().Name}");
         }
@@ -77,7 +75,6 @@ public class TimerManager : BaseModule
 
         if (timerDict.TryAdd(timerId, timer)) {
             timer.OnTimerStart();
-            timerAttacher.OnTimerAdded(timerId);
         } else {
             Logger.LogError($"Carete frame timeout timer failed. timerId:{timerId} attacherType:{timerAttacher.GetType().Name}");
         }
@@ -90,7 +87,6 @@ public class TimerManager : BaseModule
 
         if (timerDict.TryAdd(timerId, timer)) {
             timer.OnTimerStart();
-            timerAttacher.OnTimerAdded(timerId);
         } else {
             Logger.LogError($"Carete frame timeout timer failed. timerId:{timerId} attacherType:{timerAttacher.GetType().Name}");
         }
@@ -101,10 +97,22 @@ public class TimerManager : BaseModule
         if (timerDict.TryGetValue(timerId, out TimerBase timer)) {
             timer.isStopped = true;
             pendingDeleteTimerIds.Add(timerId);
-            if (timer.owner != null) {
-                timer.owner.OnTimerRemoved(timerId);
+        }
+    }
+
+    public void RemoveTimersByAttacher(ITimerAttacher timerAttacher)
+    {
+        List<string> _pendingDeleteTimerIds = new List<string>();
+        foreach (var timerKV in timerDict) {
+            TimerBase timer = timerKV.Value;
+            if (timer.owner.Equals(timerAttacher)) {
+                _pendingDeleteTimerIds.Add(timer.timerId);
             }
         }
+        foreach (string timerId in _pendingDeleteTimerIds) {
+            RemoveTimer(timerId);
+        }
+        _pendingDeleteTimerIds.Clear();
     }
 
     private string GenerateTimerId(TimerType type)

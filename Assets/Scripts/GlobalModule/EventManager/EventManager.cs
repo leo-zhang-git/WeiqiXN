@@ -90,4 +90,11 @@ public class EventManager : BaseModule
         handlerSet.Add(handler);
         return handler;
     }
+
+    public void UnregisterEntityEvent(EntityEventType eventName, EntityEventHandler handler)
+    {
+        if (entityEventHandlers.TryGetValue(eventName, out var handlerSet)) {
+            handlerSet.Remove(handler);
+        }
+    }
 }
