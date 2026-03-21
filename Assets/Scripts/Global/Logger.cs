@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using UnityEngine;
 
 public class Logger
@@ -18,19 +19,19 @@ public class Logger
     }
     private StreamWriter logWritter;
 
-    public static void LogInfo(string format, params object[] args)
+    public static void LogInfo(string format, params (string key, string value)[] logParams)
     {
-        Logger.Instance._LogInfo(format, args);
+        Logger.Instance._LogInfo(format, logParams);
     }
 
-    public static void LogWarn(string format, params object[] args)
+    public static void LogWarn(string format, params (string key, string value)[] logParams)
     {
-        Logger.Instance._LogWarn(format, args);
+        Logger.Instance._LogWarn(format, logParams);
     }
 
-    public static void LogError(string format, params object[] args)
+    public static void LogError(string logText, params (string key, string value)[] logParams)
     {
-        Logger.Instance._LogError(format, args);
+        Logger.Instance._LogError(logText, logParams);
     }
 
     public void Init()
@@ -68,23 +69,53 @@ public class Logger
         }
 
         DateTime curTime = DateTime.Now;
-        logString = $"[{curTime:yyyy/MM/dd hh:mm:ss}][{type}] {logString} {stackTrace}";
+        if (type == LogType.Error) {
+            logString = $"[{curTime:yyyy/MM/dd hh:mm:ss}][{type}] {logString} {stackTrace}";
+        } else {
+            logString = $"[{curTime:yyyy/MM/dd hh:mm:ss}][{type}] {logString}";
+        }
         logWritter.WriteLine(logString);
         logWritter.Flush();
     }
 
-    private void _LogInfo(string format, params object[] args)
+    private void _LogInfo(string logText, params (string key, string value)[] logParams)
     {
-        Debug.LogFormat(format, args);
+        var sb = new StringBuilder();
+        sb.AppendLine(logText);
+
+        if (logParams != null && logParams.Length > 0) {
+            foreach (var kvp in logParams) {
+                sb.AppendLine($"{kvp.key}: {kvp.value}");
+            }
+        }
+
+        Debug.Log(sb.ToString());
     }
 
-    private void _LogWarn(string format, params object[] args)
+    private void _LogWarn(string logText, params (string key, string value)[] logParams)
     {
-        Debug.LogWarningFormat(format, args);
+        var sb = new StringBuilder();
+        sb.AppendLine(logText);
+
+        if (logParams != null && logParams.Length > 0) {
+            foreach (var kvp in logParams) {
+                sb.AppendLine($"{kvp.key}: {kvp.value}");
+            }
+        }
+
+        Debug.LogWarning(sb.ToString());
     }
 
-    private void _LogError(string format, params object[] args)
+    private void _LogError(string logText, params (string key, string value)[] logParams)
     {
-        Debug.LogErrorFormat(format, args);
+        var sb = new StringBuilder();
+        sb.AppendLine(logText);
+
+        if (logParams != null && logParams.Length > 0) {
+            foreach (var kvp in logParams) {
+                sb.AppendLine($"{kvp.key}: {kvp.value}");
+            }
+        }
+        Debug.LogError(sb.ToString());
     }
 }

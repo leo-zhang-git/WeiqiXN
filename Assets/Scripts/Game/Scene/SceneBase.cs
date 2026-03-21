@@ -47,7 +47,7 @@ public class SceneBase : ITimerAttacher, IEventReceiver
 
     #region Event
     private List<ISystemEventHandler> registeredSystemEventHandlers = new List<ISystemEventHandler>();
-    private List<EntityEventHandler> registeredEntityEventHandlers = new List<EntityEventHandler>();
+    private List<IEntityEventHandler> registeredEntityEventHandlers = new List<IEntityEventHandler>();
 
     public void EmitSystemEvent<TEvent>(TEvent systemEvent) where TEvent : SystemEventBase
     {
@@ -56,7 +56,7 @@ public class SceneBase : ITimerAttacher, IEventReceiver
 
     public void RegisterSystemEvent<TEvent>(Action<TEvent> eventCB) where TEvent : SystemEventBase
     {
-        ISystemEventHandler handler = Global.Instance.eventManager.RegisterSystemEvent<TEvent>(this, eventCB);
+        ISystemEventHandler handler = Global.Instance.eventManager.RegisterSystemEvent(this, eventCB);
         registeredSystemEventHandlers.Add(handler);
     }
 
@@ -66,17 +66,17 @@ public class SceneBase : ITimerAttacher, IEventReceiver
         registeredSystemEventHandlers.Remove(handler);
     }
 
-    public void EmitEntityEvent(EntityEventType eventName, EntityBase entity, EntityEventParam eventParam = null)
+    public void EmitEntityEvent<TEntity, TEvent>(TEntity entity, TEvent entityEvent) where TEntity : EntityBase where TEvent : EntityEventBase
     {
-        Global.Instance.eventManager.EmitEntityEvent(eventName, entity, eventParam);
+        Global.Instance.eventManager.EmitEntityEvent(entity, entityEvent);
     }
 
-    public void RegisterEntityEvent(EntityEventType eventName, Action<EntityBase, EntityEventParam> eventCB)
+    public void RegisterEntityEvent<TEntity, TEvent>(Action<TEntity, TEvent> eventCB) where TEntity : EntityBase where TEvent : EntityEventBase
     {
-        EntityEventHandler handler = Global.Instance.eventManager.RegisterEntityEvent(eventName, this, eventCB);
+        IEntityEventHandler handler = Global.Instance.eventManager.RegisterEntityEvent(this, eventCB);
     }
 
-    public void UnregisterEntityEvent(EntityEventHandler handler)
+    public void UnregisterEntityEvent(IEntityEventHandler handler)
     {
         Global.Instance.eventManager.UnregisterEntityEvent(handler);
         registeredEntityEventHandlers.Remove(handler);
@@ -86,7 +86,7 @@ public class SceneBase : ITimerAttacher, IEventReceiver
     protected void AddSystem(SystemBase system)
     {
         if (systemNames.Contains(system.systemName)) {
-            Logger.LogError($"Duplicated system add to same scene. systemName:{system.systemName}");
+            Logger.LogError("Duplicated system add to same scene. systemName:{system.systemName}", ("systemName", system.systemName));
             return;
         }
         systemList.Add(system);

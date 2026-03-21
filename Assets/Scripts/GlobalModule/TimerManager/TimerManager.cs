@@ -52,7 +52,7 @@ public class TimerManager : BaseModule
         if (timerDict.TryAdd(timerId, timer)) {
             timer.OnTimerStart();
         } else {
-            Logger.LogError($"Carete second timeout timer failed. timerId:{timerId} attacherType:{timerAttacher.GetType().Name}");
+            Logger.LogError("Carete second timeout timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
         }
     }
 
@@ -64,7 +64,7 @@ public class TimerManager : BaseModule
         if (timerDict.TryAdd(timerId, timer)) {
             timer.OnTimerStart();
         } else {
-            Logger.LogError($"Carete second interval timer failed. timerId:{timerId} attacherType:{timerAttacher.GetType().Name}");
+            Logger.LogError("Carete second interval timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
         }
     }
 
@@ -76,7 +76,7 @@ public class TimerManager : BaseModule
         if (timerDict.TryAdd(timerId, timer)) {
             timer.OnTimerStart();
         } else {
-            Logger.LogError($"Carete frame timeout timer failed. timerId:{timerId} attacherType:{timerAttacher.GetType().Name}");
+            Logger.LogError("Carete frame timeout timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
         }
     }
 
@@ -88,7 +88,7 @@ public class TimerManager : BaseModule
         if (timerDict.TryAdd(timerId, timer)) {
             timer.OnTimerStart();
         } else {
-            Logger.LogError($"Carete frame timeout timer failed. timerId:{timerId} attacherType:{timerAttacher.GetType().Name}");
+            Logger.LogError("Carete frame timeout timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
         }
     }
 

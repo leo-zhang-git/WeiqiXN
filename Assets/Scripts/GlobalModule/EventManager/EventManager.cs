@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class EventManager : BaseModule
 {
     private Dictionary<string, List<ISystemEventHandler>> systemEventHandlers = new Dictionary<string, List<ISystemEventHandler>>();
-    private Dictionary<EntityEventType, List<EntityEventHandler>> entityEventHandlers = new Dictionary<EntityEventType, List<EntityEventHandler>>();
+    private Dictionary<string, List<IEntityEventHandler>> entityEventHandlers = new Dictionary<string, List<IEntityEventHandler>>();
 
     public override void Init()
     {
@@ -17,9 +17,9 @@ public class EventManager : BaseModule
         entityEventHandlers.Clear();
     }
 
-    public void EmitSystemEvent<Event>(Event systemEvent) where Event : SystemEventBase
+    public void EmitSystemEvent<TEvent>(TEvent systemEvent) where TEvent : SystemEventBase
     {
-        if (systemEventHandlers.TryGetValue(typeof(Event).Name, out var handlerSet)) {
+        if (systemEventHandlers.TryGetValue(typeof(TEvent).Name, out var handlerSet)) {
             foreach (var handler in handlerSet) {
                 handler.Execute(systemEvent);
             }
@@ -40,45 +40,37 @@ public class EventManager : BaseModule
 
     public void UnregisterSystemEvent(ISystemEventHandler handler)
     {
-        if (systemEventHandlers.TryGetValue(handler.eventName, out var handlerSet)) {
+        if (systemEventHandlers.TryGetValue(handler.eventType, out var handlerSet)) {
             handlerSet.Remove(handler);
         }
     }
 
-    public void EmitEntityEvent(EntityEventType eventName, EntityBase entity, EntityEventParam eventParam = null)
+    public void EmitEntityEvent<TEntity, TEvent>(TEntity entity, TEvent entityEvent) where TEntity : EntityBase where TEvent : EntityEventBase
     {
-        if (!EntityEventDefine.eventParamTypeMap.ContainsKey(eventName)) {
-            Logger.LogError($"Invalid event name, emit entity event failed. eventName: {eventName}");
-            return;
-        }
-        Type eventType = EntityEventDefine.eventParamTypeMap[eventName];
-        if (eventParam != null && eventParam != null && eventParam.GetType() != eventType) {
-            Logger.LogError($"Entity event instance type not match, emit entity event failed. eventName: {eventName}");
-            return;
-        }
-
-        if (entityEventHandlers.TryGetValue(eventName, out var handlerSet)) {
+        if (entityEventHandlers.TryGetValue(typeof(TEvent).Name, out var handlerSet)) {
             foreach (var handler in handlerSet) {
-                // TODO
+                if (handler.entityType == typeof(TEntity).Name) {
+                    handler.Execute(entity, entityEvent);
+                }
             }
         }
     }
 
-    public EntityEventHandler RegisterEntityEvent(EntityEventType eventName, IEventReceiver receiver, Action<EntityBase, EntityEventParam> eventCB)
+    public IEntityEventHandler RegisterEntityEvent<TEntity, TEvent>(IEventReceiver receiver, Action<TEntity, TEvent> eventCB) where TEntity : EntityBase where TEvent : EntityEventBase
     {
-        EntityEventHandler handler = new EntityEventHandler(eventName, receiver, eventCB);
-        List<EntityEventHandler> handlerList;
-        if (!entityEventHandlers.TryGetValue(eventName, out handlerList)) {
-            handlerList = new List<EntityEventHandler>();
-            entityEventHandlers.Add(eventName, handlerList);
+        EntityEventHandler<TEntity, TEvent> handler = new EntityEventHandler<TEntity, TEvent>(receiver, eventCB);
+        List<IEntityEventHandler> handlerList;
+        if (!entityEventHandlers.TryGetValue(typeof(TEvent).Name, out handlerList)) {
+            handlerList = new List<IEntityEventHandler>();
+            entityEventHandlers.Add(typeof(TEvent).Name, handlerList);
         }
         handlerList.Add(handler);
         return handler;
     }
 
-    public void UnregisterEntityEvent(EntityEventHandler handler)
+    public void UnregisterEntityEvent(IEntityEventHandler handler)
     {
-        if (entityEventHandlers.TryGetValue(handler.eventName, out var handlerSet)) {
+        if (entityEventHandlers.TryGetValue(handler.eventType, out var handlerSet)) {
             handlerSet.Remove(handler);
         }
     }
