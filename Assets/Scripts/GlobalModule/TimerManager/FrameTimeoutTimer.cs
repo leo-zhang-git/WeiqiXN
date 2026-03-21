@@ -1,7 +1,9 @@
 ﻿using System;
 
-public class FrameTimeoutTimer : BaseTimer
+public class FrameTimeoutTimer : TimerBase
 {
+    public static uint timerIdx;
+
     private readonly int targetFrames;
 
     private int accumulateFrames;

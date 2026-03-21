@@ -1,8 +1,10 @@
 ﻿using System;
 using UnityEngine;
 
-public class SecondTimeoutTimer : BaseTimer
+public class SecondTimeoutTimer : TimerBase
 {
+    public static uint timerIdx;
+
     private readonly float targetSeconds;
 
     private float accumulateSeconds;

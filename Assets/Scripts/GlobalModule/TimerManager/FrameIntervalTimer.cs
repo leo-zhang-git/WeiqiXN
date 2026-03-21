@@ -1,7 +1,9 @@
 ﻿using System;
 
-public class FrameIntervalTimer : BaseTimer
+public class FrameIntervalTimer : TimerBase
 {
+    public static uint timerIdx;
+
     private readonly int intervalFrames;
     private readonly int targetRepeatTimes;
     private readonly int firstDelayFrames;

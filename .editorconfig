@@ -146,8 +146,8 @@ csharp_style_allow_embedded_statements_on_same_line_experimental = true:silent
 
 # 新行首选项
 csharp_new_line_before_catch = true
-csharp_new_line_before_else = true
-csharp_new_line_before_finally = true
+csharp_new_line_before_else = false
+csharp_new_line_before_finally = false
 csharp_new_line_before_members_in_anonymous_types = true
 csharp_new_line_before_members_in_object_initializers = true
 csharp_new_line_before_open_brace = methods,types,properties,anonymous_methods,anonymous_types,object_collection_array_initializers,lambdas,accessors

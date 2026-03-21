@@ -1,8 +1,10 @@
 ﻿using System;
 using UnityEngine;
 
-public class SecondIntervalTimer : BaseTimer
+public class SecondIntervalTimer : TimerBase
 {
+    public static uint timerIdx;
+
     private readonly int targetRepeatTimes;
     private readonly float firstDelaySeconds;
     private readonly float intervalSeconds;

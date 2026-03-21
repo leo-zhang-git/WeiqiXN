@@ -1,6 +1,6 @@
 using System;
 
-public abstract class BaseTimer
+public abstract class TimerBase
 {
     public readonly string timerId;
     public ITimerAttacher owner;
@@ -8,7 +8,7 @@ public abstract class BaseTimer
 
     public bool isStopped;
 
-    public BaseTimer(ITimerAttacher owner, string timerId, Action timerCB)
+    public TimerBase(ITimerAttacher owner, string timerId, Action timerCB)
     {
         this.owner = owner;
         this.timerId = timerId;
