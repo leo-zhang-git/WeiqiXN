@@ -46,21 +46,21 @@ public class SceneBase : ITimerAttacher, IEventReceiver
     #endregion
 
     #region Event
-    private List<SystemEventHandler> registeredSystemEventHandlers = new List<SystemEventHandler>();
+    private List<ISystemEventHandler> registeredSystemEventHandlers = new List<ISystemEventHandler>();
     private List<EntityEventHandler> registeredEntityEventHandlers = new List<EntityEventHandler>();
 
-    public void EmitSystemEvent(SystemEventType eventName, SystemEventParam eventParam = null)
+    public void EmitSystemEvent<TEvent>(TEvent systemEvent) where TEvent : SystemEventBase
     {
-        Global.Instance.eventManager.EmitSystemEvent(eventName, eventParam);
+        Global.Instance.eventManager.EmitSystemEvent(systemEvent);
     }
 
-    public void RegisterSystemEvent(SystemEventType evetnName, Action<SystemEventParam> eventCB)
+    public void RegisterSystemEvent<TEvent>(Action<TEvent> eventCB) where TEvent : SystemEventBase
     {
-        SystemEventHandler handler = Global.Instance.eventManager.RegisterSystemEvent(evetnName, this, eventCB);
+        ISystemEventHandler handler = Global.Instance.eventManager.RegisterSystemEvent<TEvent>(this, eventCB);
         registeredSystemEventHandlers.Add(handler);
     }
 
-    public void UnregisterSystemEvent(SystemEventHandler handler)
+    public void UnregisterSystemEvent(ISystemEventHandler handler)
     {
         Global.Instance.eventManager.UnregisterSystemEvent(handler);
         registeredSystemEventHandlers.Remove(handler);
@@ -71,9 +71,9 @@ public class SceneBase : ITimerAttacher, IEventReceiver
         Global.Instance.eventManager.EmitEntityEvent(eventName, entity, eventParam);
     }
 
-    public void RegisterEntityEvent(EntityEventType eventName, string expectEntityType, Action<EntityBase, EntityEventParam> eventCB)
+    public void RegisterEntityEvent(EntityEventType eventName, Action<EntityBase, EntityEventParam> eventCB)
     {
-        EntityEventHandler handler = Global.Instance.eventManager.RegisterEntityEvent(eventName, this, expectEntityType, eventCB);
+        EntityEventHandler handler = Global.Instance.eventManager.RegisterEntityEvent(eventName, this, eventCB);
     }
 
     public void UnregisterEntityEvent(EntityEventHandler handler)

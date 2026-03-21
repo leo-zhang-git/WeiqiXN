@@ -1,33 +1,39 @@
 ﻿using System;
-using System.Collections.Generic;
 
-public class SystemEventHandler
+public interface ISystemEventHandler
 {
-    public SystemEventType eventName;
-    public IEventReceiver receiver;
-    public Action<SystemEventParam> callback;
+    string eventName { get; }
+    IEventReceiver receiver { get; }
+    public void Execute(SystemEventBase systemEvent);
+}
 
-    public SystemEventHandler(SystemEventType eventName, IEventReceiver receiver, Action<SystemEventParam> callback)
+public class SystemEventHandler<TEvent> : ISystemEventHandler where TEvent : SystemEventBase
+{
+    public IEventReceiver receiver { get; private set; }
+    public Action<TEvent> callback;
+    public string eventName => typeof(TEvent).Name;
+
+    public SystemEventHandler(IEventReceiver receiver, Action<TEvent> callback)
     {
-        this.eventName = eventName;
         this.receiver = receiver;
         this.callback = callback;
     }
-}
 
-public enum SystemEventType
-{
-    SystemEventTest = 0,
-}
-
-public static class SystemEventDefine
-{
-    public readonly static Dictionary<SystemEventType, Type> eventParamTypeMap = new Dictionary<SystemEventType, Type>()
+    public void Execute(SystemEventBase systemEvent)
     {
-        { SystemEventType.SystemEventTest, typeof (SystemEventParam_Test) }
-    };
+        if (systemEvent is TEvent tEvent) {
+            callback?.Invoke(tEvent);
+        }
+    }
 }
 
-public abstract class SystemEventParam { }
+public abstract class SystemEventBase
+{
 
-public class SystemEventParam_Test : SystemEventParam { }
+}
+
+public class SystemEventTest : SystemEventBase
+{
+
+    public int param1;
+}

@@ -5,14 +5,12 @@ public class EntityEventHandler
 {
     public EntityEventType eventName;
     public IEventReceiver receiver;
-    public HashSet<string> expectEntityTypes;
     public Action<EntityBase, EntityEventParam> callback;
 
-    public EntityEventHandler(EntityEventType eventName, IEventReceiver receiver, HashSet<string> expectEntityTypes, Action<EntityBase, EntityEventParam> callback)
+    public EntityEventHandler(EntityEventType eventName, IEventReceiver receiver, Action<EntityBase, EntityEventParam> callback)
     {
         this.eventName = eventName;
         this.receiver = receiver;
-        this.expectEntityTypes = expectEntityTypes;
         this.callback = callback;
     }
 }
