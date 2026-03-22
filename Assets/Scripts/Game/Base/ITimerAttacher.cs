@@ -9,4 +9,6 @@ public interface ITimerAttacher
     public void SetFrameTimeout(int targetFrames, Action timerCB);
 
     public void SetFrameInterval(int intervalFrames, Action timerCB, int targetRepeatTimes = -1, int firstDelayFrames = 0);
+
+    public void OnTimerAttacherDestroyed();
 }

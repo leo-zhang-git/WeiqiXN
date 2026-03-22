@@ -6,7 +6,7 @@ public abstract class EntityBase : ITimerAttacher
 
     protected virtual void OnDestroy()
     {
-        Global.Instance.timerManager.RemoveTimersByAttacher(this);
+        OnTimerAttacherDestroyed();
     }
 
     public void Destroy()
@@ -33,6 +33,11 @@ public abstract class EntityBase : ITimerAttacher
     public void SetFrameInterval(int intervalFrames, Action timerCB, int targetRepeatTimes = -1, int firstDelayFrames = 0)
     {
         Global.Instance.timerManager.SetFrameInterval(this, intervalFrames, timerCB, targetRepeatTimes, firstDelayFrames);
+    }
+
+    public void OnTimerAttacherDestroyed()
+    {
+        Global.Instance.timerManager.RemoveTimersByAttacher(this);
     }
     #endregion
 }

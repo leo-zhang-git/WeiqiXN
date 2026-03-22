@@ -74,4 +74,9 @@ public class EventManager : BaseModule
             handlerSet.Remove(handler);
         }
     }
+
+    public void UnregisterEventsByReceiver(IEventReceiver eventReceiver)
+    {
+
+    }
 }

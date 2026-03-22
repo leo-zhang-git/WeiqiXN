@@ -17,6 +17,7 @@ public class Global
 
     public TimerManager timerManager;
     public EventManager eventManager;
+    public UIManager uiManager;
 
     public void Start()
     {
@@ -25,6 +26,9 @@ public class Global
 
         eventManager = new EventManager();
         moduleList.Add(eventManager);
+
+        uiManager = new UIManager();
+        moduleList.Add(uiManager);
     }
 
     public void Update()
