@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
-[SerializeField]
+[Serializable]
 public class UIBinderNode
 {
     public string name;
@@ -14,7 +16,8 @@ public class UIBinderNode
     }
 }
 
-public class UIBinderGenerator : MonoBehaviour
+public class UIComponentBinder : MonoBehaviour
 {
     public List<UIBinderNode> nodeList = new List<UIBinderNode>();
+    public bool isNodesExpand;
 }

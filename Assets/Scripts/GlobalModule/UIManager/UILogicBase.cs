@@ -4,10 +4,11 @@ using System.Collections.Generic;
 public abstract class UILogicBase : ITimerAttacher, IEventReceiver
 {
     public abstract UIBinderBase binder { get; }
+    public bool isLoaded;
 
     protected virtual void OnLoaded()
     {
-
+        isLoaded = true;
     }
 
     protected virtual void OnOpen()

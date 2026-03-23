@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-[CustomEditor(typeof(UIBinderGenerator))]
+[CustomEditor(typeof(UIComponentBinder))]
 public class UIBinderGenerator_Inspector : Editor
 {
     private static Type[] ValidComponentTypes = new[]
@@ -23,7 +23,7 @@ public class UIBinderGenerator_Inspector : Editor
         typeof(RawImage),
     };
 
-    private UIBinderGenerator instance;
+    private UIComponentBinder instance;
     private bool isEditable;
     private string generatePath = "test";
 
@@ -32,7 +32,7 @@ public class UIBinderGenerator_Inspector : Editor
 
     private void OnEnable()
     {
-        instance = target as UIBinderGenerator;
+        instance = target as UIComponentBinder;
         isEditable = CheckBinderEditAble();
     }
 
@@ -77,15 +77,48 @@ public class UIBinderGenerator_Inspector : Editor
             filterGO = null;
         }
 
-        using (new EditorGUI.DisabledScope(!isEditable)) {
-            using (new EditorGUI.IndentLevelScope()) {
-                for (int index = 0; index < instance.nodeList.Count; index++) {
-                    using (new EditorGUILayout.HorizontalScope()) {
-                        DrawUIBinderNode(index, instance.nodeList[index]);
+        EditorGUILayout.Space();
+        if (instance.isNodesExpand = EditorGUILayout.Foldout(instance.isNodesExpand, $"Components({instance.nodeList.Count})")) {
+            using (new EditorGUI.DisabledScope(!isEditable)) {
+                using (new EditorGUI.IndentLevelScope()) {
+                    for (int index = 0; index < instance.nodeList.Count; index++) {
+                        using (new EditorGUILayout.HorizontalScope()) {
+                            DrawUIBinderNode(index, instance.nodeList[index]);
+                        }
+                    }
+                }
+
+                using (var check = new EditorGUI.ChangeCheckScope()) {
+                    EditorGUILayout.Separator();
+                    EditorGUILayout.ObjectField(null, typeof(GameObject), true, GUILayout.Height(80));
+
+                    if (check.changed) {
+                        var selectionGOS = DragAndDrop.objectReferences;
+                        if (selectionGOS.Any(obj => PrefabUtility.IsPartOfPrefabAsset(obj))) {
+                            EditorUtility.DisplayDialog("UI绑定错误", "不允许绑定Preafab Asset", "确定");
+                        } else if (selectionGOS.Length > 0) {
+                            Undo.RecordObject(target, "BIND_CHANGE");
+                            foreach (var obj in selectionGOS) {
+                                Object nodeValue;
+                                if (obj != instance.gameObject && AutoFetchBindComponent(obj as GameObject, out var comp)) {
+                                    nodeValue = comp;
+                                } else {
+                                    nodeValue = obj;
+                                }
+
+                                instance.nodeList.Add(new UIBinderNode(
+                                    char.ToLower(obj.name[0]) + obj.name.Substring(1), // 首字母小写 
+                                    nodeValue
+                                ));
+                            }
+                            EditorUtility.SetDirty(target);
+                            serializedObject.ApplyModifiedProperties();
+                        }
                     }
                 }
             }
         }
+        serializedObject.ApplyModifiedProperties();
     }
 
     private bool CheckBinderEditAble()
@@ -141,23 +174,43 @@ public class UIBinderGenerator_Inspector : Editor
 
     private void DrawUIBinderNode(int index, UIBinderNode node)
     {
-        // TODO override color
-        GUILayout.Label(index.ToString(), GUILayout.Width(index.ToString().Length * 10));
-        GUILayout.Space(-index.ToString().Length * 5);
-        node.name = EditorGUILayout.TextField(node.name, GUILayout.Width(150));
-
         using (var check = new EditorGUI.ChangeCheckScope()) {
-            GameObject bindGO = EditorGUILayout.ObjectField(node.value, typeof(GameObject), true, GUILayout.MinWidth(50), GUILayout.ExpandWidth(true)) as GameObject;
+            // TODO override color
+            string nodeName;
+            using (new EditorColorScope(GUI.color)) {
+                GUILayout.Label(index.ToString(), GUILayout.Width(index.ToString().Length * 11));
+                GUILayout.Space(-index.ToString().Length * 5);
+                nodeName = EditorGUILayout.TextField(node.name, GUILayout.Width(125));
+            }
 
             if (check.changed) {
-                if (PrefabUtility.IsPartOfPrefabAsset(bindGO)) {
-                    Logger.LogError("Prefab is not allowed to set in ui binder generator");
+                Undo.RecordObject(target, "BIND_CHANGE");
+                node.name = nodeName;
+                EditorUtility.SetDirty(target);
+                serializedObject.ApplyModifiedProperties();
+            }
+        }
+
+        using (var check = new EditorGUI.ChangeCheckScope()) {
+            // TODO override color
+            Object nodeValue;
+            using (new EditorColorScope(GUI.color)) {
+                nodeValue = EditorGUILayout.ObjectField(node.value, typeof(Object), true, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true)) as Object;
+            }
+
+            if (check.changed) {
+                if (PrefabUtility.IsPartOfPrefabAsset(nodeValue)) {
+                    EditorUtility.DisplayDialog("UI绑定错误", "不允许绑定Preafab Asset", "确定");
                 } else {
                     Undo.RecordObject(target, "BIND_CHANGE");
-                    if (bindGO != instance.gameObject && AutoFetchBindComponent(bindGO, out var bindComp)) {
-                        node.value = bindComp;
+                    if (nodeValue is GameObject bindGO) {
+                        if (nodeValue != instance.gameObject && AutoFetchBindComponent(bindGO, out var bindComp)) {
+                            node.value = bindComp;
+                        } else {
+                            node.value = nodeValue;
+                        }
                     } else {
-                        node.value = bindGO;
+                        node.value = nodeValue;
                     }
 
                     EditorUtility.SetDirty(target);
