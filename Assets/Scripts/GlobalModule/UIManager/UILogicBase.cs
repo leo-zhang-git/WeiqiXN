@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 public abstract class UILogicBase : ITimerAttacher, IEventReceiver
 {
+    public abstract UIBinderBase binder { get; }
+
     protected virtual void OnLoaded()
     {
 
