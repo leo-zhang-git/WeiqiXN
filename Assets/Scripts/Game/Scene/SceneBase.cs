@@ -54,8 +54,10 @@ public class SceneBase : ITimerAttacher, IEventReceiver
     #endregion
 
     #region Event
-    private List<ISystemEventHandler> registeredSystemEventHandlers = new List<ISystemEventHandler>();
-    private List<IEntityEventHandler> registeredEntityEventHandlers = new List<IEntityEventHandler>();
+    private List<ISystemEventHandler> _registeredSystemEventHandlers = new List<ISystemEventHandler>();
+    private List<IEntityEventHandler> _registeredEntityEventHandlers = new List<IEntityEventHandler>();
+    public List<ISystemEventHandler> registeredSystemEventHandlers => _registeredSystemEventHandlers;
+    public List<IEntityEventHandler> registeredEntityEventHandlers => _registeredEntityEventHandlers;
 
     public void EmitSystemEvent<TEvent>(TEvent systemEvent) where TEvent : SystemEventBase
     {
@@ -64,14 +66,12 @@ public class SceneBase : ITimerAttacher, IEventReceiver
 
     public void RegisterSystemEvent<TEvent>(Action<TEvent> eventCB) where TEvent : SystemEventBase
     {
-        ISystemEventHandler handler = Global.Instance.eventManager.RegisterSystemEvent(this, eventCB);
-        registeredSystemEventHandlers.Add(handler);
+        Global.Instance.eventManager.RegisterSystemEvent(this, eventCB);
     }
 
     public void UnregisterSystemEvent(ISystemEventHandler handler)
     {
         Global.Instance.eventManager.UnregisterSystemEvent(handler);
-        registeredSystemEventHandlers.Remove(handler);
     }
 
     public void EmitEntityEvent<TEntity, TEvent>(TEntity entity, TEvent entityEvent) where TEntity : EntityBase where TEvent : EntityEventBase
@@ -81,13 +81,12 @@ public class SceneBase : ITimerAttacher, IEventReceiver
 
     public void RegisterEntityEvent<TEntity, TEvent>(Action<TEntity, TEvent> eventCB) where TEntity : EntityBase where TEvent : EntityEventBase
     {
-        IEntityEventHandler handler = Global.Instance.eventManager.RegisterEntityEvent(this, eventCB);
+        Global.Instance.eventManager.RegisterEntityEvent(this, eventCB);
     }
 
     public void UnregisterEntityEvent(IEntityEventHandler handler)
     {
         Global.Instance.eventManager.UnregisterEntityEvent(handler);
-        registeredEntityEventHandlers.Remove(handler);
     }
 
     public void OnEventReceiverDestroyed()

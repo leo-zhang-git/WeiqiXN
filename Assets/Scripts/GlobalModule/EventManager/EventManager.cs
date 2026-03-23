@@ -34,6 +34,7 @@ public class EventManager : BaseModule
             handlerList = new List<ISystemEventHandler>();
             systemEventHandlers.Add(typeof(TEvent).Name, handlerList);
         }
+        receiver.registeredSystemEventHandlers.Add(handler);
         handlerList.Add(handler);
         return handler;
     }
@@ -41,6 +42,7 @@ public class EventManager : BaseModule
     public void UnregisterSystemEvent(ISystemEventHandler handler)
     {
         if (systemEventHandlers.TryGetValue(handler.eventType, out var handlerSet)) {
+            handler.receiver.registeredSystemEventHandlers.Remove(handler);
             handlerSet.Remove(handler);
         }
     }
@@ -64,6 +66,7 @@ public class EventManager : BaseModule
             handlerList = new List<IEntityEventHandler>();
             entityEventHandlers.Add(typeof(TEvent).Name, handlerList);
         }
+        receiver.registeredEntityEventHandlers.Add(handler);
         handlerList.Add(handler);
         return handler;
     }
@@ -71,12 +74,25 @@ public class EventManager : BaseModule
     public void UnregisterEntityEvent(IEntityEventHandler handler)
     {
         if (entityEventHandlers.TryGetValue(handler.eventType, out var handlerSet)) {
+            handler.receiver.registeredEntityEventHandlers.Remove(handler);
             handlerSet.Remove(handler);
         }
     }
 
     public void UnregisterEventsByReceiver(IEventReceiver eventReceiver)
     {
+        foreach (var handler in eventReceiver.registeredSystemEventHandlers) {
+            if (systemEventHandlers.TryGetValue(handler.eventType, out var handlerSet)) {
+                handlerSet.Remove(handler);
+            }
+        }
+        eventReceiver.registeredSystemEventHandlers.Clear();
 
+        foreach (var handler in eventReceiver.registeredEntityEventHandlers) {
+            if (entityEventHandlers.TryGetValue(handler.eventType, out var handlerSet)) {
+                handlerSet.Remove(handler);
+            }
+        }
+        eventReceiver.registeredEntityEventHandlers.Clear();
     }
 }

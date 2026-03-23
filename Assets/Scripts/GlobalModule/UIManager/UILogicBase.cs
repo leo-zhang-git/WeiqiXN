@@ -60,6 +60,11 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver
     #endregion
 
     #region Event
+    private List<ISystemEventHandler> _registeredSystemEventHandlers = new List<ISystemEventHandler>();
+    private List<IEntityEventHandler> _registeredEntityEventHandlers = new List<IEntityEventHandler>();
+    public List<ISystemEventHandler> registeredSystemEventHandlers => _registeredSystemEventHandlers;
+    public List<IEntityEventHandler> registeredEntityEventHandlers => _registeredEntityEventHandlers;
+
     public void OnEventReceiverDestroyed()
     {
         Global.Instance.eventManager.UnregisterEventsByReceiver(this);

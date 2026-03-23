@@ -36,6 +36,7 @@ public class TimerManager : BaseModule
         foreach (var timerId in pendingDeleteTimerIds) {
             timerDict.Remove(timerId);
         }
+        pendingDeleteTimerIds.Clear();
     }
 
     public override void OnDestroy()
