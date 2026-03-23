@@ -50,6 +50,7 @@ public class TimerManager : BaseModule
         SecondTimeoutTimer timer = new SecondTimeoutTimer(timerAttacher, timerId, timerCB, targetSeconds);
 
         if (timerDict.TryAdd(timerId, timer)) {
+            timerAttacher.attachedTimerIds.Add(timerId);
             timer.OnTimerStart();
         } else {
             Logger.LogError("Carete second timeout timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
@@ -62,6 +63,7 @@ public class TimerManager : BaseModule
         SecondIntervalTimer timer = new SecondIntervalTimer(timerAttacher, timerId, timerCB, intervalSeconds, targetRepeatTimes, firstDelaySeconds);
 
         if (timerDict.TryAdd(timerId, timer)) {
+            timerAttacher.attachedTimerIds.Add(timerId);
             timer.OnTimerStart();
         } else {
             Logger.LogError("Carete second interval timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
@@ -74,6 +76,7 @@ public class TimerManager : BaseModule
         FrameTimeoutTimer timer = new FrameTimeoutTimer(timerAttacher, timerId, timerCB, targetFrames);
 
         if (timerDict.TryAdd(timerId, timer)) {
+            timerAttacher.attachedTimerIds.Add(timerId);
             timer.OnTimerStart();
         } else {
             Logger.LogError("Carete frame timeout timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
@@ -86,6 +89,7 @@ public class TimerManager : BaseModule
         SecondIntervalTimer timer = new SecondIntervalTimer(timerAttacher, timerId, timerCB, intervalFrames, targetRepeatTimes, firstDelayFrames);
 
         if (timerDict.TryAdd(timerId, timer)) {
+            timerAttacher.attachedTimerIds.Add(timerId);
             timer.OnTimerStart();
         } else {
             Logger.LogError("Carete frame timeout timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
@@ -96,23 +100,20 @@ public class TimerManager : BaseModule
     {
         if (timerDict.TryGetValue(timerId, out TimerBase timer)) {
             timer.isStopped = true;
+            timer.owner.attachedTimerIds.Remove(timerId);
             pendingDeleteTimerIds.Add(timerId);
         }
     }
 
     public void RemoveTimersByAttacher(ITimerAttacher timerAttacher)
     {
-        List<string> _pendingDeleteTimerIds = new List<string>();
-        foreach (var timerKV in timerDict) {
-            TimerBase timer = timerKV.Value;
-            if (timer.owner.Equals(timerAttacher)) {
-                _pendingDeleteTimerIds.Add(timer.timerId);
+        foreach (string timerId in timerAttacher.attachedTimerIds) {
+            if (timerDict.TryGetValue(timerId, out var timer)) {
+                timer.isStopped = true;
+                pendingDeleteTimerIds.Add(timerId);
             }
+            timerAttacher.attachedTimerIds.Clear();
         }
-        foreach (string timerId in _pendingDeleteTimerIds) {
-            RemoveTimer(timerId);
-        }
-        _pendingDeleteTimerIds.Clear();
     }
 
     private string GenerateTimerId(TimerType type)

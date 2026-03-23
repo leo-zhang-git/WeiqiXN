@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 
 public interface ITimerAttacher
 {
+    List<string> attachedTimerIds { get; }
+
     public void SetSecondTimeout(float targetSeconds, Action timerCB);
 
     public void SetSecondInterval(float intervalSeconds, Action timerCB, int targetRepeatTimes = -1, float firstDelaySeconds = 0);

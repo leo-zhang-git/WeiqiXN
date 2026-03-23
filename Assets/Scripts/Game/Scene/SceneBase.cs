@@ -24,6 +24,9 @@ public class SceneBase : ITimerAttacher, IEventReceiver
     }
 
     #region Timer
+    private List<string> _attachedTimerIds = new List<string>();
+    public List<string> attachedTimerIds => _attachedTimerIds;
+
     public void SetSecondTimeout(float targetSeconds, Action timerCB)
     {
         Global.Instance.timerManager.SetSecondTimeout(this, targetSeconds, timerCB);

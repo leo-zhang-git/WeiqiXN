@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 public abstract class UILogicBase : ITimerAttacher, IEventReceiver
 {
@@ -29,24 +30,27 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver
     }
 
     #region Timer
+    private List<string> _attachedTimerIds = new List<string>();
+    public List<string> attachedTimerIds => _attachedTimerIds;
+
     public void SetSecondTimeout(float targetSeconds, Action timerCB)
     {
-        throw new NotImplementedException();
+        Global.Instance.timerManager.SetSecondTimeout(this, targetSeconds, timerCB);
     }
 
     public void SetSecondInterval(float intervalSeconds, Action timerCB, int targetRepeatTimes = -1, float firstDelaySeconds = 0)
     {
-        throw new NotImplementedException();
+        Global.Instance.timerManager.SetSecondInterval(this, intervalSeconds, timerCB, targetRepeatTimes, firstDelaySeconds);
     }
 
     public void SetFrameTimeout(int targetFrames, Action timerCB)
     {
-        throw new NotImplementedException();
+        Global.Instance.timerManager.SetFrameTimeout(this, targetFrames, timerCB);
     }
 
     public void SetFrameInterval(int intervalFrames, Action timerCB, int targetRepeatTimes = -1, int firstDelayFrames = 0)
     {
-        throw new NotImplementedException();
+        Global.Instance.timerManager.SetFrameInterval(this, intervalFrames, timerCB, targetRepeatTimes, firstDelayFrames);
     }
 
     public void OnTimerAttacherDestroyed()
