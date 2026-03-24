@@ -27,6 +27,9 @@ public class UIBinderGenerator_Inspector : Editor
     private bool isEditable;
     private string generatePath = "test";
 
+    private Dictionary<string, int> nameBindDict = new Dictionary<string, int>();
+    private Dictionary<Object, int> objectBindDict = new Dictionary<Object, int>();
+
     private string filterName;
     private GameObject filterGO;
 
@@ -38,11 +41,34 @@ public class UIBinderGenerator_Inspector : Editor
 
     public override void OnInspectorGUI()
     {
+        nameBindDict.Clear();
+        objectBindDict.Clear();
+        foreach (var node in instance.nodeList) {
+            if (nameBindDict.TryGetValue(node.name, out int nameBindTimes)) {
+                nameBindDict[node.name] = nameBindTimes + 1;
+            } else {
+                nameBindDict.Add(node.name, 1);
+            }
+
+            if (objectBindDict.TryGetValue(node.value, out int objectBindTimes)) {
+                objectBindDict[node.value] = objectBindTimes + 1;
+            } else {
+                objectBindDict.Add(node.value, 1);
+            }
+        }
+
         if (isEditable) {
             using (new EditorGUILayout.HorizontalScope()) {
                 bool isExists = File.Exists(generatePath);
                 EditorGUILayout.TextArea($"※生成路径:({(isExists ? "已生成" : "未生成")}) \n{generatePath}", EditorStyles.wordWrappedLabel);
                 if (GUILayout.Button("生成类文件", GUILayout.Width(100))) {
+                    foreach (var kvp in nameBindDict) {
+                        if (kvp.Value > 1) {
+                            EditorUtility.DisplayDialog("导出错误", "存在重复名字，检查UI绑定脚本！", "确定");
+                            return;
+                        }
+                    }
+
                     bool doExport = true;
                     var prefabStage = PrefabStageUtility.GetPrefabStage(instance.gameObject);
                     if (prefabStage && prefabStage.scene.isDirty) {
@@ -55,11 +81,8 @@ public class UIBinderGenerator_Inspector : Editor
                     if (doExport) {
                         // TODO
 
-                        EditorApplication.delayCall += () =>
-                        {
-                            EditorUtility.DisplayDialog("UI绑定脚本生成", $"成功生成UI绑定文件：\n{generatePath}",
-                                "确定");
-                        };
+                        EditorUtility.DisplayDialog("UI绑定脚本生成", $"成功生成UI绑定文件：\n{generatePath}",
+                            "确定");
                     }
                 }
             }
@@ -106,10 +129,8 @@ public class UIBinderGenerator_Inspector : Editor
                                     nodeValue = obj;
                                 }
 
-                                instance.nodeList.Add(new UIBinderNode(
-                                    char.ToLower(obj.name[0]) + obj.name.Substring(1), // 首字母小写 
-                                    nodeValue
-                                ));
+                                string nodeName = char.ToLower(obj.name[0]) + obj.name.Substring(1); // 首字母小写 
+                                instance.nodeList.Add(new UIBinderNode(nodeName, nodeValue));
                             }
                             EditorUtility.SetDirty(target);
                             serializedObject.ApplyModifiedProperties();
@@ -174,10 +195,11 @@ public class UIBinderGenerator_Inspector : Editor
 
     private void DrawUIBinderNode(int index, UIBinderNode node)
     {
+        Color overrideColor = objectBindDict.GetValueOrDefault(node.value, 0) > 1 ? Color.yellow : GUI.color;
+        Color nameColor = nameBindDict.GetValueOrDefault(node.name, 0) > 1 ? Color.red : overrideColor;
         using (var check = new EditorGUI.ChangeCheckScope()) {
-            // TODO override color
             string nodeName;
-            using (new EditorColorScope(GUI.color)) {
+            using (new EditorColorScope(nameColor)) {
                 GUILayout.Label(index.ToString(), GUILayout.Width(index.ToString().Length * 11));
                 GUILayout.Space(-index.ToString().Length * 5);
                 nodeName = EditorGUILayout.TextField(node.name, GUILayout.Width(125));
@@ -191,8 +213,8 @@ public class UIBinderGenerator_Inspector : Editor
             }
         }
 
+        Color valueColor = !node.value || objectBindDict.GetValueOrDefault(node.value, 0) > 1 ? Color.red : overrideColor;
         using (var check = new EditorGUI.ChangeCheckScope()) {
-            // TODO override color
             Object nodeValue;
             using (new EditorColorScope(GUI.color)) {
                 nodeValue = EditorGUILayout.ObjectField(node.value, typeof(Object), true, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true)) as Object;
@@ -217,38 +239,39 @@ public class UIBinderGenerator_Inspector : Editor
                     serializedObject.ApplyModifiedProperties();
                 }
             }
-
-            if (EditorGUILayout.DropdownButton(GUIContent.none, FocusType.Passive, GUILayout.Width(20))) {
-                GenericMenu menu = new GenericMenu();
-
-                var validComps = FetchValidComponents(node.value);
-                GenericMenu.MenuFunction2 onSelected = (selectedObj) =>
-                {
-                    Undo.RecordObject(target, "BIND_Change");
-                    node.value = selectedObj as Object;
-
-                    EditorUtility.SetDirty(target);
-                    serializedObject.ApplyModifiedProperties();
-                };
-
-                Dictionary<string, int> duplicatedCompDict = new Dictionary<string, int>();
-                foreach (Object comp in validComps) {
-                    string objName = comp.GetType().Name;
-
-                    int count = duplicatedCompDict.GetValueOrDefault(objName, 0) + 1;
-                    duplicatedCompDict[objName] = count;
-
-                    string displayName = count > 1 ? $"{objName}({count - 1})" : objName;
-                    menu.AddItem(new GUIContent(displayName), false, onSelected, comp);
-                }
-                menu.ShowAsContext();
-            }
-
-            if (GUILayout.Button("删除", GUILayout.Width(80))) {
-                Undo.RecordObject(target, "BIND_CHANGE");
-                instance.nodeList.RemoveAt(index);
-                EditorUtility.SetDirty(target);
-            }
         }
+
+        if (EditorGUILayout.DropdownButton(GUIContent.none, FocusType.Passive, GUILayout.Width(20))) {
+            GenericMenu menu = new GenericMenu();
+
+            var validComps = FetchValidComponents(node.value);
+            GenericMenu.MenuFunction2 onSelected = (selectedObj) =>
+            {
+                Undo.RecordObject(target, "BIND_Change");
+                node.value = selectedObj as Object;
+
+                EditorUtility.SetDirty(target);
+                serializedObject.ApplyModifiedProperties();
+            };
+
+            Dictionary<string, int> duplicatedCompDict = new Dictionary<string, int>();
+            foreach (Object comp in validComps) {
+                string objName = comp.GetType().Name;
+
+                int count = duplicatedCompDict.GetValueOrDefault(objName, 0) + 1;
+                duplicatedCompDict[objName] = count;
+
+                string displayName = count > 1 ? $"{objName}({count - 1})" : objName;
+                menu.AddItem(new GUIContent(displayName), false, onSelected, comp);
+            }
+            menu.ShowAsContext();
+        }
+
+        if (GUILayout.Button("删除", GUILayout.Width(80))) {
+            Undo.RecordObject(target, "BIND_CHANGE");
+            instance.nodeList.RemoveAt(index);
+            EditorUtility.SetDirty(target);
+        }
+
     }
 }

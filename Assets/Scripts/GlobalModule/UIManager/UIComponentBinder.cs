@@ -19,5 +19,5 @@ public class UIBinderNode
 public class UIComponentBinder : MonoBehaviour
 {
     public List<UIBinderNode> nodeList = new List<UIBinderNode>();
-    public bool isNodesExpand;
+    public bool isNodesExpand = true;
 }
