@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text;
+using UnityEditor;
 using UnityEngine;
 
 public static class UIBinderGenerator
@@ -29,5 +30,7 @@ public static class UIBinderGenerator
             writer.Write(generator.OutputCode());
             writer.Flush();
         }
+
+        AssetDatabase.Refresh();
     }
 }
