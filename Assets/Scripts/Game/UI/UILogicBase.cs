@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public abstract class UILogicBase : ITimerAttacher, IEventReceiver
 {
-    public abstract UIBinderBase binder { get; }
+    public abstract UILogicBinder binder { get; }
     public bool isLoaded;
 
     protected virtual void OnLoaded()

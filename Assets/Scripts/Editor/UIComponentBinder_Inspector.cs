@@ -10,7 +10,7 @@ using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 [CustomEditor(typeof(UIComponentBinder))]
-public class UIBinderGenerator_Inspector : Editor
+public class UIComponentBinder_Inspector : Editor
 {
     private static Type[] ValidComponentTypes = new[]
     {
@@ -21,11 +21,12 @@ public class UIBinderGenerator_Inspector : Editor
         typeof(Text),
         typeof(Image),
         typeof(RawImage),
+        typeof(RectTransform),
     };
 
     private UIComponentBinder instance;
     private bool isEditable;
-    private string generatePath = "test";
+    private UIBinderInfo binderInfo;
 
     private Dictionary<string, int> nameBindDict = new Dictionary<string, int>();
     private Dictionary<Object, int> objectBindDict = new Dictionary<Object, int>();
@@ -37,6 +38,7 @@ public class UIBinderGenerator_Inspector : Editor
     {
         instance = target as UIComponentBinder;
         isEditable = CheckBinderEditAble();
+        binderInfo = new UIBinderInfo(instance);
     }
 
     public override void OnInspectorGUI()
@@ -59,8 +61,8 @@ public class UIBinderGenerator_Inspector : Editor
 
         if (isEditable) {
             using (new EditorGUILayout.HorizontalScope()) {
-                bool isExists = File.Exists(generatePath);
-                EditorGUILayout.TextArea($"※生成路径:({(isExists ? "已生成" : "未生成")}) \n{generatePath}", EditorStyles.wordWrappedLabel);
+                bool isExists = File.Exists(binderInfo.exportPath);
+                EditorGUILayout.TextArea($"※生成路径:({(isExists ? "已生成" : "未生成")}) \n{binderInfo.exportPath}", EditorStyles.wordWrappedLabel);
                 if (GUILayout.Button("生成类文件", GUILayout.Width(100))) {
                     foreach (var kvp in nameBindDict) {
                         if (kvp.Value > 1) {
@@ -79,9 +81,9 @@ public class UIBinderGenerator_Inspector : Editor
                     }
 
                     if (doExport) {
-                        // TODO
+                        UIBinderGenerator.ExportUIBinder(binderInfo);
 
-                        EditorUtility.DisplayDialog("UI绑定脚本生成", $"成功生成UI绑定文件：\n{generatePath}",
+                        EditorUtility.DisplayDialog("UI绑定脚本生成", $"成功生成UI绑定文件：\n{binderInfo.exportPath}",
                             "确定");
                     }
                 }
