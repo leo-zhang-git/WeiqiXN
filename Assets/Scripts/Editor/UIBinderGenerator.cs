@@ -1,11 +1,34 @@
+using System;
 using System.IO;
 using System.Text;
 using UnityEditor;
+using UnityEditor.Callbacks;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 public static class UIBinderGenerator
 {
+    [Serializable]
+    private class PendingBinderAttachInfo
+    {
+        // 新生成的 binder 类名，主要用于日志输出，便于定位导出或编译问题。
+        public string binderClassName;
+        // 导出后的 .cs 脚本在 Unity 工程中的相对路径，例如：
+        // Assets/Scripts/.../XXX.cs。
+        // 脚本编译完成后，需要通过这个路径重新拿到 MonoScript，
+        // 再解析出最终可挂接的运行时 Type。
+        public string generatedAssetPath;
+        // 导出时 binder 根节点的 GlobalObjectId。
+        // 如果脚本域重载后 prefab stage 仍然打开，就可以通过它重新找到
+        // 当前正在编辑的对象，并直接把新组件挂到这个对象上。
+        public string binderGlobalObjectId;
+        // prefab 资源路径。
+        // 如果域重载后无法直接找回当前编辑对象，就退回到修改 prefab asset 本体。
+        public string prefabAssetPath;
+    }
+
     public readonly static string UI_BINDER_EXPORT_PATH = Path.Combine(Application.dataPath, "Scripts", "Game", "UI", "BinderExport");
+    private const string PENDING_ATTACH_KEY = "UIBinderGenerator.PendingAttach";
 
     public static void ExportUIBinder(UIBinderInfo binderInfo)
     {
@@ -31,6 +54,198 @@ public static class UIBinderGenerator
             writer.Flush();
         }
 
+        // 这里不能在 Refresh 之后立刻 AddComponent：
+        // 1. Unity 还需要导入并编译刚生成的脚本；
+        // 2. 编译完成前，这个新类还没有可用的运行时 Type；
+        // 3. 域重载后静态状态会丢失，所以先把待挂接信息写入 SessionState，
+        //    等脚本重载完成后再恢复后续流程。
+        CachePendingBinderAttach(binderInfo);
         AssetDatabase.Refresh();
+    }
+
+    [InitializeOnLoadMethod]
+    private static void InitializeOnLoad()
+    {
+        // 编辑器启动或脚本域重载后会执行这里。
+        // 如果上一次导出已经生成了脚本，但还没来得及完成组件挂接，
+        // 就在这里继续恢复，不需要用户再次手动点击导出。
+        if (HasPendingBinderAttach()) {
+            EditorApplication.delayCall += TryAttachPendingBinderComponent;
+        }
+    }
+
+    [DidReloadScripts]
+    private static void OnScriptsReloaded()
+    {
+        // 正常流程下，导出脚本后会触发 AssetDatabase.Refresh，从而触发重新编译。
+        // 编译完成并经历脚本重载后，这里就是自动挂接组件的主入口。
+        if (HasPendingBinderAttach()) {
+            EditorApplication.delayCall += TryAttachPendingBinderComponent;
+        }
+    }
+
+    private static void CachePendingBinderAttach(UIBinderInfo binderInfo)
+    {
+        // 当前 inspector 只允许在 prefab 编辑模式下的根节点执行导出，
+        // 所以这里记录 prefab 的资源路径，就足够在后续把修改准确回写到对应 prefab。
+        var prefabStage = PrefabStageUtility.GetPrefabStage(binderInfo.binder.gameObject);
+        var prefabAssetPath = prefabStage != null
+            ? prefabStage.assetPath
+            : PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(binderInfo.binder.gameObject);
+        var attachInfo = new PendingBinderAttachInfo()
+        {
+            binderClassName = binderInfo.binderClsName,
+            generatedAssetPath = GetAssetPath(binderInfo.exportPath),
+            binderGlobalObjectId = GlobalObjectId.GetGlobalObjectIdSlow(binderInfo.binder.gameObject).ToString(),
+            prefabAssetPath = prefabAssetPath,
+        };
+
+        SessionState.SetString(PENDING_ATTACH_KEY, JsonUtility.ToJson(attachInfo));
+    }
+
+    private static bool HasPendingBinderAttach()
+    {
+        return !string.IsNullOrEmpty(SessionState.GetString(PENDING_ATTACH_KEY, string.Empty));
+    }
+
+    private static bool TryGetPendingBinderAttach(out PendingBinderAttachInfo attachInfo)
+    {
+        attachInfo = null;
+
+        var rawInfo = SessionState.GetString(PENDING_ATTACH_KEY, string.Empty);
+        if (string.IsNullOrEmpty(rawInfo)) {
+            return false;
+        }
+
+        attachInfo = JsonUtility.FromJson<PendingBinderAttachInfo>(rawInfo);
+        return attachInfo != null;
+    }
+
+    private static void ClearPendingBinderAttach()
+    {
+        SessionState.EraseString(PENDING_ATTACH_KEY);
+    }
+
+    private static void TryAttachPendingBinderComponent()
+    {
+        if (!TryGetPendingBinderAttach(out var attachInfo)) {
+            return;
+        }
+
+        // delayCall 触发时，Unity 仍有可能处在导入或编译阶段。
+        // 这种情况下 MonoScript.GetClass() 可能还拿不到新类，因此继续延后，
+        // 等编辑器空闲后再重试。
+        if (EditorApplication.isCompiling || EditorApplication.isUpdating) {
+            EditorApplication.delayCall += TryAttachPendingBinderComponent;
+            return;
+        }
+
+        var binderScript = AssetDatabase.LoadAssetAtPath<MonoScript>(attachInfo.generatedAssetPath);
+        var binderType = binderScript != null ? binderScript.GetClass() : null;
+        if (binderType == null) {
+            // 这里不要清掉 pending 状态。
+            // 常见原因包括：Unity 还没编译完、项目内还有其他脚本编译错误、
+            // 或者新脚本尚未完成导入。保留状态后，后续再次域重载时还能继续自动恢复。
+            Debug.LogWarning($"UIBinder attach pending: generated binder type is not ready yet. Class={attachInfo.binderClassName}, Script={attachInfo.generatedAssetPath}");
+            return;
+        }
+
+        if (!typeof(Component).IsAssignableFrom(binderType)) {
+            // 生成出来的 binder 理论上应继承自 UILogicBinder，因此一定是 Component。
+            // 如果不是，说明生成内容或项目状态异常，继续重试只会无限循环。
+            Debug.LogError($"UIBinder attach failed: generated type is not a Component. Type={binderType.FullName}");
+            ClearPendingBinderAttach();
+            return;
+        }
+
+        if (!TryAttachBinderComponent(attachInfo, binderType)) {
+            return;
+        }
+
+        ClearPendingBinderAttach();
+    }
+
+    private static bool TryAttachBinderComponent(PendingBinderAttachInfo attachInfo, Type binderType)
+    {
+        if (TryResolveBinderGameObject(attachInfo, out var binderGameObject)) {
+            // 优先修改当前已经加载出来的 prefab 编辑对象。
+            // 这样在 prefab stage 打开的情况下，用户能立刻看到新增组件。
+            return EnsureBinderComponent(binderGameObject, binderType, attachInfo.prefabAssetPath);
+        }
+
+        if (string.IsNullOrEmpty(attachInfo.prefabAssetPath)) {
+            Debug.LogError($"UIBinder attach failed: prefab path is empty. Class={attachInfo.binderClassName}");
+            ClearPendingBinderAttach();
+            return false;
+        }
+
+        // 如果域重载后找不到当前编辑对象，就退回到直接加载 prefab asset 内容进行修改。
+        // 这样即使 prefab stage 被关闭或重新创建，导出后的组件挂接仍然可靠。
+        var prefabRoot = PrefabUtility.LoadPrefabContents(attachInfo.prefabAssetPath);
+        try {
+            return EnsureBinderComponent(prefabRoot, binderType, attachInfo.prefabAssetPath);
+        } finally {
+            PrefabUtility.UnloadPrefabContents(prefabRoot);
+        }
+    }
+
+    private static bool TryResolveBinderGameObject(PendingBinderAttachInfo attachInfo, out GameObject binderGameObject)
+    {
+        binderGameObject = null;
+        if (string.IsNullOrEmpty(attachInfo.binderGlobalObjectId)) {
+            return false;
+        }
+
+        if (!GlobalObjectId.TryParse(attachInfo.binderGlobalObjectId, out var globalObjectId)) {
+            return false;
+        }
+
+        binderGameObject = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(globalObjectId) as GameObject;
+        // 这里只接受非 persistent 对象，也就是编辑器里当前真实加载出来的实例对象。
+        // 如果解析到的是 prefab asset 本体，就统一走 LoadPrefabContents 分支，
+        // 避免混用两套修改路径。
+        return binderGameObject != null && !EditorUtility.IsPersistent(binderGameObject);
+    }
+
+    private static bool EnsureBinderComponent(GameObject binderGameObject, Type binderType, string prefabAssetPath)
+    {
+        if (string.IsNullOrEmpty(prefabAssetPath)) {
+            Debug.LogError($"UIBinder attach failed: prefab path is empty. Binder={binderGameObject.name}, Type={binderType.FullName}");
+            ClearPendingBinderAttach();
+            return false;
+        }
+
+        if (binderGameObject.GetComponent(binderType) != null) {
+            // 已存在同类型组件时，直接视为成功，避免重复导出后重复挂接 binder。
+            return true;
+        }
+
+        // 这里直接挂最终生成的 binder 类型。
+        // 由于生成类继承自 UILogicBinder，而 UILogicBinder 已通过
+        // RequireComponent 约束了 UIComponentBinder，因此依赖关系会由 Unity 自动保证。
+        binderGameObject.AddComponent(binderType);
+        EditorUtility.SetDirty(binderGameObject);
+        // 无论当前修改的是 prefab stage 中的对象，还是 LoadPrefabContents
+        // 创建出的临时对象，最终都统一回写到同一个 prefab asset 路径，
+        // 保证磁盘上的结果一致。
+        PrefabUtility.SaveAsPrefabAsset(binderGameObject, prefabAssetPath);
+        AssetDatabase.SaveAssets();
+        return true;
+    }
+
+    private static string GetAssetPath(string fullPath)
+    {
+        // 把磁盘绝对路径转换成 Unity 资产路径，供 AssetDatabase.LoadAssetAtPath 使用。
+        // 例如：
+        // F:/Project/.../Assets/Scripts/Game/UI/BinderExport/Widget/Test.cs
+        // ->
+        // Assets/Scripts/Game/UI/BinderExport/Widget/Test.cs
+        var normalizedFullPath = Path.GetFullPath(fullPath).Replace('\\', '/');
+        var normalizedDataPath = Application.dataPath.Replace('\\', '/');
+        if (!normalizedFullPath.StartsWith(normalizedDataPath, StringComparison.OrdinalIgnoreCase)) {
+            throw new InvalidOperationException($"Path is not inside Assets: {fullPath}");
+        }
+
+        return $"Assets{normalizedFullPath.Substring(normalizedDataPath.Length)}";
     }
 }
