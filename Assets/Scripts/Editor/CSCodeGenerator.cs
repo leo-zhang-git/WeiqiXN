@@ -38,7 +38,7 @@ public class CSCodeGenerator
         return string.Join("\n", codeLines);
     }
 
-    public CSCodeBlock AddBolock(string blockPrefix = "")
+    public CSCodeBlock AddBlock(string blockPrefix = "")
     {
         return new CSCodeBlock(this, blockPrefix);
     }
