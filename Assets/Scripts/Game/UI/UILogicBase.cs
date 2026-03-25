@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 
-public abstract class UILogicBase : ITimerAttacher, IEventReceiver
+public abstract class UILogicBase<TBinder> : ITimerAttacher, IEventReceiver
+    where TBinder : UILogicBinder
 {
-    public abstract UILogicBinder binder { get; }
+    public TBinder binder;
     public bool isLoaded;
 
     protected virtual void OnLoaded()

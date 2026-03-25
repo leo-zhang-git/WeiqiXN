@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -63,28 +64,59 @@ public class UIComponentBinder_Inspector : Editor
             using (new EditorGUILayout.HorizontalScope()) {
                 bool isExists = File.Exists(binderInfo.exportPath);
                 EditorGUILayout.TextArea($"※生成路径:({(isExists ? "已生成" : "未生成")}) \n{binderInfo.exportPath}", EditorStyles.wordWrappedLabel);
-                if (GUILayout.Button("生成类文件", GUILayout.Width(100))) {
-                    foreach (var kvp in nameBindDict) {
-                        if (kvp.Value > 1) {
-                            EditorUtility.DisplayDialog("导出错误", "存在重复名字，检查UI绑定脚本！", "确定");
-                            return;
+                using (new EditorGUILayout.VerticalScope()) {
+                    if (GUILayout.Button("生成类文件", GUILayout.Width(100))) {
+                        foreach (var kvp in nameBindDict) {
+                            if (kvp.Value > 1) {
+                                EditorUtility.DisplayDialog("导出错误", "存在重复名字，检查UI绑定脚本！", "确定");
+                                return;
+                            }
                         }
-                    }
 
-                    bool doExport = true;
-                    var prefabStage = PrefabStageUtility.GetPrefabStage(instance.gameObject);
-                    if (prefabStage && prefabStage.scene.isDirty) {
-                        doExport = EditorUtility.DisplayDialog("未保存修改", "是否保存并执行UI绑定脚本生成？", "确定", "取消");
+                        bool doExport = true;
+                        var prefabStage = PrefabStageUtility.GetPrefabStage(instance.gameObject);
+                        if (prefabStage && prefabStage.scene.isDirty) {
+                            doExport = EditorUtility.DisplayDialog("未保存修改", "是否保存并执行UI绑定脚本生成？", "确定", "取消");
+                            if (doExport) {
+                                EditorApplication.ExecuteMenuItem("File/Save");
+                            }
+                        }
+
                         if (doExport) {
-                            EditorApplication.ExecuteMenuItem("File/Save");
+                            UIBinderGenerator.ExportUIBinder(binderInfo);
+
+                            EditorUtility.DisplayDialog("UI绑定", $"成功生成UI绑定文件：\n{binderInfo.exportPath}",
+                                "确定");
                         }
                     }
 
-                    if (doExport) {
-                        UIBinderGenerator.ExportUIBinder(binderInfo);
+                    var uiBinderTypes = TypeCache.GetTypesDerivedFrom<UILogicBinder>();
+                    Type binderType = uiBinderTypes.FirstOrDefault(t => t.Name == binderInfo.binderClsName);
+                    if (binderType != null) {
+                        if (GUILayout.Button("更新绑定", GUILayout.Width(100))) {
+                            var attachBinder = instance.gameObject.GetComponent(binderType);
+                            if (attachBinder == null) {
+                                attachBinder = instance.gameObject.AddComponent(binderType);
+                            }
+                            if (attachBinder != null) {
+                                var attachBinderFields = attachBinder.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+                                foreach (var node in instance.nodeList) {
+                                    if (string.IsNullOrEmpty(node.name)) {
+                                        continue;
+                                    }
+                                    var field = attachBinderFields.FirstOrDefault(f => string.Equals(f.Name, node.name, StringComparison.OrdinalIgnoreCase));
+                                    if (field == null) {
+                                        continue;
+                                    }
 
-                        EditorUtility.DisplayDialog("UI绑定脚本生成", $"成功生成UI绑定文件：\n{binderInfo.exportPath}",
-                            "确定");
+                                    if (field.FieldType == node.value.GetType()) {
+                                        field.SetValue(attachBinder, node.value);
+                                    }
+                                }
+                            }
+
+                            EditorUtility.DisplayDialog("UI绑定", "UI绑定已更新", "确定");
+                        }
                     }
                 }
             }

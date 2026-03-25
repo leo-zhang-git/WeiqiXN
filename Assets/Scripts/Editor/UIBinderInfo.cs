@@ -7,7 +7,7 @@ public class UIBinderInfo
     {
         get
         {
-            return binder.gameObject.name;
+            return $"{binder.gameObject.name}UI";
         }
     }
 

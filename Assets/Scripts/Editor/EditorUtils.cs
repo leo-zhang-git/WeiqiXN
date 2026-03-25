@@ -18,4 +18,5 @@ public class EditorColorScope : System.IDisposable
 
 public static class EditorUtils
 {
+
 }
