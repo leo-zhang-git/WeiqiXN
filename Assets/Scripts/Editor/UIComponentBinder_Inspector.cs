@@ -195,7 +195,7 @@ public class UIComponentBinder_Inspector : Editor
 
     private bool AutoFetchBindComponent(GameObject bindGO, out Component bindComp)
     {
-        bindComp = bindGO.GetComponent<UILogicBinder>();
+        bindComp = bindGO.GetComponent<UIComponentBinder>();
         if (bindComp != null) {
             return true;
         }
@@ -219,9 +219,9 @@ public class UIComponentBinder_Inspector : Editor
         };
 
         List<Object> compList = new List<Object>() { go };
-        var uiLogicBinder = go.GetComponent<UILogicBinder>();
-        if (uiLogicBinder != null) {
-            compList.Add(uiLogicBinder);
+        var binder = go.GetComponent<UIComponentBinder>();
+        if (binder != null) {
+            compList.Add(binder);
         }
         foreach (var comp in go.GetComponents<Component>()) {
             if (ValidComponentTypes.Contains(comp.GetType())) {

@@ -34,12 +34,11 @@ public static class UIGenerator
         generator.AddLine();
 
         using (generator.AddBlock($"public class {uiGenInfo.binderClsName} : UILogicBinder")) {
-            generator.AddLine($"public override string logicClsName => \"{uiGenInfo.logicClsName}\";");
-            generator.AddLine();
+            var uiLogicTypes = TypeCache.GetTypesDerivedFrom(typeof(UILogicBase<>));
             foreach (var node in uiGenInfo.binder.nodeList) {
-                if (node.value is UILogicBinder uiLogicBinder) {
-                    var uiLogicTypes = TypeCache.GetTypesDerivedFrom(typeof(UILogicBase<>));
-                    Type logicType = uiLogicTypes.FirstOrDefault(t => t.Name == uiLogicBinder.logicClsName);
+                if (node.value is UIComponentBinder uiCompBinder) {
+                    var nodeGenInfo = new UIGenInfo(uiCompBinder);
+                    Type logicType = uiLogicTypes.FirstOrDefault(t => t.Name == nodeGenInfo.logicClsName);
                     if (logicType != null) {
                         generator.AddLine($"public {logicType.Name} {node.name};");
                     }
