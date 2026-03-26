@@ -8,7 +8,7 @@ using UnityEngine;
 public static class UIGenerator
 {
     public readonly static string UI_SCRIPT_FOLDER_PATH = Path.Combine(Application.dataPath, "Scripts", "Game", "UI");
-    public readonly static string UI_BINDER_EXPORT_PATH = Path.Combine(UI_SCRIPT_FOLDER_PATH, "BinderExport");
+    public readonly static string UI_BINDER_EXPORT_PATH = Path.Combine(UI_SCRIPT_FOLDER_PATH, "Binder");
     public readonly static string UI_LOGIC_EXPORT_PATH = Path.Combine(UI_SCRIPT_FOLDER_PATH, "Logic");
 
     public static void ExportUIScripts(UIGenInfo uiGenInfo)
@@ -34,7 +34,7 @@ public static class UIGenerator
         generator.AddLine();
 
         using (generator.AddBlock($"public class {uiGenInfo.binderClsName} : UILogicBinder")) {
-            var uiLogicTypes = TypeCache.GetTypesDerivedFrom(typeof(UILogicBase<>));
+            var uiLogicTypes = TypeCache.GetTypesDerivedFrom(typeof(UILogicBase));
             foreach (var node in uiGenInfo.binder.nodeList) {
                 if (node.value is UIComponentBinder uiCompBinder) {
                     var nodeGenInfo = new UIGenInfo(uiCompBinder);
@@ -60,7 +60,8 @@ public static class UIGenerator
 
         CSCodeGenerator generator = new CSCodeGenerator();
 
-        using (generator.AddBlock($"public class {uiGenInfo.logicClsName} : UILogicBase<{uiGenInfo.binderClsName}>")) {
+        string uiType = uiGenInfo.isPage ? "UIPageWithBinder" : "UIWidgetWithBinder";
+        using (generator.AddBlock($"public class {uiGenInfo.logicClsName} : {uiType}<{uiGenInfo.binderClsName}>")) {
 
         }
 
