@@ -1,4 +1,4 @@
-public abstract class BaseModule
+public abstract class ModuleBase
 {
     public abstract void Init();
 
@@ -10,7 +10,7 @@ public abstract class BaseModule
 
     public virtual void OnDestroy() { }
 
-    public BaseModule()
+    public ModuleBase()
     {
         Init();
     }

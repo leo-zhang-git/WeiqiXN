@@ -1,4 +1,4 @@
-public class UIManager : BaseModule
+public class UIManager : ModuleBase
 {
     public override void Init()
     {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TimerManager : BaseModule
+public class TimerManager : ModuleBase
 {
     private Dictionary<string, TimerBase> timerDict = new Dictionary<string, TimerBase>();
     private HashSet<string> pendingDeleteTimerIds = new HashSet<string>();

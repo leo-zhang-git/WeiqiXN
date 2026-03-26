@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-public class EventManager : BaseModule
+public class EventManager : ModuleBase
 {
     private Dictionary<string, List<ISystemEventHandler>> systemEventHandlers = new Dictionary<string, List<ISystemEventHandler>>();
     private Dictionary<string, List<IEntityEventHandler>> entityEventHandlers = new Dictionary<string, List<IEntityEventHandler>>();

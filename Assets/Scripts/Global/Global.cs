@@ -13,7 +13,7 @@ public class Global
             return Global._instance;
         }
     }
-    public List<BaseModule> moduleList = new List<BaseModule>();
+    public List<ModuleBase> moduleList = new List<ModuleBase>();
 
     public TimerManager timerManager;
     public EventManager eventManager;
