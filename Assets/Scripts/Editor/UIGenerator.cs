@@ -1,6 +1,4 @@
-using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
@@ -10,6 +8,16 @@ public static class UIGenerator
     public readonly static string UI_SCRIPT_FOLDER_PATH = Path.Combine(Application.dataPath, "Scripts", "Game", "UI");
     public readonly static string UI_BINDER_EXPORT_PATH = Path.Combine(UI_SCRIPT_FOLDER_PATH, "Binder");
     public readonly static string UI_LOGIC_EXPORT_PATH = Path.Combine(UI_SCRIPT_FOLDER_PATH, "Logic");
+
+    public static void ExportUIPageCollection()
+    {
+
+    }
+
+    public static void ExportUIWidgetCollection()
+    {
+
+    }
 
     public static void ExportUIScripts(UIGenInfo uiGenInfo)
     {
@@ -33,15 +41,14 @@ public static class UIGenerator
 
         generator.AddLine();
 
-        using (generator.AddBlock($"public class {uiGenInfo.binderClsName} : UILogicBinder")) {
+        using (generator.AddBlock($"public class {uiGenInfo.binderClsName} : UIBinderBase")) {
             var uiLogicTypes = TypeCache.GetTypesDerivedFrom(typeof(UILogicBase));
             foreach (var node in uiGenInfo.binder.nodeList) {
-                if (node.value is UIComponentBinder uiCompBinder) {
-                    var nodeGenInfo = new UIGenInfo(uiCompBinder);
-                    Type logicType = uiLogicTypes.FirstOrDefault(t => t.Name == nodeGenInfo.logicClsName);
-                    if (logicType != null) {
-                        generator.AddLine($"public {logicType.Name} {node.name};");
-                    }
+                if (node.value is UIBinderBase uiBinder) {
+                    //Type logicType = uiLogicTypes.FirstOrDefault(t => t.Name == nodeGenInfo.logicClsName);
+                    //if (logicType != null) {
+                    //    generator.AddLine($"public {logicType.Name} {node.name};");
+                    //}
                 } else {
                     generator.AddLine($"public {node.value.GetType().Name} {node.name};");
                 }

@@ -1,13 +1,26 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public abstract class UILogicBase : ITimerAttacher, IEventReceiver
 {
     public bool isLoaded;
+    private GameObject _gameObject;
+    public GameObject gameObject
+    {
+        get
+        {
+            if (!isLoaded) {
+                Logger.LogError("Try get gameObject before ui resource is loaded", ("uiClsName", GetType().Name));
+                return null;
+            }
+            return _gameObject;
+        }
+    }
 
     protected virtual void OnLoaded()
     {
-        isLoaded = true;
+
     }
 
     protected virtual void OnOpen()

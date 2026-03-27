@@ -6,7 +6,7 @@ public abstract class UIWidget : UILogicBase
     }
 }
 
-public abstract class UIWidgetWithBinder<TBinder> : UIWidget where TBinder : UILogicBinder
+public abstract class UIWidgetWithBinder<TBinder> : UIWidget where TBinder : UIBinderBase
 {
     public TBinder binder;
 }

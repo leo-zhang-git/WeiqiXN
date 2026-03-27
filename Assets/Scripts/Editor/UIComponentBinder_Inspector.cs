@@ -84,7 +84,7 @@ public class UIComponentBinder_Inspector : Editor
 
                         if (doExport) {
                             UIGenerator.ExportUIScripts(binderInfo);
-                            UILogicBinder logicBinder = instance.GetComponent<UILogicBinder>();
+                            UIBinderBase logicBinder = instance.GetComponent<UIBinderBase>();
                             if (logicBinder != null) {
                                 DestroyImmediate(logicBinder);
                             }
@@ -95,7 +95,7 @@ public class UIComponentBinder_Inspector : Editor
                         }
                     }
 
-                    var uiBinderTypes = TypeCache.GetTypesDerivedFrom<UILogicBinder>();
+                    var uiBinderTypes = TypeCache.GetTypesDerivedFrom<UIBinderBase>();
                     Type binderType = uiBinderTypes.FirstOrDefault(t => t.Name == binderInfo.binderClsName);
                     if (binderType != null) {
                         if (GUILayout.Button("¸üÐÂ°ó¶¨", GUILayout.Width(100))) {
@@ -200,7 +200,7 @@ public class UIComponentBinder_Inspector : Editor
 
     private bool AutoFetchBindComponent(GameObject bindGO, out Component bindComp)
     {
-        bindComp = bindGO.GetComponent<UIComponentBinder>();
+        bindComp = bindGO.GetComponent<UIBinderBase>();
         if (bindComp != null) {
             return true;
         }
@@ -224,7 +224,7 @@ public class UIComponentBinder_Inspector : Editor
         };
 
         List<Object> compList = new List<Object>() { go };
-        var binder = go.GetComponent<UIComponentBinder>();
+        var binder = go.GetComponent<UIBinderBase>();
         if (binder != null) {
             compList.Add(binder);
         }
