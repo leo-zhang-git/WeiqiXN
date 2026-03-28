@@ -10,8 +10,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
-[CustomEditor(typeof(UIComponentBinder))]
-public class UIComponentBinder_Inspector : Editor
+[CustomEditor(typeof(UIBinderEditor))]
+public class UIBinderEditor_Inspector : Editor
 {
     private static Type[] ValidComponentTypes = new[]
     {
@@ -25,7 +25,7 @@ public class UIComponentBinder_Inspector : Editor
         typeof(RectTransform),
     };
 
-    private UIComponentBinder instance;
+    private UIBinderEditor instance;
     private bool isEditable;
 
     private Dictionary<string, int> nameBindDict = new Dictionary<string, int>();
@@ -36,7 +36,7 @@ public class UIComponentBinder_Inspector : Editor
 
     private void OnEnable()
     {
-        instance = target as UIComponentBinder;
+        instance = target as UIBinderEditor;
         isEditable = CheckBinderEditAble();
     }
 
@@ -81,7 +81,7 @@ public class UIComponentBinder_Inspector : Editor
                         }
 
                         if (doExport) {
-                            UIGenerator.ExportUIScripts(instance);
+                            UICodeGenerator.ExportUIScripts(instance);
                             instance.generateTime = DateTime.Now;
 
                             // 自动绑定要处理编译时序问题太麻烦了，改成手动点击绑定
@@ -105,7 +105,7 @@ public class UIComponentBinder_Inspector : Editor
                                         continue;
                                     }
 
-                                    string nodeName = node.value is UIComponentBinder ? $"_{node.name}" : node.name;
+                                    string nodeName = node.value is UIBinderEditor ? $"_{node.name}" : node.name;
                                     var field = attachBinderFields.FirstOrDefault(f => string.Equals(f.Name, nodeName, StringComparison.OrdinalIgnoreCase));
                                     if (field == null) {
                                         continue;
@@ -214,7 +214,7 @@ public class UIComponentBinder_Inspector : Editor
 
     private bool AutoFetchBindComponent(GameObject bindGO, out Component bindComp)
     {
-        bindComp = bindGO.GetComponent<UIComponentBinder>();
+        bindComp = bindGO.GetComponent<UIBinderEditor>();
         if (bindComp != null) {
             return true;
         }
@@ -238,7 +238,7 @@ public class UIComponentBinder_Inspector : Editor
         };
 
         List<Object> compList = new List<Object>() { go };
-        var binder = go.GetComponent<UIComponentBinder>();
+        var binder = go.GetComponent<UIBinderEditor>();
         if (binder != null) {
             compList.Add(binder);
         }

@@ -18,18 +18,18 @@ public class UIBinderBase_Inspector : Editor
 
     public override void OnInspectorGUI()
     {
-        UIComponentBinder uiCompBinder = instance.GetComponent<UIComponentBinder>();
-        if (uiCompBinder != null && uiCompBinder.generateTime > instance.generatedTime) {
+        UIBinderEditor uiBinderEditor = instance.GetComponent<UIBinderEditor>();
+        if (uiBinderEditor != null && uiBinderEditor.generateTime > instance.generatedTime) {
             EditorGUILayout.HelpBox($"绑定文件已过期，需要更新绑定", MessageType.Warning);
         }
 
         var binderFields = instance.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
         using (new EditorGUI.DisabledScope(true)) {
             EditorGUILayout.TextArea("常规UI对象：", EditorStyles.wordWrappedLabel);
-            List<(string, UIComponentBinder)> childBinders = new List<(string, UIComponentBinder)>();
+            List<(string, UIBinderEditor)> childBinderEditors = new List<(string, UIBinderEditor)>();
             foreach (var field in binderFields) {
-                if (field.GetValue(instance) is UIComponentBinder binder) {
-                    childBinders.Add((field.Name.Substring(1), binder));
+                if (field.GetValue(instance) is UIBinderEditor binder) {
+                    childBinderEditors.Add((field.Name.Substring(1), binder));
                 } else if (field.GetValue(instance) is Object objValue) {
                     using (new EditorGUILayout.HorizontalScope()) {
                         EditorGUILayout.TextArea("对象名", EditorStyles.boldLabel, GUILayout.Width(125));
@@ -39,15 +39,15 @@ public class UIBinderBase_Inspector : Editor
                 }
             }
 
-            if (childBinders.Count > 0) {
+            if (childBinderEditors.Count > 0) {
                 EditorGUILayout.TextArea("WidgetUI对象：", EditorStyles.wordWrappedLabel);
                 using (new EditorGUILayout.HorizontalScope()) {
                     EditorGUILayout.TextArea("对象名", EditorStyles.boldLabel, GUILayout.Width(125));
                     EditorGUILayout.TextArea("绑定对象", EditorStyles.boldLabel, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
                     EditorGUILayout.TextArea("逻辑脚本", EditorStyles.boldLabel, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
                 }
-                foreach (var (name, binder) in childBinders) {
-                    DrawWidgetBindNode(name, binder);
+                foreach (var (name, binderEditor) in childBinderEditors) {
+                    DrawWidgetBindNode(name, binderEditor);
                 }
             }
         }
@@ -61,12 +61,12 @@ public class UIBinderBase_Inspector : Editor
         }
     }
 
-    private void DrawWidgetBindNode(string objName, UIComponentBinder binder)
+    private void DrawWidgetBindNode(string objName, UIBinderEditor binderEditor)
     {
         using (new EditorGUILayout.HorizontalScope()) {
             EditorGUILayout.TextArea(objName, GUILayout.Width(125));
-            EditorGUILayout.ObjectField(binder, typeof(UIComponentBinder), true, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
-            var widgetScript = projectScripts.FirstOrDefault(s => s.GetClass() != null && s.GetClass().Name == binder.logicClsName);
+            EditorGUILayout.ObjectField(binderEditor, typeof(UIBinderEditor), true, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
+            var widgetScript = projectScripts.FirstOrDefault(s => s.GetClass() != null && s.GetClass().Name == binderEditor.logicClsName);
             EditorGUILayout.ObjectField(widgetScript, typeof(MonoScript), true, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
         }
     }

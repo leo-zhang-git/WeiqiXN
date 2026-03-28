@@ -17,7 +17,7 @@ public class UIBinderNode
     }
 }
 
-public class UIComponentBinder : MonoBehaviour
+public class UIBinderEditor : MonoBehaviour
 {
     public DateTime generateTime;
     public Type attachType;
