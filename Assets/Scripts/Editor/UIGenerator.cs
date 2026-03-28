@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -6,17 +7,6 @@ using UnityEditor;
 
 public static class UIGenerator
 {
-
-    public static void ExportUIPageCollection()
-    {
-
-    }
-
-    public static void ExportUIWidgetCollection()
-    {
-
-    }
-
     public static void ExportUIScripts(UIComponentBinder uiCompBinder)
     {
         ExportUIBinder(uiCompBinder);
@@ -42,15 +32,31 @@ public static class UIGenerator
         using (generator.AddBlock($"public class {uiCompBinder.binderClsName} : UIBinderBase")) {
             var uiBinderTypes = TypeCache.GetTypesDerivedFrom(typeof(UIBinderBase));
             var uiLogicTypes = TypeCache.GetTypesDerivedFrom(typeof(UILogicBase));
+            List<(string, UIComponentBinder)> widgetBinders = new List<(string, UIComponentBinder)>();
             foreach (var node in uiCompBinder.nodeList) {
                 if (node.value is UIComponentBinder childBinder) {
                     Type binderType = uiBinderTypes.FirstOrDefault(t => t.Name == childBinder.binderClsName);
                     Type logicType = uiLogicTypes.FirstOrDefault(t => t.Name == childBinder.logicClsName);
                     if (binderType != null && logicType != null && childBinder.GetComponent(binderType) != null) {
+                        generator.AddLine($"public UIComponentBinder _{node.name};");
                         generator.AddLine($"public {logicType.Name} {node.name};");
+                        widgetBinders.Add((node.name, childBinder));
                     }
                 } else {
                     generator.AddLine($"public {node.value.GetType().Name} {node.name};");
+                }
+            }
+
+            if (widgetBinders.Count > 0) {
+                generator.AddLine();
+                using (generator.AddBlock($"public override void InitWidgets()")) {
+                    foreach (var (fieldName, binder) in widgetBinders) {
+                        Type logicType = uiLogicTypes.FirstOrDefault(t => t.Name == binder.logicClsName);
+                        if (logicType != null) {
+                            generator.AddLine($"{fieldName} = new {binder.logicClsName}();");
+                            generator.AddLine($"binderWidgets.Add({fieldName});");
+                        }
+                    }
                 }
             }
         }

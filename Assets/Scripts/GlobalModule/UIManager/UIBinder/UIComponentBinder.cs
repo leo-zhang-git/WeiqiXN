@@ -19,6 +19,7 @@ public class UIBinderNode
 
 public class UIComponentBinder : MonoBehaviour
 {
+    public DateTime generateTime;
     public Type attachType;
     public List<UIBinderNode> nodeList = new List<UIBinderNode>();
     public bool isNodesExpand = true;

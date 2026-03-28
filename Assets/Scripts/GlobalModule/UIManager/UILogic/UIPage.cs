@@ -68,5 +68,11 @@ public abstract class UIPageWithBinder<TBinder> : UIPage where TBinder : UIBinde
     protected override void OnLoaded()
     {
         base.OnLoaded();
+        binder = gameObject.GetComponent<TBinder>();
+        binder.InitWidgets();
+
+        foreach (var widget in binder.binderWidgets) {
+            childWidgets.Add(widget);
+        }
     }
 }

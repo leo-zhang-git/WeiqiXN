@@ -82,10 +82,7 @@ public class UIComponentBinder_Inspector : Editor
 
                         if (doExport) {
                             UIGenerator.ExportUIScripts(instance);
-                            UIBinderBase logicBinder = instance.GetComponent<UIBinderBase>();
-                            if (logicBinder != null) {
-                                DestroyImmediate(logicBinder);
-                            }
+                            instance.generateTime = DateTime.Now;
 
                             // 自动绑定要处理编译时序问题太麻烦了，改成手动点击绑定
                             EditorUtility.DisplayDialog("UI绑定", $"成功生成UI绑定文件，重编译后执行更新绑定：\n{instance.binderExportPath}",
@@ -107,7 +104,9 @@ public class UIComponentBinder_Inspector : Editor
                                     if (string.IsNullOrEmpty(node.name)) {
                                         continue;
                                     }
-                                    var field = attachBinderFields.FirstOrDefault(f => string.Equals(f.Name, node.name, StringComparison.OrdinalIgnoreCase));
+
+                                    string nodeName = node.value is UIComponentBinder ? $"_{node.name}" : node.name;
+                                    var field = attachBinderFields.FirstOrDefault(f => string.Equals(f.Name, nodeName, StringComparison.OrdinalIgnoreCase));
                                     if (field == null) {
                                         continue;
                                     }
@@ -116,6 +115,9 @@ public class UIComponentBinder_Inspector : Editor
                                         field.SetValue(attachBinder, node.value);
                                     }
                                 }
+                            }
+                            if (attachBinder is UIBinderBase binder) {
+                                binder.generatedTime = DateTime.Now;
                             }
 
                             EditorUtility.SetDirty(target);
@@ -144,9 +146,7 @@ public class UIComponentBinder_Inspector : Editor
             using (new EditorGUI.DisabledScope(!isEditable)) {
                 using (new EditorGUI.IndentLevelScope()) {
                     for (int index = 0; index < instance.nodeList.Count; index++) {
-                        using (new EditorGUILayout.HorizontalScope()) {
-                            DrawUIBinderNode(index, instance.nodeList[index]);
-                        }
+                        DrawUIBinderNode(index, instance.nodeList[index]);
                     }
                 }
 
@@ -169,6 +169,7 @@ public class UIComponentBinder_Inspector : Editor
                                 }
 
                                 string nodeName = char.ToLower(obj.name[0]) + obj.name.Substring(1); // 首字母小写 
+                                nodeName = RemoveAllLeadingUnderscores(nodeName); // 不得以下划线开头
                                 instance.nodeList.Add(new UIBinderNode(nodeName, nodeValue));
                             }
                             EditorUtility.SetDirty(target);
@@ -179,6 +180,19 @@ public class UIComponentBinder_Inspector : Editor
             }
         }
         serializedObject.ApplyModifiedProperties();
+    }
+
+    private string RemoveAllLeadingUnderscores(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+
+        int index = 0;
+        while (index < input.Length && input[index] == '_') {
+            index++;
+        }
+
+        return index == 0 ? input : input.Substring(index);
     }
 
     private bool CheckBinderEditAble()
@@ -240,83 +254,83 @@ public class UIComponentBinder_Inspector : Editor
 
     private void DrawUIBinderNode(int index, UIBinderNode node)
     {
-        Color overrideColor = objectBindDict.GetValueOrDefault(node.value, 0) > 1 ? Color.yellow : GUI.color;
-        Color nameColor = nameBindDict.GetValueOrDefault(node.name, 0) > 1 ? Color.red : overrideColor;
-        using (var check = new EditorGUI.ChangeCheckScope()) {
-            string nodeName;
-            using (new EditorColorScope(nameColor)) {
-                GUILayout.Label(index.ToString(), GUILayout.Width(index.ToString().Length * 11));
-                GUILayout.Space(-index.ToString().Length * 5);
-                nodeName = EditorGUILayout.TextField(node.name, GUILayout.Width(125));
-            }
+        using (new EditorGUILayout.HorizontalScope()) {
+            Color overrideColor = objectBindDict.GetValueOrDefault(node.value, 0) > 1 ? Color.yellow : GUI.color;
+            Color nameColor = nameBindDict.GetValueOrDefault(node.name, 0) > 1 ? Color.red : overrideColor;
+            using (var check = new EditorGUI.ChangeCheckScope()) {
+                string nodeName;
+                using (new EditorColorScope(nameColor)) {
+                    GUILayout.Label(index.ToString(), GUILayout.Width(index.ToString().Length * 11));
+                    nodeName = EditorGUILayout.TextField(node.name, GUILayout.Width(125));
+                }
 
-            if (check.changed) {
-                Undo.RecordObject(target, "BIND_CHANGE");
-                node.name = nodeName;
-                EditorUtility.SetDirty(target);
-                serializedObject.ApplyModifiedProperties();
-            }
-        }
-
-        Color valueColor = !node.value || objectBindDict.GetValueOrDefault(node.value, 0) > 1 ? Color.red : overrideColor;
-        using (var check = new EditorGUI.ChangeCheckScope()) {
-            Object nodeValue;
-            using (new EditorColorScope(GUI.color)) {
-                nodeValue = EditorGUILayout.ObjectField(node.value, typeof(Object), true, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true)) as Object;
-            }
-
-            if (check.changed) {
-                if (PrefabUtility.IsPartOfPrefabAsset(nodeValue)) {
-                    EditorUtility.DisplayDialog("UI绑定错误", "不允许绑定Preafab Asset", "确定");
-                } else {
+                if (check.changed) {
                     Undo.RecordObject(target, "BIND_CHANGE");
-                    if (nodeValue is GameObject bindGO) {
-                        if (nodeValue != instance.gameObject && AutoFetchBindComponent(bindGO, out var bindComp)) {
-                            node.value = bindComp;
-                        } else {
-                            node.value = nodeValue;
-                        }
-                    } else {
-                        node.value = nodeValue;
-                    }
-
+                    node.name = nodeName;
                     EditorUtility.SetDirty(target);
                     serializedObject.ApplyModifiedProperties();
                 }
             }
-        }
 
-        if (EditorGUILayout.DropdownButton(GUIContent.none, FocusType.Passive, GUILayout.Width(20))) {
-            GenericMenu menu = new GenericMenu();
+            Color valueColor = !node.value || objectBindDict.GetValueOrDefault(node.value, 0) > 1 ? Color.red : overrideColor;
+            using (var check = new EditorGUI.ChangeCheckScope()) {
+                Object nodeValue;
+                using (new EditorColorScope(GUI.color)) {
+                    nodeValue = EditorGUILayout.ObjectField(node.value, typeof(Object), true, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true)) as Object;
+                }
 
-            var validComps = FetchValidComponents(node.value);
-            GenericMenu.MenuFunction2 onSelected = (selectedObj) =>
-            {
-                Undo.RecordObject(target, "BIND_Change");
-                node.value = selectedObj as Object;
+                if (check.changed) {
+                    if (PrefabUtility.IsPartOfPrefabAsset(nodeValue)) {
+                        EditorUtility.DisplayDialog("UI绑定错误", "不允许绑定Preafab Asset", "确定");
+                    } else {
+                        Undo.RecordObject(target, "BIND_CHANGE");
+                        if (nodeValue is GameObject bindGO) {
+                            if (nodeValue != instance.gameObject && AutoFetchBindComponent(bindGO, out var bindComp)) {
+                                node.value = bindComp;
+                            } else {
+                                node.value = nodeValue;
+                            }
+                        } else {
+                            node.value = nodeValue;
+                        }
 
-                EditorUtility.SetDirty(target);
-                serializedObject.ApplyModifiedProperties();
-            };
-
-            Dictionary<string, int> duplicatedCompDict = new Dictionary<string, int>();
-            foreach (Object comp in validComps) {
-                string objName = comp.GetType().Name;
-
-                int count = duplicatedCompDict.GetValueOrDefault(objName, 0) + 1;
-                duplicatedCompDict[objName] = count;
-
-                string displayName = count > 1 ? $"{objName}({count - 1})" : objName;
-                menu.AddItem(new GUIContent(displayName), false, onSelected, comp);
+                        EditorUtility.SetDirty(target);
+                        serializedObject.ApplyModifiedProperties();
+                    }
+                }
             }
-            menu.ShowAsContext();
-        }
 
-        if (GUILayout.Button("删除", GUILayout.Width(80))) {
-            Undo.RecordObject(target, "BIND_CHANGE");
-            instance.nodeList.RemoveAt(index);
-            EditorUtility.SetDirty(target);
-        }
+            if (EditorGUILayout.DropdownButton(GUIContent.none, FocusType.Passive, GUILayout.Width(20))) {
+                GenericMenu menu = new GenericMenu();
 
+                var validComps = FetchValidComponents(node.value);
+                GenericMenu.MenuFunction2 onSelected = (selectedObj) =>
+                {
+                    Undo.RecordObject(target, "BIND_Change");
+                    node.value = selectedObj as Object;
+
+                    EditorUtility.SetDirty(target);
+                    serializedObject.ApplyModifiedProperties();
+                };
+
+                Dictionary<string, int> duplicatedCompDict = new Dictionary<string, int>();
+                foreach (Object comp in validComps) {
+                    string objName = comp.GetType().Name;
+
+                    int count = duplicatedCompDict.GetValueOrDefault(objName, 0) + 1;
+                    duplicatedCompDict[objName] = count;
+
+                    string displayName = count > 1 ? $"{objName}({count - 1})" : objName;
+                    menu.AddItem(new GUIContent(displayName), false, onSelected, comp);
+                }
+                menu.ShowAsContext();
+            }
+
+            if (GUILayout.Button("删除", GUILayout.Width(80))) {
+                Undo.RecordObject(target, "BIND_CHANGE");
+                instance.nodeList.RemoveAt(index);
+                EditorUtility.SetDirty(target);
+            }
+        }
     }
 }
