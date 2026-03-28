@@ -27,7 +27,6 @@ public class UIComponentBinder_Inspector : Editor
 
     private UIComponentBinder instance;
     private bool isEditable;
-    private UIGenInfo binderInfo;
 
     private Dictionary<string, int> nameBindDict = new Dictionary<string, int>();
     private Dictionary<Object, int> objectBindDict = new Dictionary<Object, int>();
@@ -39,7 +38,6 @@ public class UIComponentBinder_Inspector : Editor
     {
         instance = target as UIComponentBinder;
         isEditable = CheckBinderEditAble();
-        binderInfo = new UIGenInfo(instance);
     }
 
     public override void OnInspectorGUI()
@@ -62,8 +60,8 @@ public class UIComponentBinder_Inspector : Editor
 
         if (isEditable) {
             using (new EditorGUILayout.HorizontalScope()) {
-                bool isExists = File.Exists(binderInfo.binderExportPath);
-                EditorGUILayout.TextArea($"※生成路径:({(isExists ? "已生成" : "未生成")}) \n{binderInfo.binderExportPath}", EditorStyles.wordWrappedLabel);
+                bool isExists = File.Exists(instance.binderExportPath);
+                EditorGUILayout.TextArea($"※生成路径:({(isExists ? "已生成" : "未生成")}) \n{instance.binderExportPath}", EditorStyles.wordWrappedLabel);
                 using (new EditorGUILayout.VerticalScope()) {
                     if (GUILayout.Button("生成类文件", GUILayout.Width(100))) {
                         foreach (var kvp in nameBindDict) {
@@ -83,20 +81,20 @@ public class UIComponentBinder_Inspector : Editor
                         }
 
                         if (doExport) {
-                            UIGenerator.ExportUIScripts(binderInfo);
+                            UIGenerator.ExportUIScripts(instance);
                             UIBinderBase logicBinder = instance.GetComponent<UIBinderBase>();
                             if (logicBinder != null) {
                                 DestroyImmediate(logicBinder);
                             }
 
                             // 自动绑定要处理编译时序问题太麻烦了，改成手动点击绑定
-                            EditorUtility.DisplayDialog("UI绑定", $"成功生成UI绑定文件，重编译后执行更新绑定：\n{binderInfo.binderExportPath}",
+                            EditorUtility.DisplayDialog("UI绑定", $"成功生成UI绑定文件，重编译后执行更新绑定：\n{instance.binderExportPath}",
                                 "确定");
                         }
                     }
 
                     var uiBinderTypes = TypeCache.GetTypesDerivedFrom<UIBinderBase>();
-                    Type binderType = uiBinderTypes.FirstOrDefault(t => t.Name == binderInfo.binderClsName);
+                    Type binderType = uiBinderTypes.FirstOrDefault(t => t.Name == instance.binderClsName);
                     if (binderType != null) {
                         if (GUILayout.Button("更新绑定", GUILayout.Width(100))) {
                             var attachBinder = instance.gameObject.GetComponent(binderType);
@@ -120,6 +118,8 @@ public class UIComponentBinder_Inspector : Editor
                                 }
                             }
 
+                            EditorUtility.SetDirty(target);
+                            serializedObject.ApplyModifiedProperties();
                             EditorUtility.DisplayDialog("UI绑定", "UI绑定已更新", "确定");
                         }
                     }
@@ -200,7 +200,7 @@ public class UIComponentBinder_Inspector : Editor
 
     private bool AutoFetchBindComponent(GameObject bindGO, out Component bindComp)
     {
-        bindComp = bindGO.GetComponent<UIBinderBase>();
+        bindComp = bindGO.GetComponent<UIComponentBinder>();
         if (bindComp != null) {
             return true;
         }
@@ -224,7 +224,7 @@ public class UIComponentBinder_Inspector : Editor
         };
 
         List<Object> compList = new List<Object>() { go };
-        var binder = go.GetComponent<UIBinderBase>();
+        var binder = go.GetComponent<UIComponentBinder>();
         if (binder != null) {
             compList.Add(binder);
         }
