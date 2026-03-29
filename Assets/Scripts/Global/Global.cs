@@ -15,12 +15,16 @@ public class Global
     }
     public List<ModuleBase> moduleList = new List<ModuleBase>();
 
+    public ResourceManager resourceManager;
     public TimerManager timerManager;
     public EventManager eventManager;
     public UIManager uiManager;
 
     public void Start()
     {
+        resourceManager = new ResourceManager();
+        moduleList.Add(resourceManager);
+
         timerManager = new TimerManager();
         moduleList.Add(timerManager);
 

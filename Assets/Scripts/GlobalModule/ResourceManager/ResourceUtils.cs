@@ -1,0 +1,23 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+public static class ResourceUtils
+{
+    public static Dictionary<string, string> AssetExtendDict = new Dictionary<string, string>()
+    {
+        { typeof(GameObject).Name, ".prefab" },
+        { typeof(Sprite).Name, ".png" },
+        { typeof(Material).Name, ".mat" },
+    };
+
+    public static string GetAssetFullPath<TAsset>(string path) where TAsset : UnityEngine.Object
+    {
+        if (ResourceUtils.AssetExtendDict.TryGetValue(typeof(TAsset).Name, out string ext)) {
+            return $"Assets/{path}{ext}";
+        } else {
+            Logger.LogError("Invalid type for get asset full path.", ("type", typeof(TAsset).Name));
+        }
+
+        return string.Empty;
+    }
+}

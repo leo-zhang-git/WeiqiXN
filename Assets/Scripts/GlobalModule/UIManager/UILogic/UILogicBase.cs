@@ -18,6 +18,11 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver
         }
     }
 
+    public virtual void onUnityResourceLoaded(GameObject uiGameObject)
+    {
+        this._gameObject = uiGameObject;
+    }
+
     protected virtual void OnLoaded()
     {
 
