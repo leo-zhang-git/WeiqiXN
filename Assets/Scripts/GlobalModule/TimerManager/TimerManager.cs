@@ -87,7 +87,7 @@ public class TimerManager : ModuleBase
     public void SetFrameInterval(ITimerAttacher timerAttacher, int intervalFrames, Action timerCB, int targetRepeatTimes, int firstDelayFrames)
     {
         string timerId = GenerateTimerId(TimerType.FrameInterval);
-        SecondIntervalTimer timer = new SecondIntervalTimer(timerAttacher, timerId, timerCB, intervalFrames, targetRepeatTimes, firstDelayFrames);
+        FrameIntervalTimer timer = new FrameIntervalTimer(timerAttacher, timerId, timerCB, intervalFrames, targetRepeatTimes, firstDelayFrames);
 
         if (timerDict.TryAdd(timerId, timer)) {
             timerAttacher.attachedTimerIds.Add(timerId);
@@ -131,7 +131,7 @@ public class TimerManager : ModuleBase
                 timerId = $"FrameTimeout_{Time.realtimeSinceStartup}_{FrameTimeoutTimer.timerIdx++}";
                 break;
             case TimerType.FrameInterval:
-                timerId = $"FrameInterval{Time.realtimeSinceStartup}_{FrameIntervalTimer.timerIdx++}";
+                timerId = $"FrameInterval_{Time.realtimeSinceStartup}_{FrameIntervalTimer.timerIdx++}";
                 break;
         }
         return timerId;

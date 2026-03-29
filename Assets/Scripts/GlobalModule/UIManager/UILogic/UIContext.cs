@@ -18,10 +18,10 @@ public class UIContext
 
     public void SetMainPage(UIPage mainPage)
     {
-        if (mainPage == null) {
-            mainPage.canvasOrder = baseCanvasOrder;
+        if (this.mainPage == null) {
             this.mainPage = mainPage;
-            mainPage.LoadPage();
+            this.mainPage.canvasOrder = baseCanvasOrder;
+            this.mainPage.LoadPage();
         } else {
             Logger.LogError("Duplicated mainPage for UIContext.");
         }

@@ -64,7 +64,7 @@ public class Logger
 
     private void OnUnityLogReceived(string logString, string stackTrace, LogType type)
     {
-        if (logWritter == null || !GlobalConfig.ENABLE_LOG_WIRTTER) {
+        if (logWritter == null || !GlobalConfig.ENABLE_LOG_WIRTER) {
             return;
         }
 

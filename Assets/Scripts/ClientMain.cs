@@ -55,8 +55,7 @@ public class ClientMain
         if (state == PlayModeStateChange.EnteredPlayMode) {
             ClientMain.Instance.InitPlayerLoop();
             Global.Instance.Start();
-        }
-        else if (state == PlayModeStateChange.ExitingPlayMode) {
+        } else if (state == PlayModeStateChange.ExitingPlayMode) {
             ClientMain.Instance.Destroy();
         }
     }
@@ -97,7 +96,7 @@ public class ClientMain
             {
                 updateDelegate = ClientMain.LateUpdate,
             },
-            insertPosition = typeof(UnityEngine.PlayerLoop.FixedUpdate),
+            insertPosition = typeof(UnityEngine.PlayerLoop.PreLateUpdate),
         };
 
         for (int index = 0; index < customSystems.subSystemList.Length; index++) {
