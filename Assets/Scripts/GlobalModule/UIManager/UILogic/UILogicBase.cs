@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class UILogicBase : ITimerAttacher, IEventReceiver
+public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoadBinder
 {
     public bool isLoaded;
     private GameObject _gameObject;
@@ -47,6 +47,7 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver
     {
         OnTimerAttacherDestroyed();
         OnEventReceiverDestroyed();
+        OnResourceBinderDestroyed();
     }
 
     #region Timer
@@ -88,6 +89,29 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver
     public void OnEventReceiverDestroyed()
     {
         Global.Instance.eventManager.UnregisterEventsByReceiver(this);
+    }
+    #endregion
+
+    #region Resource
+    private string _binderId;
+    public string binderId
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(_binderId)) {
+                _binderId = $"{GetType().Name}_{ResourceManager.ResourceBinderInstanceIds}";
+                ResourceManager.ResourceBinderInstanceIds += 1;
+            }
+            return _binderId;
+        }
+    }
+
+    private HashSet<string> _loadHandlerIds = new HashSet<string>();
+    public HashSet<string> loadHandlerIds => _loadHandlerIds;
+
+    public void OnResourceBinderDestroyed()
+    {
+        Global.Instance.resourceManager.OnResourceBinderDestroyed(binderId);
     }
     #endregion
 }

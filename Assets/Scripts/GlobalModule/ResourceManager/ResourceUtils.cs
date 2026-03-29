@@ -12,7 +12,7 @@ public static class ResourceUtils
 
     public static string GetAssetFullPath<TAsset>(string path) where TAsset : UnityEngine.Object
     {
-        if (ResourceUtils.AssetExtendDict.TryGetValue(typeof(TAsset).Name, out string ext)) {
+        if (AssetExtendDict.TryGetValue(typeof(TAsset).Name, out string ext)) {
             return $"Assets/{path}{ext}";
         } else {
             Logger.LogError("Invalid type for get asset full path.", ("type", typeof(TAsset).Name));

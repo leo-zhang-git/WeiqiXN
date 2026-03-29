@@ -6,8 +6,8 @@ public class UnityLoadAsyncRequest<TAsset> : AssetRequest<TAsset> where TAsset :
 
     public override bool isLoaded => false;
 
-    public override void Update()
+    protected override bool CheckLoadDone()
     {
-
+        return true;
     }
 }

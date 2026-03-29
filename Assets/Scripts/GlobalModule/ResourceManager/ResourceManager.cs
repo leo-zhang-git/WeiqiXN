@@ -3,10 +3,11 @@ using System.Collections.Generic;
 
 public class ResourceManager : ModuleBase
 {
+    public static uint ResourceBinderInstanceIds;
     public ResourceLoaderBase resLoader;
     private Dictionary<string, IAssetRequest> requestMap = new Dictionary<string, IAssetRequest>();
     private Dictionary<string, IResourceLoadHandler> loadHandlerMap = new Dictionary<string, IResourceLoadHandler>();
-    private Dictionary<string, HashSet<string>> binderMap = new Dictionary<string, HashSet<string>>();
+    private Dictionary<string, IResourceLoadBinder> binderMap = new Dictionary<string, IResourceLoadBinder>();
 
     public override void Init()
     {
@@ -32,7 +33,7 @@ public class ResourceManager : ModuleBase
             requestMap.Remove(assetFullPath);
         }
 
-        // ResourceLoadeHandler
+        // ResourceLoadHandler
         List<string> pendingDeleteHandler = new List<string>();
         foreach (var handlerKV in loadHandlerMap) {
             if (handlerKV.Value.isCanceled) {
@@ -46,18 +47,18 @@ public class ResourceManager : ModuleBase
         // ResourceLoadBinder
         List<string> pendingDeleteBinder = new List<string>();
         foreach (var binderKV in binderMap) {
-            var loaderIdSet = binderKV.Value;
+            var loadHandlerIds = binderKV.Value.loadHandlerIds;
             List<string> pendingDeleteBinderLoader = new List<string>();
-            foreach (var loaderId in loaderIdSet) {
+            foreach (var loaderId in loadHandlerIds) {
                 if (!loadHandlerMap.ContainsKey(loaderId)) {
                     pendingDeleteBinderLoader.Add(loaderId);
                 }
             }
             foreach (var loaderId in pendingDeleteBinderLoader) {
-                loaderIdSet.Remove(loaderId);
+                loadHandlerIds.Remove(loaderId);
             }
 
-            if (loaderIdSet.Count <= 0) {
+            if (loadHandlerIds.Count <= 0) {
                 pendingDeleteBinder.Add(binderKV.Key);
             }
         }
@@ -85,18 +86,28 @@ public class ResourceManager : ModuleBase
         }
 
         IResourceLoadHandler loadHandler = new ResourceLoadHandler<TAsset>(binder.binderId, assetFullPath, assetLoadedCB);
-        HashSet<string> loadHandlerIdSet;
-        if (!binderMap.TryGetValue(binder.binderId, out loadHandlerIdSet)) {
-            loadHandlerIdSet = new HashSet<string>();
-            binderMap[binder.binderId] = loadHandlerIdSet;
+        if (!binderMap.ContainsKey(binder.binderId)) {
+            binderMap[binder.binderId] = binder;
         }
-        loadHandlerIdSet.Add(loadHandler.loaderId);
+        binder.loadHandlerIds.Add(loadHandler.loaderId);
         loadHandlerMap[loadHandler.loaderId] = loadHandler;
 
         requestMap[assetFullPath] = request;
         request.AddAssetLoadCB(loadHandler.OnAssetRequestLoaded);
 
         return loadHandler;
+    }
+
+    public void OnResourceBinderDestroyed(string binderId)
+    {
+        if (binderMap.TryGetValue(binderId, out var binder)) {
+            foreach (string loaderId in binder.loadHandlerIds) {
+                if (loadHandlerMap.TryGetValue(loaderId, out var loader)) {
+                    loader.Cancel();
+                }
+            }
+            binderMap.Remove(binderId);
+        }
     }
 }
 

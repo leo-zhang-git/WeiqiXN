@@ -9,11 +9,13 @@ public class SimulateLoadAsyncRequest<TAsset> : AssetRequest<TAsset> where TAsse
         this.simulateAsset = simulateAsset;
     }
 
-    protected override void CheckLoadDone()
+    protected override bool CheckLoadDone()
     {
         if (!isLoaded && UnityEngine.Random.value > 0.5f) {
             _isLoaded = true;
             _asset = simulateAsset;
+            return true;
         }
+        return false;
     }
 }

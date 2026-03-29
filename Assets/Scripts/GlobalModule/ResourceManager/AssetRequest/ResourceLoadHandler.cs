@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 public interface IResourceLoadBinder
 {
     public string binderId { get; }
+    public HashSet<string> loadHandlerIds { get; }
+    public void OnResourceBinderDestroyed();
 }
 
 public interface IResourceLoadHandler
