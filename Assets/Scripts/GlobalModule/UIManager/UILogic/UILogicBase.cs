@@ -5,6 +5,8 @@ using UnityEngine;
 public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoadBinder
 {
     public bool isLoaded;
+    public bool isVisible;
+    public bool isOpened;
     private GameObject _gameObject;
     public GameObject gameObject
     {
@@ -56,7 +58,6 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
         transform.localScale = Vector3.one;
         isLoaded = true;
         OnLoaded();
-        OnOpen();
     }
 
     protected virtual void OnLoaded()
@@ -84,6 +85,19 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
         OnTimerAttacherDestroyed();
         OnEventReceiverDestroyed();
         OnResourceBinderDestroyed();
+    }
+
+    public virtual void SetUIVisible(bool isVisible)
+    {
+        this.isVisible = isVisible;
+        if (isVisible) {
+            if (!isOpened) {
+                OnOpen();
+            }
+            OnShow();
+        } else {
+            OnHide();
+        }
     }
 
     #region Timer

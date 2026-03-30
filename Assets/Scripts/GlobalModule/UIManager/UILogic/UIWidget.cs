@@ -24,7 +24,11 @@ public abstract class UIWidget : UILogicBase
 
     public void CloseWidget()
     {
-
+        foreach (var widget in childWidgets) {
+            widget.CloseWidget();
+        }
+        OnHide();
+        OnClose();
     }
 }
 
@@ -43,8 +47,21 @@ public abstract class UIWidgetWithBinder<TBinder> : UIWidget where TBinder : UIB
         binder = gameObject.GetComponent<TBinder>();
         binder.InitWidgets(this);
 
-        foreach (var widget in binder.binderWidgets.Values) {
-            childWidgets.Add(widget);
+        foreach (var widgetKV in binder.binderWidgets) {
+            if (binder.binderWidgetGOs.TryGetValue(widgetKV.Key, out var widgetGO)) {
+                var widget = widgetKV.Value;
+                childWidgets.Add(widget);
+                widget.onUnityResourceLoaded(widgetGO);
+            }
+        }
+    }
+
+    public override void SetUIVisible(bool isVisible)
+    {
+        base.SetUIVisible(isVisible);
+
+        foreach (var widget in childWidgets) {
+            widget.SetUIVisible(isVisible);
         }
     }
 

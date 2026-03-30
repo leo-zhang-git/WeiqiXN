@@ -1,49 +1,59 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class UIManager : ModuleBase
 {
-    public UIContext topContext;
-    public List<UIContext> contextStack = new List<UIContext>();
-    public int topCanvasOrder;
+    public Dictionary<UIContextType, UIContext> contextDict = new Dictionary<UIContextType, UIContext>();
     public GameObject uiRoot;
 
     public override void Init()
     {
-        topCanvasOrder = GlobalConfig.BASE_CANVAS_ORDER;
-        uiRoot = new GameObject(GlobalConfig.NAME_UI_ROOT);
+        uiRoot = new GameObject(UIConfig.NAME_UI_ROOT);
         GameObject.DontDestroyOnLoad(uiRoot);
-    }
 
-    public override void OnDestroy()
-    {
-
-    }
-
-    public void ShowMainPage<TPage>() where TPage : UIPage, new()
-    {
-        TPage page = new TPage();
-        page.pageFlags = UIPage.PageFlags.MainPage;
-        page.LoadPageAsync();
-        topCanvasOrder += GlobalConfig.CONTEXT_INCREASE_CANVAS_ORDER;
-        UIContext context = new UIContext(topCanvasOrder);
-        context.SetMainPage(page);
-    }
-
-    public void ShowPopupPage<TPage>() where TPage : UIPage, new()
-    {
-        TPage page = new TPage();
-        page.pageFlags = UIPage.PageFlags.PopupPage;
-        page.LoadPageAsync();
-        if (topContext == null) {
-            topCanvasOrder += GlobalConfig.CONTEXT_INCREASE_CANVAS_ORDER;
-            topContext = new UIContext(topCanvasOrder);
+        foreach (UIContextType type in Enum.GetValues(typeof(UIContextType))) {
+            contextDict.TryAdd(type, new UIContext(type));
         }
-        topContext.AddPopupPage(page);
     }
 
-    public void ClosePage<TPage>() where TPage : UIPage
+    public void ShowMainPage<TPage>(UIContextType contextType) where TPage : UIPage, new()
     {
+        if (contextDict.TryGetValue(contextType, out var uiContext)) {
+            TPage page = new TPage();
+            page.pageFlags = UIPageFlags.MainPage;
+            uiContext.ShowMainPage(page);
+        } else {
+            Logger.LogError("Invalid context type for show main page", ("contextType", contextType.ToString()));
+        }
+    }
 
+    public void ShowPopupPage<TPage>(UIContextType contextType) where TPage : UIPage, new()
+    {
+        if (contextDict.TryGetValue(contextType, out var uiContext)) {
+            TPage page = new TPage();
+            page.pageFlags = UIPageFlags.PopupPage;
+            uiContext.ShowPopupPage(page);
+        } else {
+            Logger.LogError("Invalid context type for show popup page", ("contextType", contextType.ToString()));
+        }
+    }
+
+    public void CloseMainPage<TPage>(UIContextType contextType, TPage page) where TPage : UIPage
+    {
+        if (contextDict.TryGetValue(contextType, out var uiContext)) {
+            uiContext.CloseMainPage(page);
+        } else {
+            Logger.LogError("Invalid context type for close main page", ("contextType", contextType.ToString()));
+        }
+    }
+
+    public void ClosePopupPage<TPage>(UIContextType contextType, TPage page) where TPage : UIPage
+    {
+        if (contextDict.TryGetValue(contextType, out var uiContext)) {
+            uiContext.ClosePopupPage(page);
+        } else {
+            Logger.LogError("Invalid context type for close popup page", ("contextType", contextType.ToString()));
+        }
     }
 }

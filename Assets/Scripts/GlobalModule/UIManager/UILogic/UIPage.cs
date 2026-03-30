@@ -1,21 +1,15 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class UIPage : UILogicBase
 {
+    public UIContext owner;
     public UIContext pageContext;
     public int canvasOrder;
-    [Flags]
-    public enum PageFlags
-    {
-        None = 0,
-        MainPage = 1,
-        PopupPage = 2,
-    }
-    public PageFlags pageFlags;
-    public bool isMainPage => (pageFlags & PageFlags.MainPage) == PageFlags.MainPage;
-    public bool isPopupPage => (pageFlags & PageFlags.PopupPage) == PageFlags.PopupPage;
+
+    public UIPageFlags pageFlags;
+    public bool isMainPage => (pageFlags & UIPageFlags.MainPage) == UIPageFlags.MainPage;
+    public bool isPopupPage => (pageFlags & UIPageFlags.PopupPage) == UIPageFlags.PopupPage;
 
     private string _pageName;
     public string pageName
@@ -46,10 +40,20 @@ public abstract class UIPage : UILogicBase
         }
     }
 
+    public UIPage(UIContext owner)
+    {
+        this.owner = owner;
+    }
+
     protected override void OnLoaded()
     {
         base.OnLoaded();
-        canvas.sortingOrder = pageContext.baseCanvasOrder;
+        canvas.sortingOrder = canvasOrder;
+        if (isMainPage) {
+
+        } else {
+            SetUIVisible(true);
+        }
     }
 
     protected override void OnClose()
@@ -59,6 +63,15 @@ public abstract class UIPage : UILogicBase
         }
 
         base.OnClose();
+    }
+
+    public override void SetUIVisible(bool isVisible)
+    {
+        base.SetUIVisible(isVisible);
+
+        foreach (var widget in childWidgets) {
+            widget.SetUIVisible(isVisible);
+        }
     }
 
     public void LoadPage(GameObject pageGO = null)
@@ -82,7 +95,11 @@ public abstract class UIPage : UILogicBase
 
     public void ClosePage()
     {
-
+        foreach (var widget in childWidgets) {
+            widget.CloseWidget();
+        }
+        OnHide();
+        OnClose();
     }
 }
 
@@ -90,14 +107,23 @@ public abstract class UIPageWithBinder<TBinder> : UIPage where TBinder : UIBinde
 {
     public TBinder binder;
 
+    protected UIPageWithBinder(UIContext owner) : base(owner)
+    {
+
+    }
+
     protected override void OnLoaded()
     {
         base.OnLoaded();
         binder = gameObject.GetComponent<TBinder>();
         binder.InitWidgets(this);
 
-        foreach (var widget in binder.binderWidgets.Values) {
-            childWidgets.Add(widget);
+        foreach (var widgetKV in binder.binderWidgets) {
+            if (binder.binderWidgetGOs.TryGetValue(widgetKV.Key, out var widgetGO)) {
+                var widget = widgetKV.Value;
+                childWidgets.Add(widget);
+                widget.onUnityResourceLoaded(widgetGO);
+            }
         }
     }
 }

@@ -9,4 +9,10 @@ public static class UIUtils
     {
         return $"UI/Prefab/Widget/{widgetName}";
     }
+
+    public static int GetUIContextBaseOrder(UIContextType contextType)
+    {
+        int typeValue = (int)contextType;
+        return typeValue * UIConfig.CONTEXT_INCREASE_CANVAS_ORDER;
+    }
 }

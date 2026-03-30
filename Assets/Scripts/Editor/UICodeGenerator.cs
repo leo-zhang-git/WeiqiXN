@@ -75,9 +75,14 @@ public static class UICodeGenerator
 
         CSCodeGenerator generator = new CSCodeGenerator();
 
-        string uiType = uiBinderEditor.isPage ? "UIPageWithBinder" : "UIWidgetWithBinder";
-        using (generator.AddBlock($"public class {uiBinderEditor.logicClsName} : {uiType}<{uiBinderEditor.binderClsName}>")) {
-            if (!uiBinderEditor.isPage) {
+        if (uiBinderEditor.isPage) {
+            using (generator.AddBlock($"public class {uiBinderEditor.logicClsName} : UIPageWithBinder<{uiBinderEditor.binderClsName}>")) {
+                using (generator.AddBlock($"public {uiBinderEditor.logicClsName}(UIContext owner) : base(owner)")) {
+
+                }
+            }
+        } else {
+            using (generator.AddBlock($"public class {uiBinderEditor.logicClsName} : UIWidgetWithBinder<{uiBinderEditor.binderClsName}>")) {
                 using (generator.AddBlock($"public {uiBinderEditor.logicClsName}(UILogicBase owner) : base(owner)")) {
 
                 }
