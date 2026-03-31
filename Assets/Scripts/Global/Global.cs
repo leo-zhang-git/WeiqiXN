@@ -19,6 +19,7 @@ public class Global
     public TimerManager timerManager;
     public EventManager eventManager;
     public UIManager uiManager;
+    public SceneManager sceneManager;
 
     public void Start()
     {
@@ -33,6 +34,9 @@ public class Global
 
         uiManager = new UIManager();
         moduleList.Add(uiManager);
+
+        sceneManager = new SceneManager();
+        moduleList.Add(sceneManager);
     }
 
     public void Update()

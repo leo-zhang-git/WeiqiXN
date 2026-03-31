@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 public class SceneBase : ITimerAttacher, IEventReceiver
 {
+    public bool isLoaded;
     private List<SystemBase> systemList = new List<SystemBase>();
     private HashSet<string> systemNames = new HashSet<string>();
 
@@ -16,6 +17,15 @@ public class SceneBase : ITimerAttacher, IEventReceiver
     protected virtual void OnDestroy()
     {
         OnTimerAttacherDestroyed();
+    }
+
+    public void Update()
+    {
+        if (!isLoaded) {
+            return;
+        }
+
+        OnUpdate();
     }
 
     public void Destroy()
