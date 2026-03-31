@@ -65,22 +65,16 @@ public abstract class UIWidgetWithBinder<TBinder> : UIWidget where TBinder : UIB
         }
     }
 
-    public void LoadWidget(GameObject widgetGO = null)
+    public void LoadWidget(bool isAsync = true)
     {
-        if (widgetGO == null) {
-            string assetPath = UIUtils.GetWidgetPrefabPath(widgetName);
-            widgetGO = Global.Instance.resourceManager.LoadAsset<GameObject>(assetPath);
+        string assetPath = UIUtils.GetPagePrefabPath(widgetName);
+        if (isAsync) {
+            Global.Instance.resourceManager.LoadAssetAsync<GameObject>(this, assetPath, onUnityResourceLoaded);
+        } else {
+            GameObject widgetGO = Global.Instance.resourceManager.LoadAsset<GameObject>(assetPath);
             if (widgetGO != null) {
                 onUnityResourceLoaded(widgetGO);
             }
-        } else {
-            onUnityResourceLoaded(widgetGO);
         }
-    }
-
-    public void LoadWidgetAsync()
-    {
-        string assetPath = UIUtils.GetPagePrefabPath(widgetName);
-        Global.Instance.resourceManager.LoadAssetAsync<GameObject>(this, assetPath, onUnityResourceLoaded);
     }
 }

@@ -6,7 +6,6 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
 {
     public bool isLoaded;
     public bool isVisible;
-    public bool isOpened;
     private GameObject _gameObject;
     public GameObject gameObject
     {
@@ -49,6 +48,7 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
             return _rectTransform;
         }
     }
+    private List<Action> resourceLoadedCBs = new List<Action>();
 
     public void onUnityResourceLoaded(GameObject uiGameObject)
     {
@@ -58,6 +58,11 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
         transform.localScale = Vector3.one;
         isLoaded = true;
         OnLoaded();
+
+        foreach (var loadedCB in resourceLoadedCBs) {
+            loadedCB.Invoke();
+        }
+        resourceLoadedCBs.Clear();
     }
 
     protected virtual void OnLoaded()
@@ -82,6 +87,8 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
 
     protected virtual void OnClose()
     {
+
+        resourceLoadedCBs.Clear();
         OnTimerAttacherDestroyed();
         OnEventReceiverDestroyed();
         OnResourceBinderDestroyed();
@@ -91,13 +98,15 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
     {
         this.isVisible = isVisible;
         if (isVisible) {
-            if (!isOpened) {
-                OnOpen();
-            }
             OnShow();
         } else {
             OnHide();
         }
+    }
+
+    public void AddResourceLoadedCB(Action loadedCB)
+    {
+        resourceLoadedCBs.Add(loadedCB);
     }
 
     #region Timer

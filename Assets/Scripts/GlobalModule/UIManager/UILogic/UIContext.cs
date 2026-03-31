@@ -21,7 +21,7 @@ public class UIContext
     public void ShowMainPage(UIPage mainPage)
     {
         mainPage.canvasOrder = baseCanvasOrder + mainPageStack.Count * UIConfig.MAINPAGE_INCREASE_CANVAS_ORDER;
-        mainPage.LoadPageAsync();
+        mainPage.LoadPage();
         mainPageStack.AddLast(mainPage);
     }
 
@@ -48,7 +48,7 @@ public class UIContext
     public void ShowPopupPage(UIPage popupPage)
     {
         popupPage.canvasOrder = baseCanvasOrder + popupList.Count * UIConfig.POPUP_INCREASE_CANVAS_ORDER;
-        popupPage.LoadPageAsync();
+        popupPage.LoadPage();
         popupList.Add(popupPage);
     }
 

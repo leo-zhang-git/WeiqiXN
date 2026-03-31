@@ -28,4 +28,5 @@ public static class UIConfig
     public static int CONTEXT_INCREASE_CANVAS_ORDER = 10000;
     public static int MAINPAGE_INCREASE_CANVAS_ORDER = 100;
     public static int POPUP_INCREASE_CANVAS_ORDER = 1;
+    public static float PAGE_GAMEOBJECT_CACHE_TIME = 30;
 }

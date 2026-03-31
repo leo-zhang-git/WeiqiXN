@@ -49,8 +49,17 @@ public abstract class UIPage : UILogicBase
     {
         base.OnLoaded();
         canvas.sortingOrder = canvasOrder;
-        if (isMainPage) {
+        OnOpen();
 
+        if (isMainPage) {
+            if (owner.mainPageStack.Last.Value == this) {
+                var previousPage = owner.mainPageStack.Last.Previous.Value;
+                previousPage.AddResourceLoadedCB(() =>
+                {
+                    previousPage.SetUIVisible(false);
+                });
+                SetUIVisible(true);
+            }
         } else {
             SetUIVisible(true);
         }
@@ -68,29 +77,29 @@ public abstract class UIPage : UILogicBase
     public override void SetUIVisible(bool isVisible)
     {
         base.SetUIVisible(isVisible);
+        canvas.enabled = isVisible;
 
         foreach (var widget in childWidgets) {
             widget.SetUIVisible(isVisible);
         }
     }
 
-    public void LoadPage(GameObject pageGO = null)
+    public void LoadPage(bool isAsync = true)
     {
-        if (pageGO == null) {
-            string assetPath = UIUtils.GetPagePrefabPath(pageName);
-            pageGO = Global.Instance.resourceManager.LoadAsset<GameObject>(assetPath);
-            if (pageGO != null) {
-                onUnityResourceLoaded(pageGO);
-            }
-        } else {
+        if (Global.Instance.uiManager.TryGetCachePageGO(pageName, out GameObject pageGO)) {
+            pageGO.SetActive(true);
             onUnityResourceLoaded(pageGO);
+        } else {
+            string assetPath = UIUtils.GetPagePrefabPath(pageName);
+            if (isAsync) {
+                Global.Instance.resourceManager.LoadAssetAsync<GameObject>(this, assetPath, onUnityResourceLoaded);
+            } else {
+                pageGO = Global.Instance.resourceManager.LoadAsset<GameObject>(assetPath);
+                if (pageGO != null) {
+                    onUnityResourceLoaded(pageGO);
+                }
+            }
         }
-    }
-
-    public void LoadPageAsync()
-    {
-        string assetPath = UIUtils.GetPagePrefabPath(pageName);
-        Global.Instance.resourceManager.LoadAssetAsync<GameObject>(this, assetPath, onUnityResourceLoaded);
     }
 
     public void ClosePage()
@@ -99,6 +108,7 @@ public abstract class UIPage : UILogicBase
             widget.CloseWidget();
         }
         OnHide();
+        Global.Instance.uiManager.RecycleClosedPage(this);
         OnClose();
     }
 }
