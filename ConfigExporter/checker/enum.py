@@ -53,8 +53,10 @@ class EnumChecker(BaseChecker):
         # 将枚举值转换为集合
         enum_set = set(enum_values)
 
-        # 检查列中的每个值是否在枚举值中
+        # 检查列中的每个值是否在枚举值中，跳过None和空值
         for value in values:
+            if value is None or str(value).strip() == '':
+                continue
             value_str = str(value).strip()
             if value_str not in enum_set:
                 return False, f"值 '{value_str}' 不在允许的枚举值 {enum_values} 中"

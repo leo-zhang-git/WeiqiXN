@@ -61,6 +61,7 @@ def col_num_to_excel(col_num: int) -> str:
     return result
 
 
+# 基础类型验证函数
 def _validate_float(v: Any) -> bool:
     """验证浮点数类型"""
     if isinstance(v, bool):
@@ -85,6 +86,106 @@ def _validate_int(v: Any) -> bool:
         return float_val == int(float_val)
     except (ValueError, TypeError):
         return False
+
+
+# 基础类型转换函数
+def _convert_float(v: Any) -> float:
+    """转换为浮点数"""
+    return float(v)
+
+
+def _convert_int(v: Any) -> int:
+    """转换为整数"""
+    return int(float(v))
+
+
+def _convert_string(v: Any) -> str:
+    """转换为字符串"""
+    return str(v)
+
+
+def _convert_boolean(v: Any) -> bool:
+    """转换为布尔值"""
+    val_str = str(v).lower().strip()
+    if val_str in ('true', '1', 'yes', 'on'):
+        return True
+    elif val_str in ('false', '0', 'no', 'off'):
+        return False
+    else:
+        return bool(v)
+
+
+# 基础类型名称集合
+BASIC_TYPES = {'string', 'int', 'float', 'boolean'}
+
+# 基础类型验证器映射
+BASIC_VALIDATORS = {
+    'string': lambda v: True,
+    'float': _validate_float,
+    'int': _validate_int,
+    'boolean': lambda v: isinstance(v, bool),
+}
+
+# 基础类型转换器映射
+BASIC_CONVERTERS = {
+    'string': _convert_string,
+    'float': _convert_float,
+    'int': _convert_int,
+    'boolean': _convert_boolean,
+}
+
+
+def _is_list_type(type_name: str) -> bool:
+    """判断类型是否为列表类型 list(...)"""
+    if not type_name.startswith('list(') or not type_name.endswith(')'):
+        return False
+    inner = type_name[5:-1]
+    return inner in BASIC_TYPES
+
+
+def _get_inner_type(type_name: str) -> str:
+    """获取列表类型的内部元素类型"""
+    return type_name[5:-1]
+
+
+def _parse_list_value(value: str) -> List[str]:
+    """解析列表字符串，返回元素列表"""
+    value = value.strip()
+    if not value.startswith('[') or not value.endswith(']'):
+        raise ValueError("列表必须以[]包裹")
+    
+    content = value[1:-1].strip()
+    if not content:
+        return []
+    
+    elements = []
+    current = ""
+    depth = 0
+    in_string = False
+    
+    for char in content:
+        if char == '"' or char == "'":
+            in_string = not in_string
+            current += char
+        elif not in_string:
+            if char == '[':
+                depth += 1
+                current += char
+            elif char == ']':
+                depth -= 1
+                current += char
+            elif char == ',' and depth == 0:
+                elements.append(current.strip())
+                current = ""
+            else:
+                current += char
+        else:
+            current += char
+    
+    if current.strip():
+        elements.append(current.strip())
+    
+    return elements
 
 
 class ValidationError(Exception):
@@ -159,37 +260,67 @@ class ExcelChecker:
         return True, ""
 
     def _validate_type(self, value: Any, type_name: str) -> Tuple[bool, str]:
-        if type_name not in self.TYPE_VALIDATORS:
-            return False, f"不支持的数据类型: {type_name}"
-
+        """验证值是否符合指定类型"""
         if value is None or value == '':
             return False, f"值不能为空"
 
+        # 处理列表类型
+        if _is_list_type(type_name):
+            return self._validate_list(value, type_name)
+
+        # 处理基础类型
+        if type_name not in BASIC_VALIDATORS:
+            return False, f"不支持的数据类型: {type_name}"
+
         try:
-            validator = self.TYPE_VALIDATORS[type_name]
+            validator = BASIC_VALIDATORS[type_name]
             if not validator(value):
                 return False, f"值 '{value}' 类型不匹配，期望 {type_name}"
             return True, ""
         except (ValueError, TypeError) as e:
             return False, f"值 '{value}' 无法转换为 {type_name}: {str(e)}"
 
+    def _validate_list(self, value: Any, type_name: str) -> Tuple[bool, str]:
+        """验证列表类型，调用基础类型验证器检查每个元素"""
+        if not isinstance(value, str):
+            return False, f"值 '{value}' 类型不匹配，期望 {type_name}"
+
+        try:
+            elements = _parse_list_value(value)
+        except ValueError as e:
+            return False, f"列表格式错误: {str(e)}"
+
+        inner_type = _get_inner_type(type_name)
+        for i, elem in enumerate(elements):
+            # 使用基础类型验证器检查每个元素
+            is_valid, error_msg = self._validate_type(elem, inner_type)
+            if not is_valid:
+                return False, f"列表第{i+1}个元素 {error_msg}"
+        
+        return True, ""
+
     def _convert_value(self, value: Any, type_name: str) -> Any:
         """将值按指定类型转换"""
-        if type_name == 'string':
-            return str(value)
-        elif type_name == 'float':
-            return float(value)
-        elif type_name == 'int':
-            return int(float(value))
-        elif type_name == 'boolean':
-            val_str = str(value).lower().strip()
-            if val_str in ('true', '1', 'yes', 'on'):
-                return True
-            elif val_str in ('false', '0', 'no', 'off'):
-                return False
-            else:
-                return bool(value)
-        return value
+        # 处理列表类型
+        if _is_list_type(type_name):
+            return self._convert_list(value, type_name)
+
+        # 处理基础类型
+        if type_name not in BASIC_CONVERTERS:
+            return value
+        
+        return BASIC_CONVERTERS[type_name](value)
+
+    def _convert_list(self, value: Any, type_name: str) -> List[Any]:
+        """转换列表类型，调用基础类型转换器转换每个元素"""
+        if not isinstance(value, str):
+            raise ValueError(f"值必须是字符串类型")
+
+        elements = _parse_list_value(value)
+        inner_type = _get_inner_type(type_name)
+        
+        # 使用基础类型转换器转换每个元素
+        return [self._convert_value(elem, inner_type) for elem in elements]
 
     def _find_value_row(self, col: int, target_value: str) -> Optional[int]:
         """查找指定值第一次出现的行号"""
@@ -236,6 +367,14 @@ class ExcelChecker:
                     else:
                         raise ValidationError(4, col, error_msg, sheet_name)
 
+    def _is_valid_type(self, type_name: str) -> bool:
+        """判断类型是否有效（基础类型或列表类型）"""
+        return type_name in BASIC_TYPES or _is_list_type(type_name)
+
+    def _get_supported_types(self) -> List[str]:
+        """获取支持的所有类型"""
+        return list(BASIC_TYPES) + ['list(...)']
+
     def parse_headers(self, sheet_name: str = "") -> List[Dict[str, Any]]:
         """解析表头配置"""
         if self.ws is None:
@@ -266,9 +405,9 @@ class ExcelChecker:
                 raise ValidationError(2, col, error_msg, sheet_name)
 
             type_str = str(type_name).strip().lower() if type_name else ''
-            if type_str not in self.TYPE_VALIDATORS:
+            if not self._is_valid_type(type_str):
                 raise ValidationError(3, col,
-                    f"不支持的数据类型 '{type_name}'，支持: {list(self.TYPE_VALIDATORS.keys())}", sheet_name)
+                    f"不支持的数据类型 '{type_name}'，支持: {self._get_supported_types()}", sheet_name)
 
             # 验证特殊检查器
             checkers = parse_extra_checkers(extra_str)
