@@ -1,0 +1,16 @@
+#AI Agent
+/.minimax
+
+# Ignore all symbolic links / soft links
+# Match symbolic links by pattern (add your symlink names here)
+DataJson# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Excel temporary files
+~$*.xlsx
+~$*.xls
+
+# vscode
+.vscode/
