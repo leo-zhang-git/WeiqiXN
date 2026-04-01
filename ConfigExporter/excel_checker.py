@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Excel类型检查器
@@ -62,6 +61,32 @@ def col_num_to_excel(col_num: int) -> str:
     return result
 
 
+def _validate_float(v: Any) -> bool:
+    """验证浮点数类型"""
+    if isinstance(v, bool):
+        return False
+    if isinstance(v, (int, float)):
+        return True
+    try:
+        float(v)
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
+def _validate_int(v: Any) -> bool:
+    """验证整数类型"""
+    if isinstance(v, bool):
+        return False
+    if isinstance(v, int):
+        return True
+    try:
+        float_val = float(v)
+        return float_val == int(float_val)
+    except (ValueError, TypeError):
+        return False
+
+
 class ValidationError(Exception):
     """验证错误异常"""
     def __init__(self, row: int, col: int, message: str, sheet_name: str = ""):
@@ -84,8 +109,8 @@ class ExcelChecker:
 
     TYPE_VALIDATORS = {
         'string': lambda v: True,
-        'float': lambda v: isinstance(v, (int, float)) and not isinstance(v, bool),
-        'int': lambda v: isinstance(v, int) and not isinstance(v, bool),
+        'float': lambda v: _validate_float(v),
+        'int': lambda v: _validate_int(v),
         'boolean': lambda v: isinstance(v, bool),
     }
 
@@ -140,17 +165,7 @@ class ExcelChecker:
         if value is None or value == '':
             return False, f"值不能为空"
 
-        if type_name == 'string':
-            return True, ""
-
         try:
-            if type_name == 'int':
-                float_val = float(value)
-                if float_val != int(float_val):
-                    return False, f"值 '{value}' 不是有效的整数"
-            elif type_name == 'float':
-                float(value)
-
             validator = self.TYPE_VALIDATORS[type_name]
             if not validator(value):
                 return False, f"值 '{value}' 类型不匹配，期望 {type_name}"
@@ -303,6 +318,7 @@ class ExcelChecker:
             for header in headers:
                 col = header['col']
                 value = self._get_cell_value(row, col)
+
 
                 # 收集所有值（包括空值），供检查器使用
                 col_values[col].append(value)
