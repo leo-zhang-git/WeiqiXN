@@ -38,7 +38,7 @@ public static class UICodeGenerator
                     Type binderType = uiBinderTypes.FirstOrDefault(t => t.Name == childBinderEditor.binderClsName);
                     Type logicType = uiLogicTypes.FirstOrDefault(t => t.Name == childBinderEditor.logicClsName);
                     if (binderType != null && logicType != null && childBinderEditor.GetComponent(binderType) != null) {
-                        generator.AddLine($"public UIComponentBinder _{node.name};");
+                        generator.AddLine($"public UIBinderEditor _{node.name};");
                         generator.AddLine($"public {logicType.Name} {node.name};");
                         widgetBinderEditors.Add((node.name, childBinderEditor));
                     }
@@ -49,12 +49,14 @@ public static class UICodeGenerator
 
             if (widgetBinderEditors.Count > 0) {
                 generator.AddLine();
-                using (generator.AddBlock($"public override void InitWidgets()")) {
+                using (generator.AddBlock($"public override void InitWidgets(UILogicBase owner)")) {
+                    generator.AddLine("base.InitWidgets(owner);");
                     foreach (var (fieldName, binder) in widgetBinderEditors) {
                         Type logicType = uiLogicTypes.FirstOrDefault(t => t.Name == binder.logicClsName);
                         if (logicType != null) {
-                            generator.AddLine($"{fieldName} = new {binder.logicClsName}();");
-                            generator.AddLine($"binderWidgets.Add({fieldName});");
+                            generator.AddLine($"{fieldName} = new {binder.logicClsName}(owner);");
+                            generator.AddLine($"binderWidgets.TryAdd(_{fieldName}.name, {fieldName});");
+                            generator.AddLine($"binderWidgetGOs.TryAdd(_{fieldName}.name, _{fieldName}.gameObject);");
                         }
                     }
                 }
@@ -75,7 +77,11 @@ public static class UICodeGenerator
 
         string uiType = uiBinderEditor.isPage ? "UIPageWithBinder" : "UIWidgetWithBinder";
         using (generator.AddBlock($"public class {uiBinderEditor.logicClsName} : {uiType}<{uiBinderEditor.binderClsName}>")) {
+            if (!uiBinderEditor.isPage) {
+                using (generator.AddBlock($"public {uiBinderEditor.logicClsName}(UILogicBase owner) : base(owner)")) {
 
+                }
+            }
         }
 
         using (var writer = new StreamWriter(uiBinderEditor.logicExportPath, false, Encoding.UTF8)) {

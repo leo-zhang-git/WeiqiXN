@@ -27,6 +27,6 @@ public class UIBinderEditor : MonoBehaviour
     public string binderClsName => $"{gameObject.name}UI";
     public string logicClsName => gameObject.name;
     public bool isPage => gameObject.GetComponent<Canvas>() != null;
-    public string binderExportPath => Path.GetFullPath(Path.Combine(UIUtils.PATH_UI_BINDER_EXPORT, isPage ? "Page" : "Widget", $"{binderClsName}.cs"));
-    public string logicExportPath => Path.GetFullPath(Path.Combine(UIUtils.PATH_UI_LOGIC_EXPORT, isPage ? "Page" : "Widget", $"{logicClsName}.cs"));
+    public string binderExportPath => Path.GetFullPath(Path.Combine(GlobalConfig.PATH_UI_BINDER_EXPORT, isPage ? "Page" : "Widget", $"{binderClsName}.cs"));
+    public string logicExportPath => Path.GetFullPath(Path.Combine(GlobalConfig.PATH_UI_LOGIC_EXPORT, isPage ? "Page" : "Widget", $"{logicClsName}.cs"));
 }

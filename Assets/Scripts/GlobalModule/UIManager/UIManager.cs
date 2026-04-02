@@ -1,14 +1,18 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 public class UIManager : ModuleBase
 {
     public UIContext topContext;
     public List<UIContext> contextStack = new List<UIContext>();
     public int topCanvasOrder;
+    public GameObject uiRoot;
 
     public override void Init()
     {
         topCanvasOrder = GlobalConfig.BASE_CANVAS_ORDER;
+        uiRoot = new GameObject(GlobalConfig.NAME_UI_ROOT);
+        GameObject.DontDestroyOnLoad(uiRoot);
     }
 
     public override void OnDestroy()
@@ -20,6 +24,7 @@ public class UIManager : ModuleBase
     {
         TPage page = new TPage();
         page.pageFlags = UIPage.PageFlags.MainPage;
+        page.LoadPageAsync();
         topCanvasOrder += GlobalConfig.CONTEXT_INCREASE_CANVAS_ORDER;
         UIContext context = new UIContext(topCanvasOrder);
         context.SetMainPage(page);
@@ -29,6 +34,7 @@ public class UIManager : ModuleBase
     {
         TPage page = new TPage();
         page.pageFlags = UIPage.PageFlags.PopupPage;
+        page.LoadPageAsync();
         if (topContext == null) {
             topCanvasOrder += GlobalConfig.CONTEXT_INCREASE_CANVAS_ORDER;
             topContext = new UIContext(topCanvasOrder);

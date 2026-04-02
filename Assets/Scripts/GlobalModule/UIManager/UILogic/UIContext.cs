@@ -21,7 +21,7 @@ public class UIContext
         if (this.mainPage == null) {
             this.mainPage = mainPage;
             this.mainPage.canvasOrder = baseCanvasOrder;
-            this.mainPage.LoadPage();
+            this.mainPage.LoadPageAsync();
         } else {
             Logger.LogError("Duplicated mainPage for UIContext.");
         }
@@ -31,7 +31,7 @@ public class UIContext
     {
         popupList.Add(popupPage);
         popupPage.canvasOrder = baseCanvasOrder + popupList.Count * GlobalConfig.POPUP_INCREASE_CANVAS_ORDER;
-        popupPage.LoadPage();
+        popupPage.LoadPageAsync();
     }
 
     public void RemovePopupPage(UIPage popupPage)

@@ -17,6 +17,17 @@ public abstract class UIPage : UILogicBase
     public bool isMainPage => (pageFlags & PageFlags.MainPage) == PageFlags.MainPage;
     public bool isPopupPage => (pageFlags & PageFlags.PopupPage) == PageFlags.PopupPage;
 
+    private string _pageName;
+    public string pageName
+    {
+        get
+        {
+            if (_pageName == null) {
+                _pageName = GetType().Name;
+            }
+            return _pageName;
+        }
+    }
     protected List<UIWidget> childWidgets = new List<UIWidget>();
 
     private Canvas _canvas;
@@ -50,9 +61,23 @@ public abstract class UIPage : UILogicBase
         base.OnClose();
     }
 
-    public void LoadPage()
+    public void LoadPage(GameObject pageGO = null)
     {
+        if (pageGO == null) {
+            string assetPath = UIUtils.GetPagePrefabPath(pageName);
+            pageGO = Global.Instance.resourceManager.LoadAsset<GameObject>(assetPath);
+            if (pageGO != null) {
+                onUnityResourceLoaded(pageGO);
+            }
+        } else {
+            onUnityResourceLoaded(pageGO);
+        }
+    }
 
+    public void LoadPageAsync()
+    {
+        string assetPath = UIUtils.GetPagePrefabPath(pageName);
+        Global.Instance.resourceManager.LoadAssetAsync<GameObject>(this, assetPath, onUnityResourceLoaded);
     }
 
     public void ClosePage()
@@ -69,9 +94,9 @@ public abstract class UIPageWithBinder<TBinder> : UIPage where TBinder : UIBinde
     {
         base.OnLoaded();
         binder = gameObject.GetComponent<TBinder>();
-        binder.InitWidgets();
+        binder.InitWidgets(this);
 
-        foreach (var widget in binder.binderWidgets) {
+        foreach (var widget in binder.binderWidgets.Values) {
             childWidgets.Add(widget);
         }
     }

@@ -17,10 +17,46 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
             return _gameObject;
         }
     }
-
-    public virtual void onUnityResourceLoaded(GameObject uiGameObject)
+    private Transform _transform;
+    public Transform transform
     {
-        this._gameObject = uiGameObject;
+        get
+        {
+            if (!isLoaded) {
+                Logger.LogError("Try get transform before ui resource is loaded", ("uiClsName", GetType().Name));
+                return null;
+            }
+            if (_transform == null) {
+                _transform = gameObject.transform;
+            }
+            return _transform;
+        }
+    }
+    private RectTransform _rectTransform;
+    public RectTransform rectTransform
+    {
+        get
+        {
+            if (!isLoaded) {
+                Logger.LogError("Try get rectTransform before ui resorece is loaded.", ("pageName", GetType().Name));
+                return null;
+            }
+            if (_rectTransform == null) {
+                _rectTransform = gameObject.GetComponent<RectTransform>();
+            }
+            return _rectTransform;
+        }
+    }
+
+    public void onUnityResourceLoaded(GameObject uiGameObject)
+    {
+        _gameObject = uiGameObject;
+        transform.SetParent(Global.Instance.uiManager.uiRoot.transform);
+        transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+        transform.localScale = Vector3.one;
+        isLoaded = true;
+        OnLoaded();
+        OnOpen();
     }
 
     protected virtual void OnLoaded()
