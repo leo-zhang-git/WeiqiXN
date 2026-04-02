@@ -1,14 +1,15 @@
 @echo off
+chcp 65001 >nul
 setlocal EnableDelayedExpansion
 
 :: ============================================================
-:: Step 1: Request Admin Rights
+:: 步骤 1: 请求管理员权限
 :: ============================================================
 net session >nul 2>&1
 if %errorlevel% neq 0 (
     echo.
     echo ============================================================
-    echo   Requesting Administrator privileges...
+    echo   正在请求管理员权限...
     echo ============================================================
     echo.
     powershell -Command "Start-Process '%~f0' -Verb RunAs"
@@ -16,14 +17,14 @@ if %errorlevel% neq 0 (
 )
 
 :: ============================================================
-:: Step 2: Initialize Variables
+:: 步骤 2: 初始化变量
 :: ============================================================
 set "pythonCmd="
 set "pythonPath="
 set "candidate="
 
 :: ============================================================
-:: Step 3: Find Python Interpreter
+:: 步骤 3: 查找 Python 解释器
 :: ============================================================
 for /f "delims=" %%i in ('where python 2^>nul') do (
     if not defined pythonCmd (
@@ -57,24 +58,24 @@ if not defined pythonCmd (
 )
 
 if not defined pythonCmd (
-    echo Python not found
+    echo 未找到 Python
     pause
     exit /b 1
 )
 
-echo found python: %pythonPath%
+echo 已找到 Python: %pythonPath%
 
 :: ============================================================
-:: Step 4: Install Dependencies
+:: 步骤 4: 安装依赖项
 :: ============================================================
 %pythonCmd% -m pip install --upgrade pip
 %pythonCmd% -m pip install openpyxl
 
 :: ============================================================
-:: Step 5: Create DataJson Symbolic Link
+:: 步骤 5: 创建 DataJson 符号链接
 :: ============================================================
 echo.
-echo Creating DataJson symbolic link...
+echo 正在创建 DataJson 符号链接...
 
 :: Set paths based on script directory
 set "scriptDir=%~dp0"
@@ -84,39 +85,39 @@ set "targetPath=%scriptDir%\..\UnityProject\Assets\Config\DataJson"
 
 :: Create target directory if not exists
 if not exist "%targetPath%" (
-    echo Creating target directory: %targetPath%
+    echo 正在创建目标目录: %targetPath%
     mkdir "%targetPath%" 2>nul
 )
 
 :: Create symbolic link
 if exist "%linkPath%" (
-    echo DataJson already exists at %linkPath%
+    echo DataJson 已在 %linkPath% 存在
 ) else (
-    echo Creating symlink: %linkPath% -^> %targetPath%
+    echo 正在创建符号链接: %linkPath% -^> %targetPath%
     mklink /D "%linkPath%" "%targetPath%"
 )
 
 :: ============================================================
-:: Step 6: Create DataType Symbolic Link
+:: 步骤 6: 创建 DataType 符号链接
 :: ============================================================
 echo.
-echo Creating DataType symbolic link...
+echo 正在创建 DataType 符号链接...
 
 set "linkPath=%scriptDir%\DataType"
 set "targetPath=%scriptDir%\..\UnityProject\Assets\Config\DataType"
 
 if not exist "%targetPath%" (
-    echo Creating target directory: %targetPath%
+    echo 正在创建目标目录: %targetPath%
     mkdir "%targetPath%" 2>nul
 )
 
 if exist "%linkPath%" (
-    echo DataType already exists at %linkPath%
+    echo DataType 已在 %linkPath% 存在
 ) else (
-    echo Creating symlink: %linkPath% -^> %targetPath%
+    echo 正在创建符号链接: %linkPath% -^> %targetPath%
     mklink /D "%linkPath%" "%targetPath%"
 )
 
 echo.
-echo Setup complete
+echo 安装完成
 pause

@@ -84,12 +84,14 @@ class ExcelExporter:
             else:
                 class_name = f"{capitalize(to_camel_case(self.excel_name))}{capitalize(to_camel_case(sheet_name))}DataType"
 
+            # JSON 文件名直接用 sheet 名
+            json_file_name = f"{sheet_name}.json"
+
             lines = [
-                "using Newtonsoft.Json;",
+                "using Newtonsoft.Json.Linq;",
                 "using System;",
                 "using System.Collections.Generic;",
                 "using System.IO;",
-                "using UnityEngine;",
                 "",
                 "public class " + class_name,
                 "{",
@@ -102,6 +104,37 @@ class ExcelExporter:
                 cs_type = type_to_csharp(type_name)
                 comment = f"  // {display_name}" if display_name else ""
                 lines.append(f"    public {cs_type} {field_name};{comment}")
+
+            # 添加静态字典字段
+            lines.append("")
+            dict_class_name = class_name.replace("DataType", "") + "Dict"
+            lines.append(f"    public static Dictionary<string, {class_name}> {dict_class_name};")
+
+            # 添加静态获取方法
+            lines.append("")
+            lines.append(f"    public static {class_name} GetConfigData(string id)")
+            lines.append("    {")
+            lines.append(f"        if ({dict_class_name} == null) {{")
+            lines.append(f"            {dict_class_name} = new Dictionary<string, {class_name}>();")
+            json_path_line = f'            string jsonPath = Path.Combine(GlobalConfig.PATH_CONFIG_JSON, "{self.excel_name}", "{json_file_name}");'
+            lines.append(json_path_line)
+            lines.append("            var jsonObj = JObject.Parse(File.ReadAllText(jsonPath));")
+            lines.append("            foreach (var property in jsonObj.Properties()) {")
+            lines.append("                try {")
+            lines.append(f"                    var item = property.Value.ToObject<{class_name}>();")
+            lines.append(f"                    {dict_class_name}[property.Name] = item;")
+            lines.append("                }")
+            lines.append("                catch (Exception ex) {")
+            lines.append("                    Console.WriteLine($\"读表错误，跳过条目 {property.Name}: {{ex.Message}}\");")
+            lines.append("                }")
+            lines.append("            }")
+            lines.append("        }")
+            lines.append(f"        if ({dict_class_name}.TryGetValue(id, out {class_name} data)) {{")
+            lines.append("            return data;")
+            lines.append("        } else {")
+            lines.append("            return null;")
+            lines.append("        }")
+            lines.append("    }")
 
             lines.append("}")
 
@@ -129,14 +162,9 @@ class ExcelExporter:
 
             output_dir.mkdir(parents=True, exist_ok=True)
 
-            # 导出JSON到 DataJson/xlsx名/
-            if sheet_name == self.excel_name:
-                json_name = self.excel_name
-            else:
-                json_name = f"{self.excel_name}_{sheet_name}"
-
+            # 导出JSON到 DataJson/xlsx名/（json文件名直接用sheet名）
             json_dir = output_dir
-            json_path = json_dir / f"{json_name}.json"
+            json_path = json_dir / f"{sheet_name}.json"
             self.export_to_json(data, json_path)
 
             # 导出C#到 DataType/xlsx名/
