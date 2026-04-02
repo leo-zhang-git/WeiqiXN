@@ -135,6 +135,31 @@ def _get_inner_type(type_name: str) -> str:
     """获取列表类型的内部元素类型"""
     return type_name[5:-1]
 
+def _is_tuple_type(type_name: str) -> bool:
+    """判断类型是否为元组类型 tuple(...) """
+    if not type_name.startswith('tuple(') or not type_name.endswith(')'):
+        return False
+    inner = type_name[6:-1]
+    if not inner.strip():
+        return False
+    inner_types = [t.strip() for t in inner.split(',')]
+    return all(t in BASIC_TYPES for t in inner_types)
+
+def _get_tuple_types(type_name: str) -> List[str]:
+    """获取元组类型的内部元素类型列表"""
+    inner = type_name[6:-1]
+    return [t.strip() for t in inner.split(',')]
+
+def _parse_tuple_value(value: str) -> List[str]:
+    """解析元组字符串，返回元素列表"""
+    value = value.strip()
+    if not value.startswith('[') or not value.endswith(']'):
+        raise ValueError("元组必须以[]包裹")
+    content = value[1:-1].strip()
+    if not content:
+        return []
+    return [elem.strip() for elem in content.split(',') if elem.strip()]
+
 def _parse_list_value(value: str) -> List[str]:
     """解析列表字符串，返回元素列表"""
     value = value.strip()
@@ -224,6 +249,10 @@ class ExcelChecker:
         if _is_list_type(type_name):
             return self._validate_list(value, type_name)
 
+        # 处理元组类型
+        if _is_tuple_type(type_name):
+            return self._validate_tuple(value, type_name)
+
         # 处理基础类型
         if type_name not in BASIC_VALIDATORS:
             return False, f"不支持的数据类型: {type_name}"
@@ -255,11 +284,39 @@ class ExcelChecker:
 
         return True, ""
 
+    def _validate_tuple(self, value: Any, type_name: str) -> Tuple[bool, str]:
+        """验证元组类型，检查元素个数和类型对应"""
+        if not isinstance(value, str):
+            return False, f"值 '{value}' 类型不匹配，期望 {type_name}"
+
+        try:
+            elements = _parse_tuple_value(value)
+        except ValueError as e:
+            return False, f"元组格式错误: {str(e)}"
+
+        tuple_types = _get_tuple_types(type_name)
+
+        # 检查元素个数是否一致
+        if len(elements) != len(tuple_types):
+            return False, f"元组元素个数不匹配，期望{len(tuple_types)}个，实际{len(elements)}个"
+
+        # 检查每个元素的类型
+        for i, (elem, expected_type) in enumerate(zip(elements, tuple_types)):
+            is_valid, error_msg = self._validate_type(elem, expected_type)
+            if not is_valid:
+                return False, f"元组第{i+1}个元素 {error_msg}"
+
+        return True, ""
+
     def _convert_value(self, value: Any, type_name: str) -> Any:
         """将值按指定类型转换"""
         # 处理列表类型
         if _is_list_type(type_name):
             return self._convert_list(value, type_name)
+
+        # 处理元组类型
+        if _is_tuple_type(type_name):
+            return self._convert_tuple(value, type_name)
 
         # 处理基础类型
         if type_name not in BASIC_CONVERTERS:
@@ -277,6 +334,17 @@ class ExcelChecker:
 
         # 使用基础类型转换器转换每个元素
         return [self._convert_value(elem, inner_type) for elem in elements]
+
+    def _convert_tuple(self, value: Any, type_name: str) -> List[Any]:
+        """转换元组类型，调用基础类型转换器转换每个元素"""
+        if not isinstance(value, str):
+            raise ValueError(f"值必须是字符串类型")
+
+        elements = _parse_tuple_value(value)
+        tuple_types = _get_tuple_types(type_name)
+
+        # 使用基础类型转换器转换每个元素
+        return [self._convert_value(elem, t) for elem, t in zip(elements, tuple_types)]
 
     def _find_value_row(self, col: int, target_value: str) -> Optional[int]:
         """查找指定值第一次出现的行号"""
@@ -324,12 +392,12 @@ class ExcelChecker:
                         raise ValidationError(4, col, error_msg, sheet_name)
 
     def _is_valid_type(self, type_name: str) -> bool:
-        """判断类型是否有效（基础类型或列表类型）"""
-        return type_name in BASIC_TYPES or _is_list_type(type_name)
+        """判断类型是否有效（基础类型或列表类型或元组类型）"""
+        return type_name in BASIC_TYPES or _is_list_type(type_name) or _is_tuple_type(type_name)
 
     def _get_supported_types(self) -> List[str]:
         """获取支持的所有类型"""
-        return list(BASIC_TYPES) + ['list(...)']
+        return list(BASIC_TYPES) + ['list(...)', 'tuple(...)']
 
     def parse_headers(self, sheet_name: str = "") -> List[Dict[str, Any]]:
         """解析表头配置"""
@@ -341,6 +409,7 @@ class ExcelChecker:
             raise ValueError("Excel文件没有数据列")
 
         headers = []
+        seen_keys = {}
         for col in range(1, max_col + 1):
             display_name = self._get_cell_value(1, col)
             key = self._get_cell_value(2, col)
@@ -373,6 +442,13 @@ class ExcelChecker:
                     raise ValidationError(4, col, f"不支持的特殊检查: #{func_name}", sheet_name)
                 if func_name == 'enum' and not args.strip():
                     raise ValidationError(4, col, "enum() 缺少参数，格式: #enum(a,b,c)", sheet_name)
+            # 检查是否有重复的 key 名
+            if key_str in seen_keys:
+                first_col = seen_keys[key_str]
+                raise ValidationError(2, col,
+                    f"key名 '{key_str}' 与第{col_num_to_excel(first_col)}列重复，请使用不同的key名",
+                    sheet_name)
+            seen_keys[key_str] = col
             headers.append({
                 'display_name': display_name,
                 'key': key_str,

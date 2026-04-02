@@ -34,9 +34,11 @@ class EnumChecker(BaseChecker):
 
               col_type: str = 'string', args: str = '') -> Tuple[bool, str]:
 
-        # enum检查只支持基础类型，不支持list等高级类型
+        # enum检查只支持基础类型，不支持list/tuple等高级类型
         if col_type.startswith('list('):
             return False, "enum检查不支持list类型，只能使用基础类型(string, int, float, boolean)"
+        if col_type.startswith('tuple('):
+            return False, "enum检查不支持tuple类型，只能使用基础类型(string, int, float, boolean)"
 
         enum_values = parse_enum_args(args)
 

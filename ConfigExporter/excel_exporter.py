@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional, Tuple, List, Dict, Any
 
 try:
-    from excel_checker import ExcelChecker, ValidationError, _is_list_type, _get_inner_type
+    from excel_checker import ExcelChecker, ValidationError, _is_list_type, _get_inner_type, _is_tuple_type, _get_tuple_types
 except ImportError:
     raise ImportError("缺少 excel_checker 模块，请确保在同一目录下")
 
@@ -33,6 +33,10 @@ def type_to_csharp(type_name: str) -> str:
         inner_type = _get_inner_type(type_name)
         cs_inner = type_map.get(inner_type, inner_type)
         return f"{cs_inner}[]"
+    if _is_tuple_type(type_name):
+        tuple_types = _get_tuple_types(type_name)
+        cs_types = ', '.join(type_map.get(t, t) for t in tuple_types)
+        return f"({cs_types})"
     return type_map.get(type_name, type_name)
 
 
@@ -69,10 +73,16 @@ class ExcelExporter:
     def excel_to_csharp(self, headers: List[Dict[str, Any]], sheet_name: str, output_dir: Path) -> Tuple[bool, str, Optional[Path]]:
         """根据表头导出C#数据类"""
         try:
+            def capitalize(name: str) -> str:
+                """首字母大写"""
+                if not name:
+                    return name
+                return name[0].upper() + name[1:]
+
             if sheet_name == self.excel_name:
-                class_name = f"{to_camel_case(self.excel_name)}DataType"
+                class_name = f"{capitalize(to_camel_case(self.excel_name))}DataType"
             else:
-                class_name = f"{to_camel_case(self.excel_name)}{to_camel_case(sheet_name)}DataType"
+                class_name = f"{capitalize(to_camel_case(self.excel_name))}{capitalize(to_camel_case(sheet_name))}DataType"
 
             lines = [
                 "using Newtonsoft.Json;",
@@ -179,7 +189,8 @@ def prompt_setup_for_datajson():
 
 创建链接后，重新运行导出命令。
 ============================================================
-""")
+"""
+)
 
 
 def main():
