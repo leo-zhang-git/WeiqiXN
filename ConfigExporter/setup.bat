@@ -96,6 +96,27 @@ if exist "%linkPath%" (
     mklink /D "%linkPath%" "%targetPath%"
 )
 
+:: ============================================================
+:: Step 6: Create DataType Symbolic Link
+:: ============================================================
+echo.
+echo Creating DataType symbolic link...
+
+set "linkPath=%scriptDir%\DataType"
+set "targetPath=%scriptDir%\..\UnityProject\Assets\Config\DataType"
+
+if not exist "%targetPath%" (
+    echo Creating target directory: %targetPath%
+    mkdir "%targetPath%" 2>nul
+)
+
+if exist "%linkPath%" (
+    echo DataType already exists at %linkPath%
+) else (
+    echo Creating symlink: %linkPath% -^> %targetPath%
+    mklink /D "%linkPath%" "%targetPath%"
+)
+
 echo.
 echo Setup complete
 pause

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Excel配置导出工具
-检查Excel数据并导出为JSON
+检查Excel数据并导出为JSON和C#
 """
 
 import sys
@@ -16,7 +16,8 @@ except ImportError:
     sys.exit(1)
 
 from excel_checker import ExcelChecker
-from excel_exporter import JsonExporter, check_datajson_link, prompt_setup_for_datajson
+from excel_exporter import ExcelExporter, check_datajson_link, prompt_setup_for_datajson
+
 
 def main():
     """命令行入口"""
@@ -76,23 +77,26 @@ def main():
         prompt_setup_for_datajson()
         sys.exit(1)
 
-    # 3. 导出JSON
+    # 3. 导出JSON和C#
     print("检查通过，开始导出...")
-    exporter = JsonExporter(xlsx_file)
+    exporter = ExcelExporter(xlsx_file)
     exporter.load()
 
     export_results = exporter.export_all()
     exporter.close()
 
-    for sheet_name, success, message, output_path in export_results:
+    for sheet_name, success, message, json_path, cs_path in export_results:
         if success:
-            print(f"[{sheet_name}] 导出成功 -> {output_path}")
+            print(f"[{sheet_name}] 导出成功")
+            print(f"         JSON: {json_path}")
+            print(f"         C#:   {cs_path}")
         else:
             print(f"[{sheet_name}] 导出失败: {message}")
 
     print("-" * 50)
     print(f"完成: {success_count} 成功, {fail_count} 失败")
     sys.exit(0 if fail_count == 0 else 1)
+
 
 if __name__ == '__main__':
     main()

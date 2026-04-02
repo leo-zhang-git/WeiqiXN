@@ -1,22 +1,43 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Excel JSON导出器
-将Excel数据导出为JSON格式
+Excel导出器
+将Excel数据导出为JSON格式和C#数据类
 """
 
 import json
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List, Dict, Any
 
 try:
-    from excel_checker import ExcelChecker, ValidationError
+    from excel_checker import ExcelChecker, ValidationError, _is_list_type, _get_inner_type
 except ImportError:
     raise ImportError("缺少 excel_checker 模块，请确保在同一目录下")
 
 
-class JsonExporter:
-    """JSON导出器"""
+def to_camel_case(name: str) -> str:
+    """将下划线命名转为驼峰命名"""
+    parts = name.split('_')
+    return parts[0] + ''.join(word.capitalize() for word in parts[1:])
+
+
+def type_to_csharp(type_name: str) -> str:
+    """将Excel类型转为C#类型"""
+    type_map = {
+        'string': 'string',
+        'int': 'int',
+        'float': 'float',
+        'boolean': 'bool',
+    }
+    if _is_list_type(type_name):
+        inner_type = _get_inner_type(type_name)
+        cs_inner = type_map.get(inner_type, inner_type)
+        return f"{cs_inner}[]"
+    return type_map.get(type_name, type_name)
+
+
+class ExcelExporter:
+    """Excel导出器"""
 
     def __init__(self, excel_path: str | Path):
         """初始化导出器"""
@@ -45,36 +66,88 @@ class JsonExporter:
             f.write(json_str)
         return json_str
 
-    def export_sheet(self, sheet_name: str, output_dir: Optional[Path] = None) -> Tuple[bool, str, Optional[Path]]:
+    def excel_to_csharp(self, headers: List[Dict[str, Any]], sheet_name: str, output_dir: Path) -> Tuple[bool, str, Optional[Path]]:
+        """根据表头导出C#数据类"""
+        try:
+            if sheet_name == self.excel_name:
+                class_name = f"{to_camel_case(self.excel_name)}DataType"
+            else:
+                class_name = f"{to_camel_case(self.excel_name)}{to_camel_case(sheet_name)}DataType"
+
+            lines = [
+                "using Newtonsoft.Json;",
+                "using System;",
+                "using System.Collections.Generic;",
+                "using System.IO;",
+                "using UnityEngine;",
+                "",
+                "public class " + class_name,
+                "{",
+            ]
+
+            for header in headers:
+                field_name = header['key']
+                type_name = header['type']
+                display_name = header['display_name']
+                cs_type = type_to_csharp(type_name)
+                comment = f"  // {display_name}" if display_name else ""
+                lines.append(f"    public {cs_type} {field_name};{comment}")
+
+            lines.append("}")
+
+            cs_code = "\n".join(lines)
+
+            output_dir.mkdir(parents=True, exist_ok=True)
+            output_path = output_dir / f"{class_name}.cs"
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(cs_code)
+
+            return True, "", output_path
+        except Exception as e:
+            return False, str(e), None
+
+    def export_sheet(self, sheet_name: str, output_dir: Optional[Path] = None) -> Tuple[bool, str, Optional[Path], Optional[Path]]:
         """导出单个工作表"""
         try:
             self.checker.set_active_sheet(sheet_name)
             headers = self.checker.parse_headers(sheet_name)
             data = self.checker.validate_data(headers, sheet_name)
+
+            if output_dir is None:
+                script_dir = Path(__file__).parent
+                output_dir = script_dir / 'DataJson' / self.excel_name
+
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+            # 导出JSON到 DataJson/xlsx名/
             if sheet_name == self.excel_name:
                 json_name = self.excel_name
             else:
                 json_name = f"{self.excel_name}_{sheet_name}"
-            if output_dir is None:
-                script_dir = Path(__file__).parent
-                output_dir = script_dir / 'DataJson' / self.excel_name
-            output_dir.mkdir(parents=True, exist_ok=True)
-            output_path = output_dir / f"{json_name}.json"
-            self.export_to_json(data, output_path)
-            return True, f"[{sheet_name}] 导出成功，共 {len(data)} 条数据", output_path
+
+            json_dir = output_dir
+            json_path = json_dir / f"{json_name}.json"
+            self.export_to_json(data, json_path)
+
+            # 导出C#到 DataType/xlsx名/
+            cs_dir = Path(__file__).parent / 'DataType' / self.excel_name
+            cs_success, cs_error, cs_path = self.excel_to_csharp(headers, sheet_name, cs_dir)
+
+            return True, f"共 {len(data)} 条数据", json_path, cs_path
+
         except ValidationError as e:
-            return False, f"校验失败: {e}", None
+            return False, f"校验失败: {e}", None, None
         except FileNotFoundError as e:
-            return False, f"文件错误: {str(e)}", None
+            return False, f"文件错误: {str(e)}", None, None
         except Exception as e:
-            return False, f"[{sheet_name}] 未知错误: {str(e)}", None
+            return False, f"未知错误: {str(e)}", None, None
 
     def export_all(self, output_dir: Optional[Path] = None) -> list:
         """导出所有有效工作表"""
         results = []
         for sheet_name in self.get_valid_sheets():
-            success, message, output_path = self.export_sheet(sheet_name, output_dir)
-            results.append((sheet_name, success, message, output_path))
+            success, message, json_path, cs_path = self.export_sheet(sheet_name, output_dir)
+            results.append((sheet_name, success, message, json_path, cs_path))
         return results
 
 
@@ -115,21 +188,20 @@ def main():
     from pathlib import Path
     import argparse
     parser = argparse.ArgumentParser(
-        description='Excel表格导出JSON工具',
+        description='Excel表格导出JSON和C#工具',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 表头格式要求（前4行）：
   第1行：列的中文名称（仅显示，不参与导出）
   第2行：导出到JSON的key名（必须是有效的变量名）
-  第3行：数据类型限制（string, float, int, boolean）
+  第3行：数据类型限制（string, float, int, boolean, list(...)）
   第4行：额外检查（必须是以#开头的字符串）
   第5行起：数据行
 
 说明：
   - 自动遍历xlsx文件中所有不以#开头的sheet
-  - 如果sheet名和xlsx文件名一致，json文件名为xlsx名
-  - 否则为xlsx名_sheet名
-  - 默认导出到 DataJson/xlsx文件名/ 目录下
+  - 导出JSON到 DataJson/xlsx文件名/ 目录下
+  - 导出C#到 DataType/xlsx文件名/ 目录下
 
 示例：
   python excel_exporter.py config.xlsx
@@ -146,7 +218,7 @@ def main():
     if not xlsx_file.exists():
         print(f"错误: 未找到文件 '{input_name}'，请确认文件在xlsx文件夹中")
         sys.exit(1)
-    exporter = JsonExporter(xlsx_file)
+    exporter = ExcelExporter(xlsx_file)
     exporter.load()
     valid_sheets = exporter.get_valid_sheets()
     if not valid_sheets:
@@ -163,10 +235,11 @@ def main():
     exporter.close()
     success_count = 0
     fail_count = 0
-    for sheet_name, success, message, output_path in results:
+    for sheet_name, success, message, json_path, cs_path in results:
         if success:
             print(f"[{sheet_name}] 成功: {message}")
-            print(f"         输出: {output_path}")
+            print(f"         JSON: {json_path}")
+            print(f"         C#:   {cs_path}")
             success_count += 1
         else:
             print(f"[{sheet_name}] 失败: {message}")

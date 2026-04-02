@@ -373,7 +373,6 @@ class ExcelChecker:
                     raise ValidationError(4, col, f"不支持的特殊检查: #{func_name}", sheet_name)
                 if func_name == 'enum' and not args.strip():
                     raise ValidationError(4, col, "enum() 缺少参数，格式: #enum(a,b,c)", sheet_name)
-
             headers.append({
                 'display_name': display_name,
                 'key': key_str,

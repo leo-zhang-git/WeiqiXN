@@ -15,5 +15,6 @@ __pycache__/
 # vscode
 .vscode/
 
-# DataJson 软链接
+# 软链
 DataJson
+DataType
