@@ -14,12 +14,10 @@ try:
 except ImportError:
     raise ImportError("缺少必要的依赖库 openpyxl，请先运行 setup.bat")
 
-
 # 导入检查器模块
 from checker import BaseChecker, ColumnChecker, parse_extra_checkers
 from checker.unique import UniqueChecker
 from checker.enum import EnumChecker
-
 
 # 高亮颜色
 class Highlight:
@@ -29,27 +27,26 @@ class Highlight:
     CYAN = '\033[96m'
     BOLD = '\033[1m'
     END = '\033[0m'
-    
+
     @classmethod
     def red(cls, text: str) -> str:
         return f"{cls.RED}{text}{cls.END}"
-    
+
     @classmethod
     def yellow(cls, text: str) -> str:
         return f"{cls.YELLOW}{text}{cls.END}"
-    
+
     @classmethod
     def green(cls, text: str) -> str:
         return f"{cls.GREEN}{text}{cls.END}"
-    
+
     @classmethod
     def cyan(cls, text: str) -> str:
         return f"{cls.CYAN}{text}{cls.END}"
-    
+
     @classmethod
     def bold(cls, text: str) -> str:
         return f"{cls.BOLD}{text}{cls.END}"
-
 
 def col_num_to_excel(col_num: int) -> str:
     """将数字列号转换为Excel列号格式 (A, B, ..., Z, AA, AB, ...)"""
@@ -59,7 +56,6 @@ def col_num_to_excel(col_num: int) -> str:
         result = chr(65 + (col_num % 26)) + result
         col_num //= 26
     return result
-
 
 # 基础类型验证函数
 def _validate_float(v: Any) -> bool:
@@ -74,7 +70,6 @@ def _validate_float(v: Any) -> bool:
     except (ValueError, TypeError):
         return False
 
-
 def _validate_int(v: Any) -> bool:
     """验证整数类型"""
     if isinstance(v, bool):
@@ -87,22 +82,18 @@ def _validate_int(v: Any) -> bool:
     except (ValueError, TypeError):
         return False
 
-
 # 基础类型转换函数
 def _convert_float(v: Any) -> float:
     """转换为浮点数"""
     return float(v)
 
-
 def _convert_int(v: Any) -> int:
     """转换为整数"""
     return int(float(v))
 
-
 def _convert_string(v: Any) -> str:
     """转换为字符串"""
     return str(v)
-
 
 def _convert_boolean(v: Any) -> bool:
     """转换为布尔值"""
@@ -113,7 +104,6 @@ def _convert_boolean(v: Any) -> bool:
         return False
     else:
         return bool(v)
-
 
 # 基础类型名称集合
 BASIC_TYPES = {'string', 'int', 'float', 'boolean'}
@@ -134,7 +124,6 @@ BASIC_CONVERTERS = {
     'boolean': _convert_boolean,
 }
 
-
 def _is_list_type(type_name: str) -> bool:
     """判断类型是否为列表类型 list(...)"""
     if not type_name.startswith('list(') or not type_name.endswith(')'):
@@ -142,51 +131,19 @@ def _is_list_type(type_name: str) -> bool:
     inner = type_name[5:-1]
     return inner in BASIC_TYPES
 
-
 def _get_inner_type(type_name: str) -> str:
     """获取列表类型的内部元素类型"""
     return type_name[5:-1]
-
 
 def _parse_list_value(value: str) -> List[str]:
     """解析列表字符串，返回元素列表"""
     value = value.strip()
     if not value.startswith('[') or not value.endswith(']'):
         raise ValueError("列表必须以[]包裹")
-    
     content = value[1:-1].strip()
     if not content:
         return []
-    
-    elements = []
-    current = ""
-    depth = 0
-    in_string = False
-    
-    for char in content:
-        if char == '"' or char == "'":
-            in_string = not in_string
-            current += char
-        elif not in_string:
-            if char == '[':
-                depth += 1
-                current += char
-            elif char == ']':
-                depth -= 1
-                current += char
-            elif char == ',' and depth == 0:
-                elements.append(current.strip())
-                current = ""
-            else:
-                current += char
-        else:
-            current += char
-    
-    if current.strip():
-        elements.append(current.strip())
-    
-    return elements
-
+    return [elem.strip() for elem in content.split(',') if elem.strip()]
 
 class ValidationError(Exception):
     """验证错误异常"""
@@ -203,7 +160,6 @@ class ValidationError(Exception):
             f"{Highlight.red(message)}"
         )
         super().__init__(self.formatted)
-
 
 class ExcelChecker:
     """Excel数据验证器"""
@@ -296,7 +252,7 @@ class ExcelChecker:
             is_valid, error_msg = self._validate_type(elem, inner_type)
             if not is_valid:
                 return False, f"列表第{i+1}个元素 {error_msg}"
-        
+
         return True, ""
 
     def _convert_value(self, value: Any, type_name: str) -> Any:
@@ -308,7 +264,7 @@ class ExcelChecker:
         # 处理基础类型
         if type_name not in BASIC_CONVERTERS:
             return value
-        
+
         return BASIC_CONVERTERS[type_name](value)
 
     def _convert_list(self, value: Any, type_name: str) -> List[Any]:
@@ -318,7 +274,7 @@ class ExcelChecker:
 
         elements = _parse_list_value(value)
         inner_type = _get_inner_type(type_name)
-        
+
         # 使用基础类型转换器转换每个元素
         return [self._convert_value(elem, inner_type) for elem in elements]
 
@@ -457,7 +413,6 @@ class ExcelChecker:
             for header in headers:
                 col = header['col']
                 value = self._get_cell_value(row, col)
-
 
                 # 收集所有值（包括空值），供检查器使用
                 col_values[col].append(value)

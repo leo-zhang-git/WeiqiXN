@@ -8,7 +8,6 @@ from typing import Any, List, Tuple
 
 from checker.base import BaseChecker, ColumnChecker
 
-
 class RequireChecker(BaseChecker):
     """#require - 检查该列所有单元格是否都不为空"""
 
@@ -22,7 +21,6 @@ class RequireChecker(BaseChecker):
             if value is None or str(value).strip() == '':
                 return False, f"第{i + 5}行 '{key}' 列存在空单元格"
         return True, ""
-
 
 # 注册检查器
 ColumnChecker.register(RequireChecker)

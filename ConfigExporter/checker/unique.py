@@ -8,7 +8,6 @@ from typing import Any, List, Tuple
 
 from checker.base import BaseChecker, ColumnChecker
 
-
 class UniqueChecker(BaseChecker):
     """#unique - 检查该列所有值是否唯一"""
     name = 'unique'
@@ -23,7 +22,6 @@ class UniqueChecker(BaseChecker):
                 return False, f"值 '{value_str}' 与第{seen[value_str]}行重复"
             seen[value_str] = i + 5  # 数据从第5行开始
         return True, ""
-
 
 # 注册检查器
 ColumnChecker.register(UniqueChecker)

@@ -7,7 +7,6 @@
 import re
 from typing import Any, List, Tuple, Optional, Type
 
-
 class BaseChecker:
     """检查器基类"""
     name: str = ""
@@ -17,7 +16,6 @@ class BaseChecker:
               col_type: str = 'string', args: str = '') -> Tuple[bool, str]:
         """执行检查，子类需重写"""
         raise NotImplementedError
-
 
 class ColumnChecker:
     """列特殊检查器管理类"""
@@ -44,7 +42,6 @@ class ColumnChecker:
     def get_all_checkers(cls) -> List[Type[BaseChecker]]:
         """获取所有已注册的检查器"""
         return cls._checkers.copy()
-
 
 def parse_extra_checkers(extra_str: str) -> List[Tuple[str, str]]:
     """
