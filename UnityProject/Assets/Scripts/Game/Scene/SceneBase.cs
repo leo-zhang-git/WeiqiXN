@@ -165,11 +165,44 @@ public class SceneBase : ITimerAttacher, IEventReceiver
 
     public void AddEntity(EntityBase entity)
     {
+        if (entityDict.ContainsKey(entity.guid)) {
+            Logger.LogError("Duplicated entity guid, add entity failed.", ("guid", entity.guid));
+            return;
+        }
+        entityDict[entity.guid] = entity;
 
+        HashSet<EntityBase> entSet;
+        if (!entityTypeDict.TryGetValue(entity.GetEntityType(), out entSet)) {
+            entSet = new HashSet<EntityBase>();
+            entityTypeDict[entity.GetEntityType()] = entSet;
+        }
+        entSet.Add(entity);
     }
 
     public void RemoveEntity(EntityBase entity)
     {
 
+    }
+
+    public EntityBase GetEntity(string guid)
+    {
+        if (entityDict.TryGetValue(guid, out var entity)) {
+            return entity;
+        }
+
+        return null;
+    }
+
+    public TEntity GetEntity<TEntity>(string guid) where TEntity : EntityBase
+    {
+        if (entityDict.TryGetValue(guid, out var entity)) {
+            if (entityTypeDict.TryGetValue(EntityUtils.GetEntityType<TEntity>(), out var entSet)) {
+                if (entSet.Contains(entity)) {
+                    return (TEntity)entity;
+                }
+            }
+        }
+
+        return null;
     }
 }

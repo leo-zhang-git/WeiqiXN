@@ -4,12 +4,13 @@ using System.Collections.Generic;
 public abstract class EntityBase : ITimerAttacher
 {
     public readonly SceneBase scene;
-    public abstract string entityType { get; }
+    public string guid;
     public List<EntityComponentBase> compList = new List<EntityComponentBase>();
 
-    public EntityBase(SceneBase scene)
+    public EntityBase(SceneBase scene, string guid)
     {
         this.scene = scene;
+        this.guid = guid;
     }
 
     #region LifeCycle
