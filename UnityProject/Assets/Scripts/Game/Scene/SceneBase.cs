@@ -3,9 +3,38 @@ using System.Collections.Generic;
 
 public class SceneBase : ITimerAttacher, IEventReceiver
 {
+    public readonly SceneDataType configData;
     public bool isLoaded;
+    public Dictionary<string, EntityBase> entityDict = new Dictionary<string, EntityBase>();
+    public Dictionary<string, HashSet<EntityBase>> entityTypeDict = new Dictionary<string, HashSet<EntityBase>>();
+    public List<SceneComponentBase> compList = new List<SceneComponentBase>();
+
+    protected UnityEngine.SceneManagement.Scene unityScene;
     private List<SystemBase> systemList = new List<SystemBase>();
     private HashSet<string> systemNames = new HashSet<string>();
+
+    public SceneBase(SceneDataType configData)
+    {
+        this.configData = configData;
+    }
+
+    #region LifeCycle
+    public void OnUnitySceneLoaded(UnityEngine.SceneManagement.Scene unityScene, UnityEngine.SceneManagement.LoadSceneMode mode)
+    {
+        this.unityScene = unityScene;
+        isLoaded = true;
+        OnSceneLoaded();
+    }
+
+    public virtual void OnSceneLoaded()
+    {
+
+    }
+
+    public virtual void OnSceneInit()
+    {
+        // Add systems
+    }
 
     protected virtual void OnUpdate()
     {
@@ -14,9 +43,20 @@ public class SceneBase : ITimerAttacher, IEventReceiver
         }
     }
 
-    protected virtual void OnDestroy()
+    public virtual void OnSceneExit()
     {
+        foreach (var entity in entityDict.Values) {
+            entity.Destroy();
+        }
+        foreach (var comp in compList) {
+            comp.OnDestroy();
+        }
+
+        if (!isLoaded) {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnUnitySceneLoaded;
+        }
         OnTimerAttacherDestroyed();
+        OnEventReceiverDestroyed();
     }
 
     public void Update()
@@ -27,11 +67,7 @@ public class SceneBase : ITimerAttacher, IEventReceiver
 
         OnUpdate();
     }
-
-    public void Destroy()
-    {
-
-    }
+    #endregion
 
     #region Timer
     private List<string> _attachedTimerIds = new List<string>();
@@ -105,6 +141,18 @@ public class SceneBase : ITimerAttacher, IEventReceiver
     }
     #endregion
 
+    public void LoadScene()
+    {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnUnitySceneLoaded;
+        try {
+            UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(configData.unitySceneName);
+        }
+        catch (Exception ex) {
+            Logger.LogError("Load unity scene async error.", ("unitySceneName", configData.unitySceneName), ("exception", ex.Message));
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnUnitySceneLoaded;
+        }
+    }
+
     protected void AddSystem(SystemBase system)
     {
         if (systemNames.Contains(system.systemName)) {
@@ -113,5 +161,15 @@ public class SceneBase : ITimerAttacher, IEventReceiver
         }
         systemList.Add(system);
         systemNames.Add(system.systemName);
+    }
+
+    public void AddEntity(EntityBase entity)
+    {
+
+    }
+
+    public void RemoveEntity(EntityBase entity)
+    {
+
     }
 }

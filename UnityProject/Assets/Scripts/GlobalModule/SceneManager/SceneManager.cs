@@ -1,6 +1,6 @@
 public class SceneManager : ModuleBase
 {
-    public SceneBase mainActiveScene;
+    public SceneBase mainScene;
 
     public override void Init()
     {
@@ -10,18 +10,48 @@ public class SceneManager : ModuleBase
     public override void Update()
     {
         base.Update();
-        if (mainActiveScene != null) {
-            mainActiveScene.Update();
+        if (mainScene != null) {
+            mainScene.Update();
         }
     }
 
-    private void EnterMainActiveScene(string sceneId)
+    public void EnterMainScene(string sceneTypeId)
     {
+        SceneDataType sceneData = SceneDataType.GetConfigData(sceneTypeId);
+        if (sceneData == null) {
+            Logger.LogError("Scene config invalid, enter main scene failed.", ("sceneTypeId", sceneTypeId));
+            return;
+        }
 
+        if (CreateSceneWithConfigData(sceneData, out SceneBase scene)) {
+            ExitMainScene();
+            mainScene = scene;
+        } else {
+            Logger.LogError("Create scene with config data failed, enter main scene failed.", ("sceneTypeId", sceneTypeId));
+            return;
+        }
+
+        scene.LoadScene();
+        Logger.LogInfo("Enter main scene success.", ("sceneTypeId", sceneTypeId));
     }
 
-    private void ExitMainActiveScene()
+    public void ExitMainScene()
     {
+        if (mainScene != null) {
+            Logger.LogInfo("Exit main scene success.", ("sceneTypeId", mainScene.configData.id));
+            mainScene.OnSceneExit();
+            mainScene = null;
+        }
+    }
 
+    private bool CreateSceneWithConfigData(SceneDataType sceneData, out SceneBase scene)
+    {
+        scene = null;
+        switch (sceneData.sceneType) {
+            case SceneConfig.SCENE_TYPE_MAIN_MENU_SCENE:
+                scene = new MainMenuScene(sceneData);
+                return true;
+        }
+        return false;
     }
 }

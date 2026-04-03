@@ -85,7 +85,7 @@ public class Logger
 
         if (logParams != null && logParams.Length > 0) {
             foreach (var kvp in logParams) {
-                sb.AppendLine($"{kvp.key}: {kvp.value}");
+                sb.AppendLine($"#{kvp.key}: {kvp.value}");
             }
         }
 
@@ -99,7 +99,7 @@ public class Logger
 
         if (logParams != null && logParams.Length > 0) {
             foreach (var kvp in logParams) {
-                sb.AppendLine($"{kvp.key}: {kvp.value}");
+                sb.AppendLine($"#{kvp.key}: {kvp.value}");
             }
         }
 
@@ -113,7 +113,7 @@ public class Logger
 
         if (logParams != null && logParams.Length > 0) {
             foreach (var kvp in logParams) {
-                sb.AppendLine($"{kvp.key}: {kvp.value}");
+                sb.AppendLine($"#{kvp.key}: {kvp.value}");
             }
         }
         Debug.LogError(sb.ToString());

@@ -1,6 +1,7 @@
 ﻿#if UNITY_EDITOR
 using UnityEditor;
 #endif
+using UnityEngine;
 
 public class ClientMain
 {
@@ -14,6 +15,11 @@ public class ClientMain
             }
             return ClientMain._instance;
         }
+    }
+
+    private void Start()
+    {
+        Global.Instance.Start();
     }
 
     private static void Update()
@@ -46,20 +52,21 @@ public class ClientMain
             var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(GlobalConfig.PATH_START_SCENE);
             UnityEditor.SceneManagement.EditorSceneManager.playModeStartScene = sceneAsset;
         }
-
-        EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-    }
-
-    public static void OnPlayModeStateChanged(PlayModeStateChange state)
-    {
-        if (state == PlayModeStateChange.EnteredPlayMode) {
-            ClientMain.Instance.InitPlayerLoop();
-            Global.Instance.Start();
-        } else if (state == PlayModeStateChange.ExitingPlayMode) {
-            ClientMain.Instance.Destroy();
-        }
     }
 #endif
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void OnSubsystemRegistration()
+    {
+        Application.quitting += ClientMain.Instance.Destroy;
+        ClientMain.Instance.InitPlayerLoop();
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void OnBeforeFirstSceneLoad()
+    {
+        ClientMain.Instance.Start();
+    }
 
     private struct CustomUpdate
     {

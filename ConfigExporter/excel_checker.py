@@ -457,6 +457,26 @@ class ExcelChecker:
                 'col': col
             })
 
+        # 第一列特殊检查：必须含有 require 和 unique 检查器
+        if headers:
+            first_col = headers[0]
+            first_col_extra = first_col['extra']
+            first_col_checkers = parse_extra_checkers(first_col_extra)
+            first_col_checker_names = {name for name, _ in first_col_checkers}
+
+            missing_checkers = []
+            if 'require' not in first_col_checker_names:
+                missing_checkers.append('#require')
+            if 'unique' not in first_col_checker_names:
+                missing_checkers.append('#unique')
+
+            if missing_checkers:
+                raise ValidationError(
+                    4, first_col['col'],
+                    f"第一列（作为主键）必须包含 {' 和 '.join(missing_checkers)} 检查器",
+                    sheet_name
+                )
+
         return headers
 
     def validate_data(self, headers: List[Dict[str, Any]], sheet_name: str = "") -> Dict[str, Dict[str, Any]]:
@@ -476,7 +496,7 @@ class ExcelChecker:
             first_value = self._get_cell_value(row, first_col)
 
             if first_value is None or str(first_value).strip() == '':
-                raise ValidationError(row, first_col, "第一列（作为键）不能为空", sheet_name)
+                raise ValidationError(row, first_col, "第一列（作为主键）不能为空", sheet_name)
 
             first_value_str = str(first_value).strip()
             if first_value_str in data_dict:

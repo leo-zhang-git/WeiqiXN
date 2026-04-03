@@ -18,6 +18,7 @@ public class Global
     public ResourceManager resourceManager;
     public TimerManager timerManager;
     public EventManager eventManager;
+    public GameSaveManager gameSaveManager;
     public UIManager uiManager;
     public SceneManager sceneManager;
 
@@ -32,11 +33,16 @@ public class Global
         eventManager = new EventManager();
         moduleList.Add(eventManager);
 
+        gameSaveManager = new GameSaveManager();
+        moduleList.Add(gameSaveManager);
+
         uiManager = new UIManager();
         moduleList.Add(uiManager);
 
         sceneManager = new SceneManager();
         moduleList.Add(sceneManager);
+
+        sceneManager.EnterMainScene(SceneConfig.MAIN_MENU_SCENE_TYPE_ID);
     }
 
     public void Update()
