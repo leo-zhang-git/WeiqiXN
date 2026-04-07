@@ -53,10 +53,10 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
     public void onUnityResourceLoaded(GameObject uiGameObject)
     {
         _gameObject = uiGameObject;
+        isLoaded = true;
         transform.SetParent(Global.Instance.uiManager.uiRoot.transform);
         transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
         transform.localScale = Vector3.one;
-        isLoaded = true;
         OnLoaded();
 
         foreach (var loadedCB in resourceLoadedCBs) {

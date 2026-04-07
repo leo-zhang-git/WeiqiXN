@@ -3,21 +3,24 @@ using UnityEngine;
 
 public abstract class UIWidget : UILogicBase
 {
-    public readonly UILogicBase owner;
-    private string _widgetName;
-    public string widgetName
-    {
-        get
-        {
-            if (_widgetName == null) {
-                _widgetName = GetType().Name;
-            }
-            return _widgetName;
-        }
-    }
+    public UILogicBase owner;
     protected List<UIWidget> childWidgets = new List<UIWidget>();
 
-    public UIWidget(UILogicBase owner)
+    public abstract string widgetName { get; }
+
+    public static string GetWidgetName<TWidget>() where TWidget : UIWidget
+    {
+        return typeof(TWidget).Name;
+    }
+
+    public static TWidget CreateWidgetInstance<TWidget>(UILogicBase owner) where TWidget : UIWidget, new()
+    {
+        TWidget widget = new TWidget();
+        widget.owner = owner;
+        return widget;
+    }
+
+    public void InitWidget(UILogicBase owner)
     {
         this.owner = owner;
     }
@@ -36,11 +39,6 @@ public abstract class UIWidgetWithBinder<TBinder> : UIWidget where TBinder : UIB
 {
     public TBinder binder;
 
-    protected UIWidgetWithBinder(UILogicBase owner) : base(owner)
-    {
-
-    }
-
     protected override void OnLoaded()
     {
         base.OnLoaded();
@@ -49,7 +47,7 @@ public abstract class UIWidgetWithBinder<TBinder> : UIWidget where TBinder : UIB
 
         foreach (var widgetKV in binder.binderWidgets) {
             if (binder.binderWidgetGOs.TryGetValue(widgetKV.Key, out var widgetGO)) {
-                var widget = widgetKV.Value;
+                UIWidget widget = widgetKV.Value;
                 childWidgets.Add(widget);
                 widget.onUnityResourceLoaded(widgetGO);
             }
@@ -69,7 +67,7 @@ public abstract class UIWidgetWithBinder<TBinder> : UIWidget where TBinder : UIB
     {
         string assetPath = UIUtils.GetPagePrefabPath(widgetName);
         if (isAsync) {
-            Global.Instance.resourceManager.LoadAssetAsync<GameObject>(this, assetPath, onUnityResourceLoaded);
+            Global.Instance.resourceManager.LoadGamePrefabAsync(this, assetPath, onUnityResourceLoaded);
         } else {
             GameObject widgetGO = Global.Instance.resourceManager.LoadGamePrefab(assetPath);
             if (widgetGO != null) {

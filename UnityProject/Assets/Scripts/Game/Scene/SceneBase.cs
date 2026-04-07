@@ -21,6 +21,7 @@ public class SceneBase : ITimerAttacher, IEventReceiver
     #region LifeCycle
     public void OnUnitySceneLoaded(UnityEngine.SceneManagement.Scene unityScene, UnityEngine.SceneManagement.LoadSceneMode mode)
     {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnUnitySceneLoaded;
         this.unityScene = unityScene;
         isLoaded = true;
         OnSceneLoaded();
@@ -30,11 +31,6 @@ public class SceneBase : ITimerAttacher, IEventReceiver
     public virtual void OnSceneLoaded()
     {
 
-    }
-
-    public virtual void OnSceneInit()
-    {
-        // Add systems
     }
 
     protected virtual void OnUpdate()

@@ -1,3 +1,5 @@
+using System;
+
 public static class UIUtils
 {
     public static string GetPagePrefabPath(string pageName)
@@ -10,9 +12,14 @@ public static class UIUtils
         return $"UI/Prefab/Widget/{widgetName}";
     }
 
-    public static UIContextType GetUIContextTypeWithConfig()
+    public static UIContextType ParseUIContextType(string contextTypeStr)
     {
-        return UIContextType.General;
+        if (Enum.TryParse(contextTypeStr, out UIContextType t)) {
+            return t;
+        } else {
+            Logger.LogError("Parse ui context type string failed.", ("contextTypeStr", contextTypeStr));
+            return UIContextType.General;
+        }
     }
 
     public static int GetUIContextBaseOrder(UIContextType contextType)

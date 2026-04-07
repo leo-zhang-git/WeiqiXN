@@ -4,4 +4,9 @@
     {
 
     }
+
+    public override void OnSceneLoaded()
+    {
+        base.OnSceneLoaded();
+    }
 }

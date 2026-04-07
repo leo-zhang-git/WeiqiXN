@@ -18,6 +18,32 @@ public class UIContext
 
     }
 
+    public TPage GetMainPage<TPage>() where TPage : UIPage
+    {
+        TPage page = null;
+        foreach (var _page in mainPageStack) {
+            if (_page.pageName == UIPage.GetPageName<TPage>()) {
+                page = (TPage)_page;
+                break;
+            }
+        }
+
+        return page;
+    }
+
+    public TPage GetPopupPage<TPage>() where TPage : UIPage
+    {
+        TPage page = null;
+        foreach (var _page in popupList) {
+            if (_page.pageName == UIPage.GetPageName<TPage>()) {
+                page = (TPage)_page;
+                break;
+            }
+        }
+
+        return page;
+    }
+
     public void ShowMainPage(UIPage mainPage)
     {
         mainPage.canvasOrder = baseCanvasOrder + mainPageStack.Count * UIConfig.MAINPAGE_INCREASE_CANVAS_ORDER;
@@ -25,11 +51,11 @@ public class UIContext
         mainPageStack.AddLast(mainPage);
     }
 
-    public void CloseMainPage(UIPage mainPage)
+    public bool CloseMainPage(UIPage mainPage)
     {
         if (mainPageStack.Contains(mainPage)) {
             if (mainPageStack.Last.Value != mainPage) {
-                Logger.LogError("Try to close main page not on stack top", ("pageName", mainPage.pageName), ("contextType", contextType.ToString()));
+                Logger.LogWarn("Try to close main page not on stack top", ("pageName", mainPage.pageName), ("contextType", contextType.ToString()));
                 mainPageStack.Remove(mainPage);
             } else {
                 mainPageStack.RemoveLast();
@@ -40,8 +66,10 @@ public class UIContext
             if (mainPageStack.Count > 0) {
                 mainPageStack.Last.Value.SetUIVisible(true);
             }
+            return true;
         } else {
             Logger.LogError("Target main page not in current context", ("pageName", mainPage.pageName), ("contextType", contextType.ToString()));
+            return false;
         }
     }
 
@@ -52,15 +80,17 @@ public class UIContext
         popupList.Add(popupPage);
     }
 
-    public void ClosePopupPage(UIPage popupPage)
+    public bool ClosePopupPage(UIPage popupPage)
     {
         if (popupList.Contains(popupPage)) {
             popupList.Remove(popupPage);
             for (int i = 0; i < popupList.Count; i++) {
                 popupList[i].canvasOrder = baseCanvasOrder + (i + 1) * UIConfig.POPUP_INCREASE_CANVAS_ORDER;
             }
+            return true;
         } else {
             Logger.LogError("Target popup page not in current context", ("pageName", popupPage.pageName), ("contextType", contextType.ToString()));
+            return false;
         }
     }
 

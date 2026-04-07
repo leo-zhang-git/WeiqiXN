@@ -22,7 +22,7 @@ public class GamePrefabDataType
                     GamePrefabDict[property.Name] = item;
                 }
                 catch (Exception ex) {
-                    Logger.LogError($"读表错误，跳过条目 {property.Name}: {{ex.Message}}");
+                    Logger.LogError($"读表错误，跳过条目 {property.Name}: {ex.Message}");
                 }
             }
         }

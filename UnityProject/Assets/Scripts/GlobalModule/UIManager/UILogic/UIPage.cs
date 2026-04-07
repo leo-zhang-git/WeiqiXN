@@ -5,23 +5,27 @@ public abstract class UIPage : UILogicBase
 {
     public UIContext owner;
     public UIContext pageContext;
-    public int canvasOrder;
+    private int _canvasOrder;
+    public int canvasOrder
+    {
+        get
+        {
+            return _canvasOrder;
+        }
+        set
+        {
+            if (isLoaded) {
+                canvas.sortingOrder = value;
+            }
+            _canvasOrder = value;
+        }
+    }
 
     public UIPageFlags pageFlags;
     public bool isMainPage => (pageFlags & UIPageFlags.MainPage) == UIPageFlags.MainPage;
     public bool isPopupPage => (pageFlags & UIPageFlags.PopupPage) == UIPageFlags.PopupPage;
 
-    private string _pageName;
-    public string pageName
-    {
-        get
-        {
-            if (_pageName == null) {
-                _pageName = GetType().Name;
-            }
-            return _pageName;
-        }
-    }
+    public abstract string pageName { get; }
     protected List<UIWidget> childWidgets = new List<UIWidget>();
 
     private Canvas _canvas;
@@ -40,9 +44,23 @@ public abstract class UIPage : UILogicBase
         }
     }
 
-    public UIPage(UIContext owner)
+    public static string GetPageName<TPage>() where TPage : UIPage
+    {
+        return typeof(TPage).Name;
+    }
+
+    public static TPage CreatePageInstance<TPage>(UIContext owner, UIPageFlags pageFlags) where TPage : UIPage, new()
+    {
+        TPage page = new TPage();
+        page.owner = owner;
+        page.pageFlags = pageFlags;
+        return page;
+    }
+
+    public void InitPage(UIContext owner, UIPageFlags pageFlags)
     {
         this.owner = owner;
+        this.pageFlags = pageFlags;
     }
 
     protected override void OnLoaded()
@@ -52,7 +70,7 @@ public abstract class UIPage : UILogicBase
         OnOpen();
 
         if (isMainPage) {
-            if (owner.mainPageStack.Last.Value == this) {
+            if (owner.mainPageStack.Last.Value == this && owner.mainPageStack.Count > 1) {
                 var previousPage = owner.mainPageStack.Last.Previous.Value;
                 previousPage.AddResourceLoadedCB(() =>
                 {
@@ -92,7 +110,7 @@ public abstract class UIPage : UILogicBase
         } else {
             string assetPath = UIUtils.GetPagePrefabPath(pageName);
             if (isAsync) {
-                Global.Instance.resourceManager.LoadAssetAsync<GameObject>(this, assetPath, onUnityResourceLoaded);
+                Global.Instance.resourceManager.LoadGamePrefabAsync(this, assetPath, onUnityResourceLoaded);
             } else {
                 pageGO = Global.Instance.resourceManager.LoadGamePrefab(assetPath);
                 if (pageGO != null) {
@@ -108,7 +126,11 @@ public abstract class UIPage : UILogicBase
             widget.CloseWidget();
         }
         OnHide();
-        Global.Instance.uiManager.RecycleClosedPage(this);
+        if (isMainPage) {
+            Global.Instance.uiManager.CloseMainPage(this);
+        } else {
+            Global.Instance.uiManager.ClosePopupPage(this);
+        }
         OnClose();
     }
 }
@@ -116,11 +138,6 @@ public abstract class UIPage : UILogicBase
 public abstract class UIPageWithBinder<TBinder> : UIPage where TBinder : UIBinderBase
 {
     public TBinder binder;
-
-    protected UIPageWithBinder(UIContext owner) : base(owner)
-    {
-
-    }
 
     protected override void OnLoaded()
     {
@@ -130,7 +147,7 @@ public abstract class UIPageWithBinder<TBinder> : UIPage where TBinder : UIBinde
 
         foreach (var widgetKV in binder.binderWidgets) {
             if (binder.binderWidgetGOs.TryGetValue(widgetKV.Key, out var widgetGO)) {
-                var widget = widgetKV.Value;
+                UIWidget widget = widgetKV.Value;
                 childWidgets.Add(widget);
                 widget.onUnityResourceLoaded(widgetGO);
             }

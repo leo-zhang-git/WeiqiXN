@@ -68,28 +68,22 @@ public class ResourceManager : ModuleBase
         }
     }
 
-    public GameObject LoadGamePrefabWithConfigId(string configId, Transform root = null)
+    public GameObject LoadGamePrefabWithConfigId(string configId)
     {
         var config = GamePrefabDataType.GetConfigData(configId);
         if (config != null) {
-            return LoadGamePrefab(config.resPath, root);
+            return LoadGamePrefab(config.resPath);
         } else {
             Logger.LogError("Config id invalid, laod game prefab failed.", ("configId", configId));
             return null;
         }
     }
 
-    public GameObject LoadGamePrefab(string assetPath, Transform root = null)
+    public GameObject LoadGamePrefab(string assetPath)
     {
         GameObject asset = LoadAsset<GameObject>(assetPath);
         if (asset != null) {
             var go = GameObject.Instantiate(asset);
-            if (root != null) {
-                go.transform.SetParent(root);
-            }
-            go.transform.localPosition = Vector3.zero;
-            go.transform.localRotation = Quaternion.identity;
-            go.transform.localScale = Vector3.one;
             return go;
         }
 
@@ -112,12 +106,6 @@ public class ResourceManager : ModuleBase
         Action<GameObject> assetLoadedCB = (GameObject asset) =>
         {
             GameObject go = GameObject.Instantiate(asset);
-            if (binder.rootTrans != null) {
-                go.transform.SetParent(binder.rootTrans);
-            }
-            go.transform.localPosition = Vector3.zero;
-            go.transform.localRotation = Quaternion.identity;
-            go.transform.localScale = Vector3.one;
             goInstantiateCB.Invoke(go);
         };
         var loadHandler = LoadAssetAsync<GameObject>(binder, assetPath, assetLoadedCB);
@@ -145,7 +133,7 @@ public class ResourceManager : ModuleBase
         }
         AssetRequest<TAsset> request;
         if (!requestMap.TryGetValue(assetFullPath, out var _request)) {
-            request = resLoader.LoadAssetAsync<TAsset>(assetPath);
+            request = resLoader.LoadAssetAsync<TAsset>(assetFullPath);
         } else {
             request = (AssetRequest<TAsset>)_request;
         }

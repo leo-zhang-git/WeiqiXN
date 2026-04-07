@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
 
 public interface IResourceLoadBinder
 {
     public string binderId { get; }
-    public Transform rootTrans { get; }
     public HashSet<string> loadHandlerIds { get; }
     public void OnResourceBinderDestroyed();
 }
@@ -37,7 +35,6 @@ public class ResourceLoadHandler<TAsset> : IResourceLoadHandler where TAsset : U
             return false;
         }
     }
-    public string fullAssetPath;
     public Action<TAsset> loadedCB;
 
     public ResourceLoadHandler(string binderId, string assetFullPath, Action<TAsset> loadedCB)
@@ -57,7 +54,7 @@ public class ResourceLoadHandler<TAsset> : IResourceLoadHandler where TAsset : U
                 loadedCB.Invoke(assetRequest.asset as TAsset);
             }
             catch (Exception e) {
-                Logger.LogError("Resource load handler loaded callback error", ("errMsg", e.Message), ("fullAssetPath", fullAssetPath));
+                Logger.LogError("Resource load handler loaded callback error", ("errMsg", e.Message), ("assetFullPath", assetFullPath));
             }
         }
 
@@ -74,7 +71,7 @@ public class ResourceLoadHandler<TAsset> : IResourceLoadHandler where TAsset : U
     {
         _binderId = string.Empty;
         _loaderId = string.Empty;
-        fullAssetPath = string.Empty;
+        assetFullPath = string.Empty;
         loadedCB = null;
     }
 }
