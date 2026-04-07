@@ -125,7 +125,7 @@ class ExcelExporter:
             lines.append(f"                    {dict_class_name}[property.Name] = item;")
             lines.append("                }")
             lines.append("                catch (Exception ex) {")
-            lines.append("                    Console.WriteLine($\"读表错误，跳过条目 {property.Name}: {{ex.Message}}\");")
+            lines.append("                    Logger.LogError($\"读表错误，跳过条目 {property.Name}: {{ex.Message}}\");")
             lines.append("                }")
             lines.append("            }")
             lines.append("        }")

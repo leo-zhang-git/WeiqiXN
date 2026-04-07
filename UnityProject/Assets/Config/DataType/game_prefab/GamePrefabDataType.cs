@@ -1,0 +1,35 @@
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+
+public class GamePrefabDataType
+{
+    public string id;  // id
+    public string resPath;  // prefab资源路径
+
+    public static Dictionary<string, GamePrefabDataType> GamePrefabDict;
+
+    public static GamePrefabDataType GetConfigData(string id)
+    {
+        if (GamePrefabDict == null) {
+            GamePrefabDict = new Dictionary<string, GamePrefabDataType>();
+            string jsonPath = Path.Combine(GlobalConfig.PATH_CONFIG_JSON, "game_prefab", "game_prefab.json");
+            var jsonObj = JObject.Parse(File.ReadAllText(jsonPath));
+            foreach (var property in jsonObj.Properties()) {
+                try {
+                    var item = property.Value.ToObject<GamePrefabDataType>();
+                    GamePrefabDict[property.Name] = item;
+                }
+                catch (Exception ex) {
+                    Logger.LogError($"读表错误，跳过条目 {property.Name}: {{ex.Message}}");
+                }
+            }
+        }
+        if (GamePrefabDict.TryGetValue(id, out GamePrefabDataType data)) {
+            return data;
+        } else {
+            return null;
+        }
+    }
+}

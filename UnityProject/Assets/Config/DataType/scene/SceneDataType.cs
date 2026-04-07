@@ -23,7 +23,7 @@ public class SceneDataType
                     SceneDict[property.Name] = item;
                 }
                 catch (Exception ex) {
-                    Console.WriteLine($"读表错误，跳过条目 {property.Name}: {{ex.Message}}");
+                    Logger.LogError($"读表错误，跳过条目 {property.Name}: {{ex.Message}}");
                 }
             }
         }

@@ -425,6 +425,8 @@ class ExcelChecker:
             if key is None or str(key).strip() == '':
                 raise ValidationError(2, col, "key名不能为空", sheet_name)
             key_str = str(key).strip()
+            if key_str.startswith('#'):
+                continue
             is_valid, error_msg = self._is_valid_identifier(key_str)
             if not is_valid:
                 raise ValidationError(2, col, error_msg, sheet_name)

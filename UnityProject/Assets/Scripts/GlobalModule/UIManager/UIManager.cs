@@ -24,11 +24,11 @@ public class UIManager : ModuleBase
     {
         uiRoot = new GameObject(UIConfig.NAME_UI_ROOT);
         GameObject.DontDestroyOnLoad(uiRoot);
-        GamePrefabDataType uiEventSystemCfg = GamePrefabDataType.GetConfigData(UIConfig.UI_EVENTSYSTEM_CONFIG_ID);
-        if (uiEventSystemCfg != null) {
-            // TODO
+        uiEventSystemGO = Global.Instance.resourceManager.LoadGamePrefabWithConfigId(UIConfig.UI_EVENTSYSTEM_CONFIG_ID);
+        if (uiEventSystemGO != null) {
+            GameObject.DontDestroyOnLoad(uiEventSystemGO);
         } else {
-            Logger.LogError("UI event system creation failed!");
+            Logger.LogError("UI event system go create failed!!!!!");
         }
 
         foreach (UIContextType type in Enum.GetValues(typeof(UIContextType))) {

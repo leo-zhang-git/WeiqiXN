@@ -94,7 +94,7 @@ public abstract class UIPage : UILogicBase
             if (isAsync) {
                 Global.Instance.resourceManager.LoadAssetAsync<GameObject>(this, assetPath, onUnityResourceLoaded);
             } else {
-                pageGO = Global.Instance.resourceManager.LoadAsset<GameObject>(assetPath);
+                pageGO = Global.Instance.resourceManager.LoadGamePrefab(assetPath);
                 if (pageGO != null) {
                     onUnityResourceLoaded(pageGO);
                 }

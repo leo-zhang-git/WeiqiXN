@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using UnityEngine;
 
 public interface IResourceLoadBinder
 {
     public string binderId { get; }
+    public Transform rootTrans { get; }
     public HashSet<string> loadHandlerIds { get; }
     public void OnResourceBinderDestroyed();
 }

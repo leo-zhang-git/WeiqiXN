@@ -165,6 +165,14 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
         }
     }
 
+    public Transform rootTrans
+    {
+        get
+        {
+            return transform;
+        }
+    }
+
     private HashSet<string> _loadHandlerIds = new HashSet<string>();
     public HashSet<string> loadHandlerIds => _loadHandlerIds;
 

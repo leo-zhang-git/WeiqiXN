@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class ResourceManager : ModuleBase
 {
@@ -67,14 +68,81 @@ public class ResourceManager : ModuleBase
         }
     }
 
-    public T LoadAsset<T>(string path) where T : UnityEngine.Object
+    public GameObject LoadGamePrefabWithConfigId(string configId, Transform root = null)
     {
-        return resLoader.Loadasset<T>(path);
+        var config = GamePrefabDataType.GetConfigData(configId);
+        if (config != null) {
+            return LoadGamePrefab(config.resPath, root);
+        } else {
+            Logger.LogError("Config id invalid, laod game prefab failed.", ("configId", configId));
+            return null;
+        }
+    }
+
+    public GameObject LoadGamePrefab(string assetPath, Transform root = null)
+    {
+        GameObject asset = LoadAsset<GameObject>(assetPath);
+        if (asset != null) {
+            var go = GameObject.Instantiate(asset);
+            if (root != null) {
+                go.transform.SetParent(root);
+            }
+            go.transform.localPosition = Vector3.zero;
+            go.transform.localRotation = Quaternion.identity;
+            go.transform.localScale = Vector3.one;
+            return go;
+        }
+
+        return null;
+    }
+
+    public IResourceLoadHandler LoadGamePrefabAsyncWithConfigId(IResourceLoadBinder binder, string configId, Action<GameObject> goInstantiateCB)
+    {
+        var config = GamePrefabDataType.GetConfigData(configId);
+        if (config != null) {
+            return LoadGamePrefabAsync(binder, config.resPath, goInstantiateCB);
+        } else {
+            Logger.LogError("Config id invalid, load game prefab async failed.", ("configId", configId));
+            return null;
+        }
+    }
+
+    public IResourceLoadHandler LoadGamePrefabAsync(IResourceLoadBinder binder, string assetPath, Action<GameObject> goInstantiateCB)
+    {
+        Action<GameObject> assetLoadedCB = (GameObject asset) =>
+        {
+            GameObject go = GameObject.Instantiate(asset);
+            if (binder.rootTrans != null) {
+                go.transform.SetParent(binder.rootTrans);
+            }
+            go.transform.localPosition = Vector3.zero;
+            go.transform.localRotation = Quaternion.identity;
+            go.transform.localScale = Vector3.one;
+            goInstantiateCB.Invoke(go);
+        };
+        var loadHandler = LoadAssetAsync<GameObject>(binder, assetPath, assetLoadedCB);
+        if (loadHandler != null) {
+            return loadHandler;
+        }
+
+        return null;
+    }
+
+    public TAsset LoadAsset<TAsset>(string assetPath) where TAsset : UnityEngine.Object
+    {
+        string assetFullPath = ResourceUtils.GetAssetFullPath<GameObject>(assetPath);
+        if (string.IsNullOrEmpty(assetFullPath)) {
+            return null;
+        }
+        return resLoader.Loadasset<TAsset>(assetFullPath);
     }
 
     public IResourceLoadHandler LoadAssetAsync<TAsset>(IResourceLoadBinder binder, string assetPath, Action<TAsset> assetLoadedCB) where TAsset : UnityEngine.Object
     {
         string assetFullPath = ResourceUtils.GetAssetFullPath<TAsset>(assetPath);
+        if (string.IsNullOrEmpty(assetFullPath)) {
+            return null;
+        }
         AssetRequest<TAsset> request;
         if (!requestMap.TryGetValue(assetFullPath, out var _request)) {
             request = resLoader.LoadAssetAsync<TAsset>(assetPath);

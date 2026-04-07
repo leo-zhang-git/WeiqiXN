@@ -18,6 +18,7 @@ public class AssetDatabaseLoader : ResourceLoaderBase
 
         try {
             T asset = AssetDatabase.LoadAssetAtPath<T>(assetFullPath);
+            return asset;
         }
         catch (Exception e) {
             Logger.LogError("Resource load by asset database failed.", ("assetFullPath", assetFullPath), ("exception", e.Message));

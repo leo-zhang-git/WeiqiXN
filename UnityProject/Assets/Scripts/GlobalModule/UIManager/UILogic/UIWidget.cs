@@ -71,7 +71,7 @@ public abstract class UIWidgetWithBinder<TBinder> : UIWidget where TBinder : UIB
         if (isAsync) {
             Global.Instance.resourceManager.LoadAssetAsync<GameObject>(this, assetPath, onUnityResourceLoaded);
         } else {
-            GameObject widgetGO = Global.Instance.resourceManager.LoadAsset<GameObject>(assetPath);
+            GameObject widgetGO = Global.Instance.resourceManager.LoadGamePrefab(assetPath);
             if (widgetGO != null) {
                 onUnityResourceLoaded(widgetGO);
             }
