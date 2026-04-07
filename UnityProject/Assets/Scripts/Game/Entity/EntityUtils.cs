@@ -2,16 +2,6 @@ using System;
 
 public static class EntityUtils
 {
-    public static string GetEntityType<TEntity>(this TEntity entity) where TEntity : EntityBase
-    {
-        return typeof(TEntity).Name;
-    }
-
-    public static string GetEntityType<TEntity>() where TEntity : EntityBase
-    {
-        return typeof(TEntity).Name;
-    }
-
     private static long _timeStamp = 0;
     private static int _guidInc = 0;
     public static string CreateGuidWithEntityType(string entityType)

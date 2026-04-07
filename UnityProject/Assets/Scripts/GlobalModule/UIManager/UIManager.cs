@@ -5,6 +5,7 @@ using UnityEngine;
 public class UIManager : ModuleBase
 {
     public GameObject uiRoot;
+    public GameObject uiEventSystemGO;
     private Dictionary<UIContextType, UIContext> contextDict = new Dictionary<UIContextType, UIContext>();
     private class CachePageInfo
     {
@@ -23,6 +24,12 @@ public class UIManager : ModuleBase
     {
         uiRoot = new GameObject(UIConfig.NAME_UI_ROOT);
         GameObject.DontDestroyOnLoad(uiRoot);
+        GamePrefabDataType uiEventSystemCfg = GamePrefabDataType.GetConfigData(UIConfig.UI_EVENTSYSTEM_CONFIG_ID);
+        if (uiEventSystemCfg != null) {
+            // TODO
+        } else {
+            Logger.LogError("UI event system creation failed!");
+        }
 
         foreach (UIContextType type in Enum.GetValues(typeof(UIContextType))) {
             contextDict.TryAdd(type, new UIContext(type));

@@ -13,6 +13,13 @@ public abstract class EntityBase : ITimerAttacher
         this.guid = guid;
     }
 
+    public static string GetEntityType<TEntity>() where TEntity : EntityBase
+    {
+        return typeof(TEntity).Name;
+    }
+
+    public abstract string GetEntityType();
+
     #region LifeCycle
     protected virtual void OnDestroy()
     {

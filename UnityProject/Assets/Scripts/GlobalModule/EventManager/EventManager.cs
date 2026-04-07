@@ -19,7 +19,8 @@ public class EventManager : ModuleBase
 
     public void EmitSystemEvent<TEvent>(TEvent systemEvent) where TEvent : SystemEventBase
     {
-        if (systemEventHandlers.TryGetValue(typeof(TEvent).Name, out var handlerSet)) {
+        Logger.LogInfo("Emit system event.", ("eventName", systemEvent.GetEventType()));
+        if (systemEventHandlers.TryGetValue(systemEvent.GetEventType(), out var handlerSet)) {
             foreach (var handler in handlerSet) {
                 handler.Execute(systemEvent);
             }
@@ -30,9 +31,9 @@ public class EventManager : ModuleBase
     {
         SystemEventHandler<TEvent> handler = new SystemEventHandler<TEvent>(receiver, eventCB);
         List<ISystemEventHandler> handlerList;
-        if (!systemEventHandlers.TryGetValue(typeof(TEvent).Name, out handlerList)) {
+        if (!systemEventHandlers.TryGetValue(SystemEventBase.GetEventType<TEvent>(), out handlerList)) {
             handlerList = new List<ISystemEventHandler>();
-            systemEventHandlers.Add(typeof(TEvent).Name, handlerList);
+            systemEventHandlers.Add(SystemEventBase.GetEventType<TEvent>(), handlerList);
         }
         receiver.registeredSystemEventHandlers.Add(handler);
         handlerList.Add(handler);
@@ -49,9 +50,10 @@ public class EventManager : ModuleBase
 
     public void EmitEntityEvent<TEntity, TEvent>(TEntity entity, TEvent entityEvent) where TEntity : EntityBase where TEvent : EntityEventBase
     {
-        if (entityEventHandlers.TryGetValue(typeof(TEvent).Name, out var handlerSet)) {
+        Logger.LogInfo("Emit entity event.", ("eventName", entityEvent.GetEventType()), ("entityType", entity.GetEntityType()));
+        if (entityEventHandlers.TryGetValue(entityEvent.GetEventType(), out var handlerSet)) {
             foreach (var handler in handlerSet) {
-                if (handler.entityType == typeof(TEntity).Name) {
+                if (handler.entityType == entityEvent.GetEventType()) {
                     handler.Execute(entity, entityEvent);
                 }
             }
@@ -62,9 +64,9 @@ public class EventManager : ModuleBase
     {
         EntityEventHandler<TEntity, TEvent> handler = new EntityEventHandler<TEntity, TEvent>(receiver, eventCB);
         List<IEntityEventHandler> handlerList;
-        if (!entityEventHandlers.TryGetValue(typeof(TEvent).Name, out handlerList)) {
+        if (!entityEventHandlers.TryGetValue(EntityEventBase.GetEventType<TEvent>(), out handlerList)) {
             handlerList = new List<IEntityEventHandler>();
-            entityEventHandlers.Add(typeof(TEvent).Name, handlerList);
+            entityEventHandlers.Add(EntityEventBase.GetEventType<TEvent>(), handlerList);
         }
         receiver.registeredEntityEventHandlers.Add(handler);
         handlerList.Add(handler);

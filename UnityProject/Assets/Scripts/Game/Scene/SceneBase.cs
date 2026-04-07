@@ -24,6 +24,7 @@ public class SceneBase : ITimerAttacher, IEventReceiver
         this.unityScene = unityScene;
         isLoaded = true;
         OnSceneLoaded();
+        Logger.LogInfo("Unity scene load success.", ("sceneTypeId", configData.id), ("unitySceneName", unityScene.name));
     }
 
     public virtual void OnSceneLoaded()
@@ -146,6 +147,7 @@ public class SceneBase : ITimerAttacher, IEventReceiver
         UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnUnitySceneLoaded;
         try {
             UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(configData.unitySceneName);
+            Logger.LogInfo("Load scene async start.", ("sceneTypeId", configData.id), ("unitySceneName", configData.unitySceneName));
         }
         catch (Exception ex) {
             Logger.LogError("Load unity scene async error.", ("unitySceneName", configData.unitySceneName), ("exception", ex.Message));
@@ -177,11 +179,22 @@ public class SceneBase : ITimerAttacher, IEventReceiver
             entityTypeDict[entity.GetEntityType()] = entSet;
         }
         entSet.Add(entity);
+        Logger.LogInfo("Add entity success.", ("guid", entity.guid));
     }
 
     public void RemoveEntity(EntityBase entity)
     {
+        if (!entityDict.ContainsKey(entity.guid)) {
+            Logger.LogError("Target entity not in scene, remove entity failed.", ("guid", entity.guid), ("sceneTypeId", configData.id));
+            return;
+        }
+        entityDict.Remove(entity.guid);
 
+        HashSet<EntityBase> entSet;
+        if (entityTypeDict.TryGetValue(entity.GetEntityType(), out entSet)) {
+            entSet.Remove(entity);
+        }
+        Logger.LogInfo("Remove entity success.", ("guid", entity.guid), ("sceneTypeId", configData.id));
     }
 
     public EntityBase GetEntity(string guid)
@@ -196,10 +209,8 @@ public class SceneBase : ITimerAttacher, IEventReceiver
     public TEntity GetEntity<TEntity>(string guid) where TEntity : EntityBase
     {
         if (entityDict.TryGetValue(guid, out var entity)) {
-            if (entityTypeDict.TryGetValue(EntityUtils.GetEntityType<TEntity>(), out var entSet)) {
-                if (entSet.Contains(entity)) {
-                    return (TEntity)entity;
-                }
+            if (entity.GetEntityType() == EntityBase.GetEntityType<TEntity>()) {
+                return (TEntity)entity;
             }
         }
 

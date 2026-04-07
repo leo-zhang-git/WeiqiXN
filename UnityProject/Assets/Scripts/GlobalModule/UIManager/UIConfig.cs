@@ -24,6 +24,7 @@ public static class UIConfig
     public readonly static string PATH_UI_BINDER_EXPORT = Path.Combine(PATH_UI_SCRIPT_FOLDER, "Binder");
     public readonly static string PATH_UI_LOGIC_EXPORT = Path.Combine(PATH_UI_SCRIPT_FOLDER, "Logic");
     public const string NAME_UI_ROOT = "uiRoot";
+    public const string UI_EVENTSYSTEM_CONFIG_ID = "eventSystem";
 
     public const int CONTEXT_INCREASE_CANVAS_ORDER = 10000;
     public const int MAINPAGE_INCREASE_CANVAS_ORDER = 100;

@@ -12,8 +12,8 @@ public class EntityEventHandler<TEntity, TEvent> : IEntityEventHandler where TEn
 {
     public IEventReceiver receiver { get; private set; }
     public Action<TEntity, TEvent> callback;
-    public string entityType => typeof(TEntity).Name;
-    public string eventType => typeof(TEntity).Name;
+    public string entityType => EntityBase.GetEntityType<TEntity>();
+    public string eventType => EntityEventBase.GetEventType<TEvent>();
 
     public EntityEventHandler(IEventReceiver receiver, Action<TEntity, TEvent> callback)
     {
@@ -26,17 +26,25 @@ public class EntityEventHandler<TEntity, TEvent> : IEntityEventHandler where TEn
         if (entity is TEntity tEntity && entityEvent is TEvent tEvent) {
             callback?.Invoke(tEntity, tEvent);
         } else {
-            Logger.LogError("Type not matched, execute entity event failed.", ("dstEntity", typeof(TEntity).Name), ("dstEvent", typeof(TEvent).Name), ("srcEntity", entity.GetType().Name), ("srcEvent", entityEvent.GetType().Name));
+            Logger.LogError("Type not matched, execute entity event failed.",
+                ("dstEntity", EntityBase.GetEntityType<TEntity>()), ("dstEvent", EntityEventBase.GetEventType<TEvent>()),
+                ("srcEntity", entity.GetEntityType()), ("srcEvent", entityEvent.GetEventType())
+            );
         }
     }
 }
 
 public abstract class EntityEventBase
 {
+    public static string GetEventType<TEvent>() where TEvent : EntityEventBase
+    {
+        return typeof(TEvent).Name;
+    }
 
+    public abstract string GetEventType();
 }
 
 public class OnEntityCreated : EntityEventBase
 {
-
+    public override string GetEventType() => EntityEventBase.GetEventType<OnEntityCreated>();
 }

@@ -10,6 +10,11 @@ public static class UIUtils
         return $"UI/Prefab/Widget/{widgetName}";
     }
 
+    public static UIContextType GetUIContextTypeWithConfig()
+    {
+        return UIContextType.General;
+    }
+
     public static int GetUIContextBaseOrder(UIContextType contextType)
     {
         int typeValue = (int)contextType;

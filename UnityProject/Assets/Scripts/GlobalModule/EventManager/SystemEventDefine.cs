@@ -11,7 +11,7 @@ public class SystemEventHandler<TEvent> : ISystemEventHandler where TEvent : Sys
 {
     public IEventReceiver receiver { get; private set; }
     public Action<TEvent> callback;
-    public string eventType => typeof(TEvent).Name;
+    public string eventType => SystemEventBase.GetEventType<TEvent>();
 
     public SystemEventHandler(IEventReceiver receiver, Action<TEvent> callback)
     {
@@ -24,18 +24,25 @@ public class SystemEventHandler<TEvent> : ISystemEventHandler where TEvent : Sys
         if (systemEvent is TEvent tEvent) {
             callback?.Invoke(tEvent);
         } else {
-            Logger.LogError("Type not matched, execute system event failed.", ("dstEvent", typeof(TEvent).Name), ("srcEvent", systemEvent.GetType().Name));
+            Logger.LogError("Type not matched, execute system event failed.", ("dstEvent", SystemEventBase.GetEventType<TEvent>()), ("srcEvent", systemEvent.GetEventType()));
         }
     }
 }
 
 public abstract class SystemEventBase
 {
+    public static string GetEventType<TEvent>() where TEvent : SystemEventBase
+    {
+        return typeof(TEvent).Name;
+    }
 
+    public abstract string GetEventType();
 }
 
 public class SystemEventTest : SystemEventBase
 {
 
     public int param1;
+
+    public override string GetEventType() => SystemEventBase.GetEventType<SystemEventTest>();
 }
