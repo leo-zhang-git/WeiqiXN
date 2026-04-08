@@ -80,7 +80,7 @@ public class SavableSimpleSet<TValue> : SavableObj
     {
         _innerSet.Clear();
         var innerSetJToken = jObject[GameSaveUtils.SavableSet_Inner_Set_Field_Name];
-        if (innerSetJToken != null) {
+        if (innerSetJToken == null) {
             return;
         }
 
