@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class SavableSimpleDict<TValue> : SavableObj
 {
     private readonly Dictionary<string, TValue> _innerDict = new Dictionary<string, TValue>();
+    public int Count => _innerDict.Count;
 
     private SavableSimpleDict()
     {
@@ -41,7 +42,7 @@ public class SavableSimpleDict<TValue> : SavableObj
         _innerDict[key] = value;
     }
 
-    public void RemoveKey(string key)
+    public void Remove(string key)
     {
         _innerDict.Remove(key);
     }
@@ -61,33 +62,21 @@ public class SavableSimpleDict<TValue> : SavableObj
         return _innerDict.GetEnumerator();
     }
 
-    public IEnumerable<string> Keys
-    {
-        get
-        {
-            return _innerDict.Keys;
-        }
-    }
+    public IEnumerable<string> Keys => _innerDict.Keys;
 
-    public IEnumerable<TValue> Values
-    {
-        get
-        {
-            return _innerDict.Values;
-        }
-    }
+    public IEnumerable<TValue> Values => _innerDict.Values;
 
     public override JObject SaveObj()
     {
         var jObject = new JObject();
         jObject[GameSaveUtils.SavableObj_Type_Field_Name] = JToken.FromObject(GetType().FullName);
 
-        var innerDictJObj = new JObject();
-        jObject[GameSaveUtils.SavableDict_Inner_Dict_Field_Name] = innerDictJObj;
+        var innerDictJObject = new JObject();
+        jObject[GameSaveUtils.SavableDict_Inner_Dict_Field_Name] = innerDictJObject;
 
         foreach (var kvp in _innerDict) {
             if (kvp.Value != null) {
-                innerDictJObj[kvp.Key] = JToken.FromObject(kvp.Value);
+                innerDictJObject[kvp.Key] = JToken.FromObject(kvp.Value);
             }
         }
 
@@ -110,6 +99,7 @@ public class SavableSimpleDict<TValue> : SavableObj
                 _innerDict[key] = value;
             }
             catch (Exception ex) {
+                _innerDict.Clear();
                 Logger.LogError($"Failed to load savable simple dict.", ("key", key), ("err", ex.Message));
             }
         }
