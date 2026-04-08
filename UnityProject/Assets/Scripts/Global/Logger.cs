@@ -12,7 +12,6 @@ public class Logger
         {
             if (_instance == null) {
                 _instance = new Logger();
-                _instance.Init();
             }
             return _instance;
         }
@@ -59,6 +58,7 @@ public class Logger
         if (logWritter != null) {
             logWritter.Flush();
             logWritter.Close();
+            logWritter = null;
         }
     }
 

@@ -54,14 +54,15 @@ public class UIContext
     public bool CloseMainPage(UIPage mainPage)
     {
         if (mainPageStack.Contains(mainPage)) {
-            if (mainPageStack.Last.Value != mainPage) {
-                Logger.LogWarn("Try to close main page not on stack top", ("pageName", mainPage.pageName), ("contextType", contextType.ToString()));
-                mainPageStack.Remove(mainPage);
-            } else {
-                mainPageStack.RemoveLast();
+            if (mainPageStack.Count > 0) {
+                if (mainPageStack.Last.Value != mainPage) {
+                    Logger.LogWarn("Try to close main page not on stack top", ("pageName", mainPage.pageName), ("contextType", contextType.ToString()));
+                    mainPageStack.Remove(mainPage);
+                } else {
+                    mainPageStack.RemoveLast();
+                }
             }
             CloseAllPopupPages();
-            mainPage.ClosePage();
 
             if (mainPageStack.Count > 0) {
                 mainPageStack.Last.Value.SetUIVisible(true);

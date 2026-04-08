@@ -96,6 +96,14 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
 
     public virtual void SetUIVisible(bool isVisible)
     {
+        if (!isLoaded) {
+            AddResourceLoadedCB(() =>
+            {
+                SetUIVisible(isVisible);
+            });
+            return;
+        }
+
         this.isVisible = isVisible;
         if (isVisible) {
             OnShow();
@@ -106,7 +114,11 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
 
     public void AddResourceLoadedCB(Action loadedCB)
     {
-        resourceLoadedCBs.Add(loadedCB);
+        if (isLoaded) {
+            loadedCB.Invoke();
+        } else {
+            resourceLoadedCBs.Add(loadedCB);
+        }
     }
 
     #region Timer
@@ -162,14 +174,6 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
                 ResourceManager.ResourceBinderInstanceIds += 1;
             }
             return _binderId;
-        }
-    }
-
-    public Transform rootTrans
-    {
-        get
-        {
-            return transform;
         }
     }
 

@@ -1,6 +1,7 @@
 {
   "LoadingPage": {
     "id": "LoadingPage",
-    "contextType": "Loading"
+    "contextType": "Loading",
+    "isLoadAsync": false
   }
 }

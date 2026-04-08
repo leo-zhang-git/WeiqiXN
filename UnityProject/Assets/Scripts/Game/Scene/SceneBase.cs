@@ -24,6 +24,7 @@ public class SceneBase : ITimerAttacher, IEventReceiver
         UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnUnitySceneLoaded;
         this.unityScene = unityScene;
         isLoaded = true;
+        Global.Instance.uiManager.CloseMainPage<LoadingPage>();
         OnSceneLoaded();
         Logger.LogInfo("Unity scene load success.", ("sceneTypeId", configData.id), ("unitySceneName", unityScene.name));
     }
@@ -143,6 +144,7 @@ public class SceneBase : ITimerAttacher, IEventReceiver
         UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnUnitySceneLoaded;
         try {
             UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(configData.unitySceneName);
+            Global.Instance.uiManager.ShowMainPage<LoadingPage>();
             Logger.LogInfo("Load scene async start.", ("sceneTypeId", configData.id), ("unitySceneName", configData.unitySceneName));
         }
         catch (Exception ex) {

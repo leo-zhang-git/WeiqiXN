@@ -66,7 +66,7 @@ public class UIManager : ModuleBase
             TPage page = UIPage.CreatePageInstance<TPage>(uiContext, UIPageFlags.MainPage);
             uiContext.ShowMainPage(page);
         } else {
-            Logger.LogError("Invalid context type for show main page", ("contextType", contextType.ToString()));
+            Logger.LogWarn("Invalid context type for show main page", ("contextType", contextType.ToString()));
         }
     }
 
@@ -83,46 +83,60 @@ public class UIManager : ModuleBase
             TPage page = UIPage.CreatePageInstance<TPage>(uiContext, UIPageFlags.PopupPage);
             uiContext.ShowPopupPage(page);
         } else {
-            Logger.LogError("Invalid context type for show popup page", ("contextType", contextType.ToString()));
+            Logger.LogWarn("Invalid context type for show popup page", ("contextType", contextType.ToString()));
         }
     }
 
     public void CloseMainPage(UIPage page)
     {
-        if (page.pageContext.CloseMainPage(page)) {
+        if (page.owner.CloseMainPage(page)) {
             RecycleClosedPage(page);
         }
     }
 
-    public void CloseMainPage<TPage>(UIContextType contextType) where TPage : UIPage
+    public void CloseMainPage<TPage>() where TPage : UIPage
     {
+        UiPageDataType uiConfig = UiPageDataType.GetConfigData(UIPage.GetPageName<TPage>());
+        if (uiConfig == null) {
+            Logger.LogError("Invalid ui config, close main page failed.", ("pageName", UIPage.GetPageName<TPage>()));
+            return;
+        }
+        UIContextType contextType = UIUtils.ParseUIContextType(uiConfig.contextType);
+
         UIContext uiContext;
         if (contextDict.TryGetValue(contextType, out uiContext)) {
             TPage page = uiContext.GetMainPage<TPage>();
             if (page != null) {
                 CloseMainPage(page);
             } else {
-                Logger.LogError("Page not found, close main page failed.", ("pageName", UIPage.GetPageName<TPage>()), ("contextType", contextType.ToString()));
+                Logger.LogWarn("Page not found, close main page failed.", ("pageName", UIPage.GetPageName<TPage>()), ("contextType", contextType.ToString()));
             }
         }
     }
 
     public void ClosePopupPage(UIPage page)
     {
-        if (page.pageContext.ClosePopupPage(page)) {
+        if (page.owner.ClosePopupPage(page)) {
             RecycleClosedPage(page);
         }
     }
 
-    public void ClosePopupPage<TPage>(UIContextType contextType) where TPage : UIPage
+    public void ClosePopupPage<TPage>() where TPage : UIPage
     {
+        UiPageDataType uiConfig = UiPageDataType.GetConfigData(UIPage.GetPageName<TPage>());
+        if (uiConfig == null) {
+            Logger.LogError("Invalid ui config, close popup page failed.", ("pageName", UIPage.GetPageName<TPage>()));
+            return;
+        }
+        UIContextType contextType = UIUtils.ParseUIContextType(uiConfig.contextType);
+
         UIContext uiContext;
         if (contextDict.TryGetValue(contextType, out uiContext)) {
             TPage page = uiContext.GetPopupPage<TPage>();
             if (page != null) {
                 ClosePopupPage(page);
             } else {
-                Logger.LogError("Page not found, close popup page failed.", ("pageName", UIPage.GetPageName<TPage>()), ("contextType", contextType.ToString()));
+                Logger.LogWarn("Page not found, close popup page failed.", ("pageName", UIPage.GetPageName<TPage>()), ("contextType", contextType.ToString()));
             }
         }
     }

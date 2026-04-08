@@ -4,7 +4,6 @@ using UnityEngine;
 public abstract class UIPage : UILogicBase
 {
     public UIContext owner;
-    public UIContext pageContext;
     private int _canvasOrder;
     public int canvasOrder
     {
@@ -16,6 +15,11 @@ public abstract class UIPage : UILogicBase
         {
             if (isLoaded) {
                 canvas.sortingOrder = value;
+            } else {
+                AddResourceLoadedCB(() =>
+                {
+                    canvas.sortingOrder = value;
+                });
             }
             _canvasOrder = value;
         }
@@ -44,6 +48,14 @@ public abstract class UIPage : UILogicBase
         }
     }
 
+    public UiPageDataType pageConfig
+    {
+        get
+        {
+            return UiPageDataType.GetConfigData(pageName);
+        }
+    }
+
     public static string GetPageName<TPage>() where TPage : UIPage
     {
         return typeof(TPage).Name;
@@ -66,16 +78,12 @@ public abstract class UIPage : UILogicBase
     protected override void OnLoaded()
     {
         base.OnLoaded();
-        canvas.sortingOrder = canvasOrder;
         OnOpen();
 
         if (isMainPage) {
-            if (owner.mainPageStack.Last.Value == this && owner.mainPageStack.Count > 1) {
+            if (owner.mainPageStack.Count > 1 && owner.mainPageStack.Last.Value == this) {
                 var previousPage = owner.mainPageStack.Last.Previous.Value;
-                previousPage.AddResourceLoadedCB(() =>
-                {
-                    previousPage.SetUIVisible(false);
-                });
+                previousPage.SetUIVisible(false);
                 SetUIVisible(true);
             }
         } else {
@@ -102,13 +110,14 @@ public abstract class UIPage : UILogicBase
         }
     }
 
-    public void LoadPage(bool isAsync = true)
+    public void LoadPage()
     {
         if (Global.Instance.uiManager.TryGetCachePageGO(pageName, out GameObject pageGO)) {
             pageGO.SetActive(true);
             onUnityResourceLoaded(pageGO);
         } else {
             string assetPath = UIUtils.GetPagePrefabPath(pageName);
+            bool isAsync = pageConfig == null || pageConfig.isLoadAsync;
             if (isAsync) {
                 Global.Instance.resourceManager.LoadGamePrefabAsync(this, assetPath, onUnityResourceLoaded);
             } else {

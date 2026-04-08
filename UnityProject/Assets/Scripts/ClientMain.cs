@@ -19,6 +19,7 @@ public class ClientMain
 
     private void Start()
     {
+        Logger.Instance.Init();
         Global.Instance.Start();
     }
 
@@ -40,6 +41,7 @@ public class ClientMain
     private void Destroy()
     {
         Global.Instance.Destroy();
+        Logger.Instance.Destroy();
     }
 
 #if UNITY_EDITOR
@@ -53,12 +55,25 @@ public class ClientMain
             UnityEditor.SceneManagement.EditorSceneManager.playModeStartScene = sceneAsset;
         }
     }
+
+    public static void OnPlayModeStateChanged(PlayModeStateChange state)
+    {
+
+        if (state == PlayModeStateChange.ExitingEditMode) {
+            OnEditorLoaded();
+        } else if (state == PlayModeStateChange.ExitingPlayMode) {
+            ClientMain.Instance.Destroy();
+        }
+    }
 #endif
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void OnSubsystemRegistration()
     {
         Application.quitting += ClientMain.Instance.Destroy;
+#if UNITY_EDITOR
+        EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+#endif
         ClientMain.Instance.InitPlayerLoop();
     }
 

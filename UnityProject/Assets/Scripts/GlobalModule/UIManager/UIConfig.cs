@@ -27,7 +27,7 @@ public static class UIConfig
     public const string UI_EVENTSYSTEM_CONFIG_ID = "eventSystem";
 
     public const int CONTEXT_INCREASE_CANVAS_ORDER = 1000;
-    public const int MAINPAGE_INCREASE_CANVAS_ORDER = 5;
+    public const int MAINPAGE_INCREASE_CANVAS_ORDER = 20;
     public const int POPUP_INCREASE_CANVAS_ORDER = 1;
     public const float PAGE_GAMEOBJECT_CACHE_TIME = 30;
 }

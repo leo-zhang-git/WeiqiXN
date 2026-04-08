@@ -7,6 +7,7 @@ public class UiPageDataType
 {
     public string id;  // id
     public string contextType;  // 所在context层级
+    public bool isLoadAsync;  // 是否异步加载
 
     public static Dictionary<string, UiPageDataType> UiPageDict;
 
