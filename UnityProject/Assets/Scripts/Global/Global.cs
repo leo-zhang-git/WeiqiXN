@@ -19,6 +19,7 @@ public class Global
     public TimerManager timerManager;
     public EventManager eventManager;
     public GameSaveManager gameSaveManager;
+    public ReddotManager reddotManager;
     public UIManager uiManager;
     public SceneManager sceneManager;
 
@@ -35,6 +36,9 @@ public class Global
 
         gameSaveManager = new GameSaveManager();
         moduleList.Add(gameSaveManager);
+
+        reddotManager = new ReddotManager();
+        moduleList.Add(reddotManager);
 
         uiManager = new UIManager();
         moduleList.Add(uiManager);
