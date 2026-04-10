@@ -7,29 +7,9 @@ public class SavableSimpleSet<TValue> : SavableObj
     private HashSet<TValue> _innerSet = new HashSet<TValue>();
     public int Count => _innerSet.Count;
 
-    private SavableSimpleSet()
+    public SavableSimpleSet()
     {
 
-    }
-
-    public static SavableSimpleSet<int> CreateIntSet()
-    {
-        return new SavableSimpleSet<int>();
-    }
-
-    public static SavableSimpleSet<float> CreateFloatSet()
-    {
-        return new SavableSimpleSet<float>();
-    }
-
-    public static SavableSimpleSet<bool> CreateBoolSet()
-    {
-        return new SavableSimpleSet<bool>();
-    }
-
-    public static SavableSimpleSet<string> CreateStringSet()
-    {
-        return new SavableSimpleSet<string>();
     }
 
     public void Add(TValue value)
@@ -95,5 +75,28 @@ public class SavableSimpleSet<TValue> : SavableObj
                 Logger.LogError($"Failed to load savable simple set.", ("err", ex.Message));
             }
         }
+    }
+}
+
+public static class SavableSimpleSetFactory
+{
+    public static SavableSimpleSet<int> CreateIntSet()
+    {
+        return new SavableSimpleSet<int>();
+    }
+
+    public static SavableSimpleSet<float> CreateFloatSet()
+    {
+        return new SavableSimpleSet<float>();
+    }
+
+    public static SavableSimpleSet<bool> CreateBoolSet()
+    {
+        return new SavableSimpleSet<bool>();
+    }
+
+    public static SavableSimpleSet<string> CreateStringSet()
+    {
+        return new SavableSimpleSet<string>();
     }
 }

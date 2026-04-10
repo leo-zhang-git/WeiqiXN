@@ -7,29 +7,9 @@ public class SavableSimpleDict<TValue> : SavableObj
     private readonly Dictionary<string, TValue> _innerDict = new Dictionary<string, TValue>();
     public int Count => _innerDict.Count;
 
-    private SavableSimpleDict()
+    public SavableSimpleDict()
     {
 
-    }
-
-    public static SavableSimpleDict<int> CreateIntDict()
-    {
-        return new SavableSimpleDict<int>();
-    }
-
-    public static SavableSimpleDict<float> CreateFloatDict()
-    {
-        return new SavableSimpleDict<float>();
-    }
-
-    public static SavableSimpleDict<bool> CreateBoolDict()
-    {
-        return new SavableSimpleDict<bool>();
-    }
-
-    public static SavableSimpleDict<string> CreateStringDict()
-    {
-        return new SavableSimpleDict<string>();
     }
 
     public bool TryGetValue(string key, out TValue value)
@@ -103,5 +83,28 @@ public class SavableSimpleDict<TValue> : SavableObj
                 Logger.LogError($"Failed to load savable simple dict.", ("key", key), ("err", ex.Message));
             }
         }
+    }
+}
+
+public static class SavableSimpleDictFactory
+{
+    public static SavableSimpleDict<int> CreateIntDict()
+    {
+        return new SavableSimpleDict<int>();
+    }
+
+    public static SavableSimpleDict<float> CreateFloatDict()
+    {
+        return new SavableSimpleDict<float>();
+    }
+
+    public static SavableSimpleDict<bool> CreateBoolDict()
+    {
+        return new SavableSimpleDict<bool>();
+    }
+
+    public static SavableSimpleDict<string> CreateStringDict()
+    {
+        return new SavableSimpleDict<string>();
     }
 }

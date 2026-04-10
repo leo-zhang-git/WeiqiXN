@@ -7,24 +7,9 @@ public class SavableSimpleList<TValue> : SavableObj
     protected List<TValue> _innerList = new List<TValue>();
     public int Count => _innerList.Count;
 
-    public static SavableSimpleList<int> CreateIntList()
+    public SavableSimpleList()
     {
-        return new SavableSimpleList<int>();
-    }
 
-    public static SavableSimpleList<float> CreateFloatList()
-    {
-        return new SavableSimpleList<float>();
-    }
-
-    public static SavableSimpleList<bool> CreateBoolList()
-    {
-        return new SavableSimpleList<bool>();
-    }
-
-    public static SavableSimpleList<string> CreateStringList()
-    {
-        return new SavableSimpleList<string>();
     }
 
     public bool TryGetValue(int index, out TValue value)
@@ -121,5 +106,28 @@ public class SavableSimpleList<TValue> : SavableObj
                 Logger.LogError($"Failed to load savable simple list.", ("err", ex.Message));
             }
         }
+    }
+}
+
+public static class SavableSimpleListFactory
+{
+    public static SavableSimpleList<int> CreateIntList()
+    {
+        return new SavableSimpleList<int>();
+    }
+
+    public static SavableSimpleList<float> CreateFloatList()
+    {
+        return new SavableSimpleList<float>();
+    }
+
+    public static SavableSimpleList<bool> CreateBoolList()
+    {
+        return new SavableSimpleList<bool>();
+    }
+
+    public static SavableSimpleList<string> CreateStringList()
+    {
+        return new SavableSimpleList<string>();
     }
 }

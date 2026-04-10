@@ -36,6 +36,7 @@ public class Global
 
         gameSaveManager = new GameSaveManager();
         moduleList.Add(gameSaveManager);
+        User.Instance.Init();
 
         reddotManager = new ReddotManager();
         moduleList.Add(reddotManager);
@@ -75,5 +76,6 @@ public class Global
         foreach (var module in moduleList) {
             module.OnDestroy();
         }
+        User.Instance.Destroy();
     }
 }
