@@ -14,7 +14,7 @@ public class UserComponentUserInfo : UserComponentBase
     public void CreateNewUser()
     {
         // 随机生成9位数id
-        userId.value = Random.Range(Mathf.Pow(10, 8), Mathf.Pow(10, 9)).ToString();
+        userId.value = Random.Range(100000, 999999).ToString();
         winCount.value = 0;
         loseCount.value = 0;
     }
