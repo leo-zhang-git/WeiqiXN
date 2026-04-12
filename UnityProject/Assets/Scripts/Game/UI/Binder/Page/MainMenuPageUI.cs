@@ -9,4 +9,5 @@ public class MainMenuPageUI : UIBinderBase
 	public Button btn_continue;
 	public Button btn_new_game;
 	public Button btn_exit;
+	public Button btn_user_info;
 }

@@ -1,11 +1,10 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(UIBinderEditor))]
 public abstract class UIBinderBase : MonoBehaviour
 {
-    public DateTime generatedTime;
+    public long generatedTime;
     public Dictionary<string, UIWidget> binderWidgets = new Dictionary<string, UIWidget>();
     public Dictionary<string, GameObject> binderWidgetGOs = new Dictionary<string, GameObject>();
 

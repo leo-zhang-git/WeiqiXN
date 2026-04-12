@@ -19,8 +19,17 @@ public class UIBinderBase_Inspector : Editor
     public override void OnInspectorGUI()
     {
         UIBinderEditor uiBinderEditor = instance.GetComponent<UIBinderEditor>();
-        if (uiBinderEditor != null && uiBinderEditor.generateTime > instance.generatedTime) {
-            EditorGUILayout.HelpBox($"绑定文件已过期，需要更新绑定", MessageType.Warning);
+        if (uiBinderEditor != null) {
+            if (uiBinderEditor.binderClsName != instance.GetType().Name) {
+                EditorGUILayout.HelpBox($"UIBinderEditor与当前binder类型不匹配", MessageType.Error);
+                return;
+            }
+            if (uiBinderEditor.generateTime > instance.generatedTime) {
+                EditorGUILayout.HelpBox($"绑定文件已过期，需要更新绑定", MessageType.Warning);
+            }
+        } else {
+            EditorGUILayout.HelpBox($"当前Prefab缺少对应的UIBinderEditor脚本", MessageType.Error);
+            return;
         }
 
         var binderFields = instance.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);

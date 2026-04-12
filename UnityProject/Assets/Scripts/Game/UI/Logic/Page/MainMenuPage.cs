@@ -9,6 +9,7 @@
         binder.btn_continue.onClick.AddListener(OnClickBtnContinue);
         binder.btn_new_game.onClick.AddListener(OnClickBtnNewGame);
         binder.btn_exit.onClick.AddListener(OnClickBtnExit);
+        binder.btn_user_info.onClick.AddListener(OnClickBtnUserInfo);
     }
 
     public void OnClickBtnContinue()
@@ -28,5 +29,10 @@
 #else
         UnityEngine.Application.Quit();
 #endif
+    }
+
+    public void OnClickBtnUserInfo()
+    {
+        Global.Instance.uiManager.ShowPage<UserInfoPopup>();
     }
 }

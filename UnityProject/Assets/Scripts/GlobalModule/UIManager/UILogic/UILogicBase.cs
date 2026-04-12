@@ -63,6 +63,8 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
             loadedCB.Invoke();
         }
         resourceLoadedCBs.Clear();
+
+        OnOpen();
     }
 
     protected virtual void OnLoaded()

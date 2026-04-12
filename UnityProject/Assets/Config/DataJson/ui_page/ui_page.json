@@ -9,12 +9,18 @@
     "id": "MainMenuPage",
     "contextType": "General",
     "isPopup": false,
-    "isLoadAsync": false
+    "isLoadAsync": true
   },
   "SavingPopup": {
     "id": "SavingPopup",
     "contextType": "Loading",
     "isPopup": true,
     "isLoadAsync": false
+  },
+  "UserInfoPopup": {
+    "id": "UserInfoPopup",
+    "contextType": "General",
+    "isPopup": true,
+    "isLoadAsync": true
   }
 }

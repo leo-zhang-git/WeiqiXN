@@ -28,6 +28,9 @@ public class User : SavableObj, ISavableRoot
 
         if (File.Exists(saveFilePath)) {
             Global.Instance.gameSaveManager.LoadData(this);
+        } else {
+            compUserInfo.CreateNewUser();
+            Global.Instance.gameSaveManager.SaveData(this);
         }
     }
 

@@ -82,7 +82,7 @@ public class UIBinderEditor_Inspector : Editor
 
                         if (doExport) {
                             UICodeGenerator.ExportUIScripts(instance);
-                            instance.generateTime = DateTime.Now;
+                            instance.generateTime = DateTime.UtcNow.Ticks;
 
                             // 自动绑定要处理编译时序问题太麻烦了，改成手动点击绑定
                             EditorUtility.DisplayDialog("UI绑定", $"成功生成UI绑定文件，重编译后执行更新绑定：\n{instance.binderExportPath}",
@@ -117,7 +117,7 @@ public class UIBinderEditor_Inspector : Editor
                                 }
                             }
                             if (attachBinder is UIBinderBase binder) {
-                                binder.generatedTime = DateTime.Now;
+                                binder.generatedTime = DateTime.UtcNow.Ticks;
                             }
 
                             EditorUtility.SetDirty(target);

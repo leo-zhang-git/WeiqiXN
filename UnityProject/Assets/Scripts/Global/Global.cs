@@ -36,7 +36,6 @@ public class Global
 
         gameSaveManager = new GameSaveManager();
         moduleList.Add(gameSaveManager);
-        User.Instance.Init();
 
         reddotManager = new ReddotManager();
         moduleList.Add(reddotManager);
@@ -48,6 +47,7 @@ public class Global
         moduleList.Add(sceneManager);
 
         sceneManager.EnterMainScene(SceneConfig.MAIN_MENU_SCENE_TYPE_ID);
+        User.Instance.Init();
     }
 
     public void Update()

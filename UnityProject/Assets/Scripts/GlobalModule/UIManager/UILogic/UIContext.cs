@@ -78,7 +78,9 @@ public class UIContext
 
     public void ShowPopupPage(UIPage popupPage)
     {
-        popupPage.canvasOrder = baseCanvasOrder + popupList.Count * UIConfig.POPUP_INCREASE_CANVAS_ORDER;
+        popupPage.canvasOrder =
+            baseCanvasOrder + mainPageStack.Count * UIConfig.MAINPAGE_INCREASE_CANVAS_ORDER +
+            popupList.Count * UIConfig.POPUP_INCREASE_CANVAS_ORDER;
         popupPage.LoadPage();
         popupList.Add(popupPage);
         Logger.LogInfo("UIContext show popup page.", ("contextType", contextType.ToString()), ("pageName", popupPage.pageName));

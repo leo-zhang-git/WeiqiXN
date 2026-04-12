@@ -4,7 +4,7 @@ using UnityEngine;
 public static class GameSaveConfig
 {
 #if UNITY_EDITOR
-    public static readonly string UserSaveFilePath = Path.Combine(Application.persistentDataPath, "User");
+    public static readonly string UserSaveFilePath = Path.Combine(Application.persistentDataPath, "User.json");
 #else
     // TODO 打包版本的存档路径
 #endif

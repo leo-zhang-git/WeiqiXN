@@ -68,10 +68,9 @@ public abstract class UIPage : UILogicBase
         this.owner = owner;
     }
 
-    protected override void OnLoaded()
+    protected override void OnOpen()
     {
-        base.OnLoaded();
-        OnOpen();
+        base.OnOpen();
 
         if (!pageConfig.isPopup) {
             if (owner.mainPageStack.Count > 1 && owner.mainPageStack.Last.Value == this) {

@@ -19,7 +19,7 @@ public class UIBinderNode
 
 public class UIBinderEditor : MonoBehaviour
 {
-    public DateTime generateTime;
+    public long generateTime;
     public Type attachType;
     public List<UIBinderNode> nodeList = new List<UIBinderNode>();
     public bool isNodesExpand = true;

@@ -125,9 +125,9 @@ GameObject:
   - component: {fileID: 5094820111657852289}
   - component: {fileID: 1079429796697030718}
   - component: {fileID: 7126572458466306927}
-  - component: {fileID: 5679604818216415803}
+  - component: {fileID: 8312930140620228531}
   m_Layer: 5
-  m_Name: SavingPpopup
+  m_Name: SavingPopup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -232,7 +232,7 @@ MonoBehaviour:
   - name: panel_save
     value: {fileID: 3969056184738216809}
   isNodesExpand: 1
---- !u!114 &5679604818216415803
+--- !u!114 &8312930140620228531
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -241,7 +241,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 4734126463101137651}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70c6d367b8cb2e3469426dfbaa54b123, type: 3}
+  m_Script: {fileID: 11500000, guid: eb48eb03cd367354c98ad3edc922ba91, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   panel_save: {fileID: 3969056184738216809}
