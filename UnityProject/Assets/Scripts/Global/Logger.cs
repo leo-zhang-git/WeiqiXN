@@ -45,7 +45,7 @@ public class Logger
             if (!Directory.Exists(logDayDir)) {
                 Directory.CreateDirectory(logDayDir);
             }
-            string logFilePath = Path.Combine(logDayDir, $"{dayStr}.txt");
+            string logFilePath = Path.Combine(logDayDir, $"{curDate:yyyy-MM-dd-HHmmss}.txt");
             logWritter = new StreamWriter(logFilePath, false, System.Text.Encoding.UTF8);
         }
         catch (Exception e) {
@@ -81,11 +81,12 @@ public class Logger
     private void _LogInfo(string logText, params (string key, string value)[] logParams)
     {
         var sb = new StringBuilder();
-        sb.AppendLine(logText);
+        sb.Append(logText);
 
         if (logParams != null && logParams.Length > 0) {
+            sb.AppendLine();
             foreach (var kvp in logParams) {
-                sb.AppendLine($"#{kvp.key}: {kvp.value}");
+                sb.Append($" #{kvp.key}: {kvp.value}");
             }
         }
 
@@ -95,11 +96,12 @@ public class Logger
     private void _LogWarn(string logText, params (string key, string value)[] logParams)
     {
         var sb = new StringBuilder();
-        sb.AppendLine(logText);
+        sb.Append(logText);
 
         if (logParams != null && logParams.Length > 0) {
+            sb.AppendLine();
             foreach (var kvp in logParams) {
-                sb.AppendLine($"#{kvp.key}: {kvp.value}");
+                sb.Append($" #{kvp.key}: {kvp.value}");
             }
         }
 
@@ -109,13 +111,16 @@ public class Logger
     private void _LogError(string logText, params (string key, string value)[] logParams)
     {
         var sb = new StringBuilder();
-        sb.AppendLine(logText);
+        sb.Append(logText);
 
         if (logParams != null && logParams.Length > 0) {
+            sb.AppendLine();
             foreach (var kvp in logParams) {
-                sb.AppendLine($"#{kvp.key}: {kvp.value}");
+                sb.Append($" #{kvp.key}: {kvp.value}");
             }
         }
         Debug.LogError(sb.ToString());
     }
 }
+
+

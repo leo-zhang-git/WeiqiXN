@@ -63,11 +63,11 @@ public class SavableSimpleList<TValue> : SavableObj
     public override JObject SaveObj()
     {
         var jObject = new JObject();
-        jObject[GameSaveUtils.SavableObj_Type_Field_Name] = JToken.FromObject(GetType().FullName);
+        jObject[GameSaveConfig.SavableObj_Type_Field_Name] = JToken.FromObject(GetType().FullName);
 
         var innerListJObject = new JObject();
-        jObject[GameSaveUtils.SavableList_Inner_List_Field_Name] = innerListJObject;
-        jObject[GameSaveUtils.SavableList_Count_Field_Name] = JToken.FromObject(Count);
+        jObject[GameSaveConfig.SavableList_Inner_List_Field_Name] = innerListJObject;
+        jObject[GameSaveConfig.SavableList_Count_Field_Name] = JToken.FromObject(Count);
 
         for (int i = 0; i < _innerList.Count; i++) {
             innerListJObject[i.ToString()] = JToken.FromObject(_innerList[i]);
@@ -79,14 +79,14 @@ public class SavableSimpleList<TValue> : SavableObj
     public override void LoadObj(JObject jObject)
     {
         _innerList.Clear();
-        var innerListCountJToken = jObject[GameSaveUtils.SavableList_Count_Field_Name];
+        var innerListCountJToken = jObject[GameSaveConfig.SavableList_Count_Field_Name];
         if (innerListCountJToken != null && innerListCountJToken.Type == JTokenType.Integer) {
             for (int i = 0; i < (int)innerListCountJToken; i++) {
                 _innerList.Add(default);
             }
         }
 
-        var innerListJToken = jObject[GameSaveUtils.SavableList_Inner_List_Field_Name];
+        var innerListJToken = jObject[GameSaveConfig.SavableList_Inner_List_Field_Name];
         if (innerListJToken == null) {
             return;
         }

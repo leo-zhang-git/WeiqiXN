@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using UnityEngine;
 
@@ -8,14 +7,6 @@ public enum UIContextType
     Header = 2,
     Loading = 6,
     TopMost = 99,
-}
-
-[Flags]
-public enum UIPageFlags
-{
-    None = 0,
-    MainPage = 1,
-    PopupPage = 2,
 }
 
 public static class UIConfig

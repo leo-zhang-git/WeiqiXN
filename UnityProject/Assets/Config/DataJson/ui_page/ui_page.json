@@ -2,6 +2,19 @@
   "LoadingPage": {
     "id": "LoadingPage",
     "contextType": "Loading",
+    "isPopup": false,
+    "isLoadAsync": false
+  },
+  "MainMenuPage": {
+    "id": "MainMenuPage",
+    "contextType": "General",
+    "isPopup": false,
+    "isLoadAsync": false
+  },
+  "SavingPopup": {
+    "id": "SavingPopup",
+    "contextType": "Loading",
+    "isPopup": true,
     "isLoadAsync": false
   }
 }

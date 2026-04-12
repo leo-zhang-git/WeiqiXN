@@ -17,7 +17,7 @@ public class SavableObj
         }
 
         Type saveType = GetType();
-        jObject[GameSaveUtils.SavableObj_Type_Field_Name] = JToken.FromObject(saveType.FullName);
+        jObject[GameSaveConfig.SavableObj_Type_Field_Name] = JToken.FromObject(saveType.FullName);
         visitedSavableObjs.Add(this);
 
         foreach (var field in saveType.GetFields(BindingFlags.Public | BindingFlags.Instance)) {
@@ -64,11 +64,11 @@ public class SavableObj
             return;
         }
 
-        if (jObject[GameSaveUtils.SavableObj_Type_Field_Name] == null) {
+        if (jObject[GameSaveConfig.SavableObj_Type_Field_Name] == null) {
             Logger.LogError("Type name of jObject not found, load jObject failed.", ("typeFullName", GetType().FullName));
             return;
         }
-        Type loadType = Type.GetType((string)jObject[GameSaveUtils.SavableObj_Type_Field_Name].ToObject(typeof(string)));
+        Type loadType = Type.GetType((string)jObject[GameSaveConfig.SavableObj_Type_Field_Name].ToObject(typeof(string)));
         if (loadType == null || loadType.FullName != GetType().FullName) {
             Logger.LogError("Load type name invalid, load jObject failed.", ("typeFullName", GetType().FullName));
             return;

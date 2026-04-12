@@ -24,10 +24,13 @@ public abstract class UIPage : UILogicBase
             _canvasOrder = value;
         }
     }
-
-    public UIPageFlags pageFlags;
-    public bool isMainPage => (pageFlags & UIPageFlags.MainPage) == UIPageFlags.MainPage;
-    public bool isPopupPage => (pageFlags & UIPageFlags.PopupPage) == UIPageFlags.PopupPage;
+    public UiPageDataType pageConfig
+    {
+        get
+        {
+            return UiPageDataType.GetConfigData(pageName);
+        }
+    }
 
     public abstract string pageName { get; }
     protected List<UIWidget> childWidgets = new List<UIWidget>();
@@ -48,31 +51,21 @@ public abstract class UIPage : UILogicBase
         }
     }
 
-    public UiPageDataType pageConfig
-    {
-        get
-        {
-            return UiPageDataType.GetConfigData(pageName);
-        }
-    }
-
     public static string GetPageName<TPage>() where TPage : UIPage
     {
         return typeof(TPage).Name;
     }
 
-    public static TPage CreatePageInstance<TPage>(UIContext owner, UIPageFlags pageFlags) where TPage : UIPage, new()
+    public static TPage CreatePageInstance<TPage>(UIContext owner) where TPage : UIPage, new()
     {
         TPage page = new TPage();
         page.owner = owner;
-        page.pageFlags = pageFlags;
         return page;
     }
 
-    public void InitPage(UIContext owner, UIPageFlags pageFlags)
+    public void InitPage(UIContext owner)
     {
         this.owner = owner;
-        this.pageFlags = pageFlags;
     }
 
     protected override void OnLoaded()
@@ -80,7 +73,7 @@ public abstract class UIPage : UILogicBase
         base.OnLoaded();
         OnOpen();
 
-        if (isMainPage) {
+        if (!pageConfig.isPopup) {
             if (owner.mainPageStack.Count > 1 && owner.mainPageStack.Last.Value == this) {
                 var previousPage = owner.mainPageStack.Last.Previous.Value;
                 previousPage.SetUIVisible(false);
@@ -135,11 +128,7 @@ public abstract class UIPage : UILogicBase
             widget.CloseWidget();
         }
         OnHide();
-        if (isMainPage) {
-            Global.Instance.uiManager.CloseMainPage(this);
-        } else {
-            Global.Instance.uiManager.ClosePopupPage(this);
-        }
+        Global.Instance.uiManager.ClosePage(this);
         OnClose();
     }
 }

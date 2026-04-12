@@ -8,5 +8,7 @@
     public override void OnSceneLoaded()
     {
         base.OnSceneLoaded();
+
+        Global.Instance.uiManager.ShowPage<MainMenuPage>();
     }
 }

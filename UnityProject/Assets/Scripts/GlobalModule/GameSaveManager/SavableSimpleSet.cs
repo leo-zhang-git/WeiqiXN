@@ -40,10 +40,10 @@ public class SavableSimpleSet<TValue> : SavableObj
     public override JObject SaveObj()
     {
         var jObject = new JObject();
-        jObject[GameSaveUtils.SavableObj_Type_Field_Name] = JToken.FromObject(GetType().FullName);
+        jObject[GameSaveConfig.SavableObj_Type_Field_Name] = JToken.FromObject(GetType().FullName);
 
         var innerSetJObject = new JObject();
-        jObject[GameSaveUtils.SavableSet_Inner_Set_Field_Name] = innerSetJObject;
+        jObject[GameSaveConfig.SavableSet_Inner_Set_Field_Name] = innerSetJObject;
 
         int index = 0;
         foreach (var value in _innerSet) {
@@ -59,7 +59,7 @@ public class SavableSimpleSet<TValue> : SavableObj
     public override void LoadObj(JObject jObject)
     {
         _innerSet.Clear();
-        var innerSetJToken = jObject[GameSaveUtils.SavableSet_Inner_Set_Field_Name];
+        var innerSetJToken = jObject[GameSaveConfig.SavableSet_Inner_Set_Field_Name];
         if (innerSetJToken == null) {
             return;
         }

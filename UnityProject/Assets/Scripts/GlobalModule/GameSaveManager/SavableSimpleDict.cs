@@ -49,10 +49,10 @@ public class SavableSimpleDict<TValue> : SavableObj
     public override JObject SaveObj()
     {
         var jObject = new JObject();
-        jObject[GameSaveUtils.SavableObj_Type_Field_Name] = JToken.FromObject(GetType().FullName);
+        jObject[GameSaveConfig.SavableObj_Type_Field_Name] = JToken.FromObject(GetType().FullName);
 
         var innerDictJObject = new JObject();
-        jObject[GameSaveUtils.SavableDict_Inner_Dict_Field_Name] = innerDictJObject;
+        jObject[GameSaveConfig.SavableDict_Inner_Dict_Field_Name] = innerDictJObject;
 
         foreach (var kvp in _innerDict) {
             if (kvp.Value != null) {
@@ -66,7 +66,7 @@ public class SavableSimpleDict<TValue> : SavableObj
     public override void LoadObj(JObject jObject)
     {
         _innerDict.Clear();
-        var innerDictJToken = jObject[GameSaveUtils.SavableDict_Inner_Dict_Field_Name];
+        var innerDictJToken = jObject[GameSaveConfig.SavableDict_Inner_Dict_Field_Name];
         if (innerDictJToken == null) {
             return;
         }

@@ -26,15 +26,15 @@ public class UIBinderBase_Inspector : Editor
         var binderFields = instance.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
         using (new EditorGUI.DisabledScope(true)) {
             EditorGUILayout.TextArea("常规UI对象：", EditorStyles.wordWrappedLabel);
+            using (new EditorGUILayout.HorizontalScope()) {
+                EditorGUILayout.TextArea("对象名", EditorStyles.boldLabel, GUILayout.Width(125));
+                EditorGUILayout.TextArea("绑定对象", EditorStyles.boldLabel, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
+            }
             List<(string, UIBinderEditor)> childBinderEditors = new List<(string, UIBinderEditor)>();
             foreach (var field in binderFields) {
                 if (field.GetValue(instance) is UIBinderEditor binder) {
                     childBinderEditors.Add((field.Name.Substring(1), binder));
                 } else if (field.GetValue(instance) is Object objValue) {
-                    using (new EditorGUILayout.HorizontalScope()) {
-                        EditorGUILayout.TextArea("对象名", EditorStyles.boldLabel, GUILayout.Width(125));
-                        EditorGUILayout.TextArea("绑定对象", EditorStyles.boldLabel, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
-                    }
                     DrawUIBindNode(field.Name, objValue);
                 }
             }

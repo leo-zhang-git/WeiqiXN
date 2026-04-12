@@ -49,6 +49,7 @@ public class UIContext
         mainPage.canvasOrder = baseCanvasOrder + mainPageStack.Count * UIConfig.MAINPAGE_INCREASE_CANVAS_ORDER;
         mainPage.LoadPage();
         mainPageStack.AddLast(mainPage);
+        Logger.LogInfo("UIContext show main page.", ("contextType", contextType.ToString()), ("pageName", mainPage.pageName));
     }
 
     public bool CloseMainPage(UIPage mainPage)
@@ -67,6 +68,7 @@ public class UIContext
             if (mainPageStack.Count > 0) {
                 mainPageStack.Last.Value.SetUIVisible(true);
             }
+            Logger.LogInfo("UIContext close main page.", ("contextType", contextType.ToString()), ("pageName", mainPage.pageName));
             return true;
         } else {
             Logger.LogError("Target main page not in current context", ("pageName", mainPage.pageName), ("contextType", contextType.ToString()));
@@ -79,6 +81,7 @@ public class UIContext
         popupPage.canvasOrder = baseCanvasOrder + popupList.Count * UIConfig.POPUP_INCREASE_CANVAS_ORDER;
         popupPage.LoadPage();
         popupList.Add(popupPage);
+        Logger.LogInfo("UIContext show popup page.", ("contextType", contextType.ToString()), ("pageName", popupPage.pageName));
     }
 
     public bool ClosePopupPage(UIPage popupPage)
@@ -88,6 +91,7 @@ public class UIContext
             for (int i = 0; i < popupList.Count; i++) {
                 popupList[i].canvasOrder = baseCanvasOrder + (i + 1) * UIConfig.POPUP_INCREASE_CANVAS_ORDER;
             }
+            Logger.LogInfo("UIContext close popup page.", ("contextType", contextType.ToString()), ("pageName", popupPage.pageName));
             return true;
         } else {
             Logger.LogError("Target popup page not in current context", ("pageName", popupPage.pageName), ("contextType", contextType.ToString()));
@@ -101,5 +105,6 @@ public class UIContext
             page.ClosePage();
         }
         popupList.Clear();
+        Logger.LogInfo("UIContext close all popup pages.", ("contextType", contextType.ToString()));
     }
 }

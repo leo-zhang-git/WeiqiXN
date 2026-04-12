@@ -19,6 +19,7 @@ public class GameSaveManager : ModuleBase
         }
 
         savingLock = true;
+        Global.Instance.uiManager.ShowPage<SavingPpopup>();
         string saveDirPath = Path.GetDirectoryName(saveRoot.saveFilePath);
         Directory.CreateDirectory(saveDirPath);
         if (!File.Exists(saveRoot.saveFilePath)) {
@@ -31,6 +32,7 @@ public class GameSaveManager : ModuleBase
         JObject saveJObject = saveRoot.savableObj.SaveObj();
         await File.WriteAllTextAsync(saveRoot.saveFilePath, saveJObject.ToString());
         savingLock = false;
+        Global.Instance.uiManager.ClosePage<SavingPpopup>();
     }
 
     public void LoadData(ISavableRoot saveRoot)

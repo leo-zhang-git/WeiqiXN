@@ -53,90 +53,76 @@ public class UIManager : ModuleBase
         }
     }
 
-    public void ShowMainPage<TPage>() where TPage : UIPage, new()
+    public void ShowPage<TPage>() where TPage : UIPage, new()
     {
         UiPageDataType uiConfig = UiPageDataType.GetConfigData(UIPage.GetPageName<TPage>());
         if (uiConfig == null) {
-            Logger.LogError("Invalid ui config, show main page failed.", ("pageName", UIPage.GetPageName<TPage>()));
+            Logger.LogError("Invalid ui config, show page failed.", ("pageName", UIPage.GetPageName<TPage>()));
             return;
         }
         UIContextType contextType = UIUtils.ParseUIContextType(uiConfig.contextType);
 
-        if (contextDict.TryGetValue(contextType, out var uiContext)) {
-            TPage page = UIPage.CreatePageInstance<TPage>(uiContext, UIPageFlags.MainPage);
-            uiContext.ShowMainPage(page);
-        } else {
-            Logger.LogWarn("Invalid context type for show main page", ("contextType", contextType.ToString()));
-        }
-    }
-
-    public void ShowPopupPage<TPage>() where TPage : UIPage, new()
-    {
-        UiPageDataType uiConfig = UiPageDataType.GetConfigData(UIPage.GetPageName<TPage>());
-        if (uiConfig == null) {
-            Logger.LogError("Invalid ui config, show popup page failed.", ("pageName", UIPage.GetPageName<TPage>()));
-            return;
-        }
-        UIContextType contextType = UIUtils.ParseUIContextType(uiConfig.contextType);
-
-        if (contextDict.TryGetValue(contextType, out var uiContext)) {
-            TPage page = UIPage.CreatePageInstance<TPage>(uiContext, UIPageFlags.PopupPage);
-            uiContext.ShowPopupPage(page);
-        } else {
-            Logger.LogWarn("Invalid context type for show popup page", ("contextType", contextType.ToString()));
-        }
-    }
-
-    public void CloseMainPage(UIPage page)
-    {
-        if (page.owner.CloseMainPage(page)) {
-            RecycleClosedPage(page);
-        }
-    }
-
-    public void CloseMainPage<TPage>() where TPage : UIPage
-    {
-        UiPageDataType uiConfig = UiPageDataType.GetConfigData(UIPage.GetPageName<TPage>());
-        if (uiConfig == null) {
-            Logger.LogError("Invalid ui config, close main page failed.", ("pageName", UIPage.GetPageName<TPage>()));
-            return;
-        }
-        UIContextType contextType = UIUtils.ParseUIContextType(uiConfig.contextType);
-
-        UIContext uiContext;
-        if (contextDict.TryGetValue(contextType, out uiContext)) {
-            TPage page = uiContext.GetMainPage<TPage>();
-            if (page != null) {
-                CloseMainPage(page);
+        if (uiConfig.isPopup) {
+            if (contextDict.TryGetValue(contextType, out var uiContext)) {
+                TPage page = UIPage.CreatePageInstance<TPage>(uiContext);
+                uiContext.ShowPopupPage(page);
             } else {
-                Logger.LogWarn("Page not found, close main page failed.", ("pageName", UIPage.GetPageName<TPage>()), ("contextType", contextType.ToString()));
+                Logger.LogWarn("Invalid context type for show popup page", ("contextType", contextType.ToString()));
+            }
+        } else {
+            if (contextDict.TryGetValue(contextType, out var uiContext)) {
+                TPage page = UIPage.CreatePageInstance<TPage>(uiContext);
+                uiContext.ShowMainPage(page);
+            } else {
+                Logger.LogWarn("Invalid context type for show main page", ("contextType", contextType.ToString()));
             }
         }
     }
 
-    public void ClosePopupPage(UIPage page)
-    {
-        if (page.owner.ClosePopupPage(page)) {
-            RecycleClosedPage(page);
-        }
-    }
-
-    public void ClosePopupPage<TPage>() where TPage : UIPage
+    public void ClosePage<TPage>() where TPage : UIPage
     {
         UiPageDataType uiConfig = UiPageDataType.GetConfigData(UIPage.GetPageName<TPage>());
         if (uiConfig == null) {
-            Logger.LogError("Invalid ui config, close popup page failed.", ("pageName", UIPage.GetPageName<TPage>()));
+            Logger.LogError("Invalid ui config, close page failed.", ("pageName", UIPage.GetPageName<TPage>()));
             return;
         }
         UIContextType contextType = UIUtils.ParseUIContextType(uiConfig.contextType);
 
         UIContext uiContext;
-        if (contextDict.TryGetValue(contextType, out uiContext)) {
-            TPage page = uiContext.GetPopupPage<TPage>();
-            if (page != null) {
-                ClosePopupPage(page);
-            } else {
-                Logger.LogWarn("Page not found, close popup page failed.", ("pageName", UIPage.GetPageName<TPage>()), ("contextType", contextType.ToString()));
+        if (uiConfig.isPopup) {
+            if (contextDict.TryGetValue(contextType, out uiContext)) {
+                TPage page = uiContext.GetPopupPage<TPage>();
+                if (page != null) {
+                    if (page.owner.ClosePopupPage(page)) {
+                        RecycleClosedPage(page);
+                    }
+                } else {
+                    Logger.LogWarn("Page not found, close popup page failed.", ("pageName", UIPage.GetPageName<TPage>()), ("contextType", contextType.ToString()));
+                }
+            }
+        } else {
+            if (contextDict.TryGetValue(contextType, out uiContext)) {
+                TPage page = uiContext.GetMainPage<TPage>();
+                if (page != null) {
+                    if (page.owner.CloseMainPage(page)) {
+                        RecycleClosedPage(page);
+                    }
+                } else {
+                    Logger.LogWarn("Page not found, close main page failed.", ("pageName", UIPage.GetPageName<TPage>()), ("contextType", contextType.ToString()));
+                }
+            }
+        }
+    }
+
+    public void ClosePage(UIPage page)
+    {
+        if (page.pageConfig.isPopup) {
+            if (page.owner.ClosePopupPage(page)) {
+                RecycleClosedPage(page);
+            }
+        } else {
+            if (page.owner.CloseMainPage(page)) {
+                RecycleClosedPage(page);
             }
         }
     }
