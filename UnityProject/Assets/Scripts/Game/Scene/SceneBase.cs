@@ -78,6 +78,11 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
         }
     }
 
+    public void RestoreSceneData(string saveFilePath)
+    {
+        Global.Instance.gameSaveManager.LoadData(this, saveFilePath);
+    }
+
     public void Update()
     {
         if (!isLoaded) {

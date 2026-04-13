@@ -1,4 +1,6 @@
-﻿public class MainMenuPage : UIPageWithBinder<MainMenuPageUI>
+﻿using System.IO;
+
+public class MainMenuPage : UIPageWithBinder<MainMenuPageUI>
 {
     public override string pageName => UIPage.GetPageName<MainMenuPage>();
 
@@ -16,21 +18,21 @@
     {
         base.OnOpen();
 
-        //binder.btn_continue.interactable = File.Exists(GameSaveConfig.GetDuelSceneSavePath(0));
+        binder.btn_continue.interactable = File.Exists(GameSaveConfig.GetDuelSceneSavePath(0));
     }
 
     public void OnClickBtnContinue()
     {
-        //if (File.Exists(GameSaveConfig.GetDuelSceneSavePath(0))) {
-
-        //}
-
-        Global.Instance.sceneManager.EnterMainScene(SceneConfig.DUEL_SCENE_TYPE_ID);
+        string saveFilePath = GameSaveConfig.GetDuelSceneSavePath(0);
+        if (File.Exists(saveFilePath)) {
+            var duelScene = Global.Instance.sceneManager.EnterMainScene(SceneConfig.DUEL_SCENE_TYPE_ID);
+            duelScene.RestoreSceneData(saveFilePath);
+        }
     }
 
     public void OnClickBtnNewGame()
     {
-
+        Global.Instance.sceneManager.EnterMainScene(SceneConfig.DUEL_SCENE_TYPE_ID);
     }
 
     public void OnClickBtnExit()

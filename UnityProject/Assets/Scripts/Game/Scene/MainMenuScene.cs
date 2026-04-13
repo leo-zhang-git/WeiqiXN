@@ -2,7 +2,6 @@
 {
     public MainMenuScene(SceneDataType configData) : base(configData)
     {
-
     }
 
     public override void OnSceneLoaded()

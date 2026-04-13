@@ -12,28 +12,29 @@ public class GameSaveManager : ModuleBase
         savingLock = false;
     }
 
-    public void SaveData(ISavableRoot saveRoot)
+    public void SaveData(SavableObj savableObj, string saveFilePath)
     {
         if (savingLock) {
             Logger.LogError("Saving lock is being occupied, save data failed.");
             return;
         }
 
-        string saveDirPath = Path.GetDirectoryName(saveRoot.saveFilePath);
+        string saveRootName = Path.GetFileNameWithoutExtension(saveFilePath);
+        string saveDirPath = Path.GetDirectoryName(saveFilePath);
         Directory.CreateDirectory(saveDirPath);
-        if (!File.Exists(saveRoot.saveFilePath)) {
-            File.Create(saveRoot.saveFilePath).Close();
+        if (!File.Exists(saveFilePath)) {
+            File.Create(saveFilePath).Close();
         }
 
-        if (string.IsNullOrEmpty(saveRoot.savableObj.savePath)) {
-            saveRoot.savableObj.savePath = saveRoot.saveRootName;
+        if (string.IsNullOrEmpty(savableObj.savePath)) {
+            savableObj.savePath = saveRootName;
         }
-        JObject saveJObject = saveRoot.savableObj.SaveObj();
-        File.WriteAllText(saveRoot.saveFilePath, saveJObject.ToString());
-        Logger.LogInfo("Save data success.", ("saveRoot", saveRoot.saveRootName), ("saveFile", saveRoot.saveFilePath));
+        JObject saveJObject = savableObj.SaveObj();
+        File.WriteAllText(saveFilePath, saveJObject.ToString());
+        Logger.LogInfo("Save data success.", ("saveRootName", saveRootName), ("saveFilePath", saveFilePath));
     }
 
-    public async Task SaveDataAsync(ISavableRoot saveRoot)
+    public async Task SaveDataAsync(SavableObj savableObj, string saveFilePath)
     {
         if (savingLock) {
             Logger.LogError("Saving lock is being occupied, save data async failed.");
@@ -42,40 +43,42 @@ public class GameSaveManager : ModuleBase
 
         savingLock = true;
         Global.Instance.uiManager.ShowPage<SavingPopup>();
-        string saveDirPath = Path.GetDirectoryName(saveRoot.saveFilePath);
+        string saveRootName = Path.GetFileNameWithoutExtension(saveFilePath);
+        string saveDirPath = Path.GetDirectoryName(saveFilePath);
         Directory.CreateDirectory(saveDirPath);
-        if (!File.Exists(saveRoot.saveFilePath)) {
-            File.Create(saveRoot.saveFilePath).Close();
+        if (!File.Exists(saveFilePath)) {
+            File.Create(saveFilePath).Close();
         }
 
-        if (string.IsNullOrEmpty(saveRoot.savableObj.savePath)) {
-            saveRoot.savableObj.savePath = saveRoot.saveRootName;
+        if (string.IsNullOrEmpty(savableObj.savePath)) {
+            savableObj.savePath = saveRootName;
         }
-        JObject saveJObject = saveRoot.savableObj.SaveObj();
-        await File.WriteAllTextAsync(saveRoot.saveFilePath, saveJObject.ToString());
+        JObject saveJObject = savableObj.SaveObj();
+        await File.WriteAllTextAsync(saveFilePath, saveJObject.ToString());
         savingLock = false;
         Global.Instance.uiManager.ClosePage<SavingPopup>();
-        Logger.LogInfo("Save data async success.", ("saveRoot", saveRoot.saveRootName), ("saveFile", saveRoot.saveFilePath));
+        Logger.LogInfo("Save data async success.", ("saveRootName", saveRootName), ("saveFilePath", saveFilePath));
     }
 
-    public void LoadData(ISavableRoot saveRoot)
+    public void LoadData(SavableObj savableObj, string saveFilePath)
     {
-        if (!File.Exists(saveRoot.saveFilePath)) {
-            Logger.LogError("Save file not exists, load save data failed.", ("saveFilePath", saveRoot.saveFilePath));
+        if (!File.Exists(saveFilePath)) {
+            Logger.LogError("Save file not exists, load save data failed.", ("saveFilePath", saveFilePath));
             return;
         }
 
-        if (string.IsNullOrEmpty(saveRoot.savableObj.savePath)) {
-            saveRoot.savableObj.savePath = saveRoot.saveRootName;
+        string saveRootName = Path.GetFileNameWithoutExtension(saveFilePath);
+        if (string.IsNullOrEmpty(savableObj.savePath)) {
+            savableObj.savePath = saveRootName;
         }
-        string jsonStr = File.ReadAllText(saveRoot.saveFilePath);
+        string jsonStr = File.ReadAllText(saveFilePath);
         try {
             JObject jObject = JObject.Parse(jsonStr);
-            saveRoot.savableObj.LoadObj(jObject);
-            Logger.LogInfo("Load data success.", ("saveRoot", saveRoot.saveRootName), ("saveFile", saveRoot.saveFilePath));
+            savableObj.LoadObj(jObject);
+            Logger.LogInfo("Load data success.", ("saveRootName", saveRootName), ("saveFilePath", saveFilePath));
         }
         catch (Exception ex) {
-            Logger.LogError("Load data failed.", ("saveRoot", saveRoot.saveRootName), ("saveFile", saveRoot.saveFilePath), ("err", ex.Message));
+            Logger.LogError("Load data failed.", ("saveRootName", saveRootName), ("saveFilePath", saveFilePath), ("err", ex.Message));
         }
     }
 }

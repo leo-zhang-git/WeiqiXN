@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-public class User : SavableObj, ISavableRoot
+public class User : SavableObj
 {
     private static User _instance;
     public static User Instance
@@ -15,9 +15,6 @@ public class User : SavableObj, ISavableRoot
         }
     }
 
-    public SavableObj savableObj => this;
-    public string saveRootName => "User";
-    public string saveFilePath => GameSaveConfig.UserSaveFilePath;
     public List<UserComponentBase> compList = new List<UserComponentBase>();
 
     public UserComponentUserInfo compUserInfo;
@@ -26,11 +23,12 @@ public class User : SavableObj, ISavableRoot
     {
         compUserInfo = new UserComponentUserInfo(this);
 
+        string saveFilePath = GameSaveConfig.UserSaveFilePath;
         if (File.Exists(saveFilePath)) {
-            Global.Instance.gameSaveManager.LoadData(this);
+            Global.Instance.gameSaveManager.LoadData(this, saveFilePath);
         } else {
             compUserInfo.CreateNewUser();
-            Global.Instance.gameSaveManager.SaveData(this);
+            Global.Instance.gameSaveManager.SaveData(this, saveFilePath);
         }
     }
 
