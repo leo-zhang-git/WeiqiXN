@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 public class UIContext
 {
@@ -108,5 +109,20 @@ public class UIContext
         }
         popupList.Clear();
         Logger.LogInfo("UIContext close all popup pages.", ("contextType", contextType.ToString()));
+    }
+
+    public void UpdateUICamera(Camera uiCamera)
+    {
+        foreach (var mainPage in mainPageStack) {
+            if (mainPage.isLoaded) {
+                mainPage.canvas.worldCamera = uiCamera;
+            }
+        }
+
+        foreach (var popupPage in popupList) {
+            if (popupPage.isLoaded) {
+                popupPage.canvas.worldCamera = uiCamera;
+            }
+        }
     }
 }

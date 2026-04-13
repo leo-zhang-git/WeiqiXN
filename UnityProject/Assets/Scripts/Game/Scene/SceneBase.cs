@@ -13,6 +13,8 @@ public class SceneBase : ITimerAttacher, IEventReceiver
     private List<SystemBase> systemList = new List<SystemBase>();
     private HashSet<string> systemNames = new HashSet<string>();
 
+    public bool isMainScene => Global.Instance.sceneManager.mainScene == this;
+
     public SceneBase(SceneDataType configData)
     {
         this.configData = configData;
@@ -26,6 +28,10 @@ public class SceneBase : ITimerAttacher, IEventReceiver
         isLoaded = true;
         Global.Instance.uiManager.ClosePage<LoadingPage>();
         OnSceneLoaded();
+        if (isMainScene) {
+            UnityEngine.SceneManagement.SceneManager.SetActiveScene(unityScene);
+            EmitSystemEvent(new OnActiveSceneChanged());
+        }
         Logger.LogInfo("Unity scene load success.", ("sceneTypeId", configData.id), ("unitySceneName", unityScene.name));
     }
 

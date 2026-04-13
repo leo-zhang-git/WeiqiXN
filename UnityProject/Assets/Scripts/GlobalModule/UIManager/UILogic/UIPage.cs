@@ -68,6 +68,16 @@ public abstract class UIPage : UILogicBase
         this.owner = owner;
     }
 
+    protected override void OnLoaded()
+    {
+        base.OnLoaded();
+
+        var uiCamera = Global.Instance.uiManager.uiCamera;
+        if (uiCamera != null) {
+            canvas.worldCamera = uiCamera;
+        }
+    }
+
     protected override void OnOpen()
     {
         base.OnOpen();

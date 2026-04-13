@@ -39,10 +39,7 @@ public abstract class SystemEventBase
     public abstract string GetEventType();
 }
 
-public class SystemEventTest : SystemEventBase
+public class OnActiveSceneChanged : SystemEventBase
 {
-
-    public int param1;
-
-    public override string GetEventType() => SystemEventBase.GetEventType<SystemEventTest>();
+    public override string GetEventType() => GetEventType<OnActiveSceneChanged>();
 }

@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class UIManager : ModuleBase
 {
     public GameObject uiRoot;
     public GameObject uiEventSystemGO;
+    public Camera uiCamera;
     private Dictionary<UIContextType, UIContext> contextDict = new Dictionary<UIContextType, UIContext>();
     private class CachePageInfo
     {
@@ -22,6 +24,8 @@ public class UIManager : ModuleBase
 
     public override void Init()
     {
+        Global.Instance.eventManager.RegisterSystemEvent<OnActiveSceneChanged>(this, OnActiveSceneChanged);
+
         uiRoot = new GameObject(UIConfig.NAME_UI_ROOT);
         GameObject.DontDestroyOnLoad(uiRoot);
         uiEventSystemGO = Global.Instance.resourceManager.LoadGamePrefabWithConfigId(UIConfig.UI_EVENTSYSTEM_CONFIG_ID);
@@ -34,6 +38,11 @@ public class UIManager : ModuleBase
         foreach (UIContextType type in Enum.GetValues(typeof(UIContextType))) {
             contextDict.TryAdd(type, new UIContext(type));
         }
+    }
+
+    public void OnActiveSceneChanged(OnActiveSceneChanged evt)
+    {
+        UpdateUICamera();
     }
 
     public override void Update()
@@ -151,6 +160,33 @@ public class UIManager : ModuleBase
             return true;
         } else {
             return false;
+        }
+    }
+
+    public void UpdateUICamera()
+    {
+        Scene activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+        if (!activeScene.IsValid()) {
+            uiCamera = null;
+            Logger.LogError("Active scene invalid, update ui camera failed.");
+            return;
+        }
+
+        foreach (var camera in Camera.allCameras) {
+            if (camera.scene == activeScene) {
+                uiCamera = camera;
+                Logger.LogInfo("Update ui camera success.", ("uiCameraName", uiCamera.gameObject.name));
+                break;
+            }
+        }
+
+        if (uiCamera != null) {
+            foreach (var kvp in contextDict) {
+                kvp.Value.UpdateUICamera(uiCamera);
+            }
+        } else {
+            uiCamera = null;
+            Logger.LogWarn("Camera not found in active scene, update ui camera failed.", ("sceneName", activeScene.name));
         }
     }
 }

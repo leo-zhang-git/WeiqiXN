@@ -15,9 +15,9 @@ public class Global
     }
     public List<ModuleBase> moduleList = new List<ModuleBase>();
 
+    public EventManager eventManager;
     public ResourceManager resourceManager;
     public TimerManager timerManager;
-    public EventManager eventManager;
     public GameSaveManager gameSaveManager;
     public ReddotManager reddotManager;
     public UIManager uiManager;
@@ -25,14 +25,14 @@ public class Global
 
     public void Start()
     {
+        eventManager = new EventManager();
+        moduleList.Add(eventManager);
+
         resourceManager = new ResourceManager();
         moduleList.Add(resourceManager);
 
         timerManager = new TimerManager();
         moduleList.Add(timerManager);
-
-        eventManager = new EventManager();
-        moduleList.Add(eventManager);
 
         gameSaveManager = new GameSaveManager();
         moduleList.Add(gameSaveManager);
@@ -73,8 +73,8 @@ public class Global
 
     public void Destroy()
     {
-        foreach (var module in moduleList) {
-            module.OnDestroy();
+        for (int i = moduleList.Count - 1; i >= 0; i--) {
+            moduleList[i].OnDestroy();
         }
         User.Instance.Destroy();
     }

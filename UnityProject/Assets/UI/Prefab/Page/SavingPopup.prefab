@@ -162,7 +162,7 @@ Canvas:
   m_GameObject: {fileID: 4734126463101137651}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 0
+  m_RenderMode: 1
   m_Camera: {fileID: 0}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
@@ -228,6 +228,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62fa4794b5624914898b6344a92fdce6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  generateTime: 0
   nodeList:
   - name: panel_save
     value: {fileID: 3969056184738216809}
@@ -244,6 +245,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb48eb03cd367354c98ad3edc922ba91, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  generatedTime: 0
   panel_save: {fileID: 3969056184738216809}
 --- !u!1 &6519719858581753469
 GameObject:
