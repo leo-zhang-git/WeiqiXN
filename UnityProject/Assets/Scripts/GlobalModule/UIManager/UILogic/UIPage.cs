@@ -83,13 +83,21 @@ public abstract class UIPage : UILogicBase
         base.OnOpen();
 
         if (!pageConfig.isPopup) {
-            if (owner.mainPageStack.Count > 1 && owner.mainPageStack.Last.Value == this) {
-                var previousPage = owner.mainPageStack.Last.Previous.Value;
-                previousPage.SetUIVisible(false);
+            if (owner.mainPageStack.Last?.Value == this) {
+                if (owner.mainPageStack.Count > 1) {
+                    var previousPage = owner.mainPageStack.Last.Previous.Value;
+                    previousPage.SetUIVisible(false);
+                }
                 SetUIVisible(true);
+            } else {
+                SetUIVisible(false);
             }
         } else {
             SetUIVisible(true);
+        }
+
+        foreach (var widget in childWidgets) {
+            widget.Open();
         }
     }
 
@@ -114,19 +122,14 @@ public abstract class UIPage : UILogicBase
 
     public void LoadPage()
     {
-        if (Global.Instance.uiManager.TryGetCachePageGO(pageName, out GameObject pageGO)) {
-            pageGO.SetActive(true);
-            onUnityResourceLoaded(pageGO);
+        string assetPath = UIUtils.GetPagePrefabPath(pageName);
+        bool isAsync = pageConfig == null || pageConfig.isLoadAsync;
+        if (isAsync) {
+            Global.Instance.resourceManager.LoadGamePrefabAsync(this, assetPath, OnUnityResourceLoaded);
         } else {
-            string assetPath = UIUtils.GetPagePrefabPath(pageName);
-            bool isAsync = pageConfig == null || pageConfig.isLoadAsync;
-            if (isAsync) {
-                Global.Instance.resourceManager.LoadGamePrefabAsync(this, assetPath, onUnityResourceLoaded);
-            } else {
-                pageGO = Global.Instance.resourceManager.LoadGamePrefab(assetPath);
-                if (pageGO != null) {
-                    onUnityResourceLoaded(pageGO);
-                }
+            GameObject pageGO = Global.Instance.resourceManager.LoadGamePrefab(assetPath);
+            if (pageGO != null) {
+                OnUnityResourceLoaded(pageGO);
             }
         }
     }
@@ -156,7 +159,7 @@ public abstract class UIPageWithBinder<TBinder> : UIPage where TBinder : UIBinde
             if (binder.binderWidgetGOs.TryGetValue(widgetKV.Key, out var widgetGO)) {
                 UIWidget widget = widgetKV.Value;
                 childWidgets.Add(widget);
-                widget.onUnityResourceLoaded(widgetGO);
+                widget.OnUnityResourceLoaded(widgetGO);
             }
         }
     }

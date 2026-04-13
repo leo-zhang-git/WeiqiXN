@@ -12,12 +12,12 @@ public class UIManager : ModuleBase
     private class CachePageInfo
     {
         public float cacheDuration; // 已经缓存的时间
-        public GameObject cacheGO;
+        public UIPage cachePage;
 
-        public CachePageInfo(GameObject cacheGO)
+        public CachePageInfo(UIPage cachePage)
         {
             cacheDuration = 0;
-            this.cacheGO = cacheGO;
+            this.cachePage = cachePage;
         }
     }
     private Dictionary<string, CachePageInfo> cachePages = new Dictionary<string, CachePageInfo>();
@@ -50,11 +50,11 @@ public class UIManager : ModuleBase
         base.Update();
 
         List<string> pendingDeleteCachePage = new List<string>();
-        foreach (var cachePageKV in cachePages) {
-            cachePageKV.Value.cacheDuration += Time.deltaTime;
-            if (cachePageKV.Value.cacheDuration >= UIConfig.PAGE_GAMEOBJECT_CACHE_TIME) {
-                GameObject.Destroy(cachePageKV.Value.cacheGO);
-                pendingDeleteCachePage.Add(cachePageKV.Key);
+        foreach (var cachePageInfoKV in cachePages) {
+            cachePageInfoKV.Value.cacheDuration += Time.deltaTime;
+            if (cachePageInfoKV.Value.cacheDuration >= UIConfig.PAGE_GAMEOBJECT_CACHE_TIME) {
+                GameObject.Destroy(cachePageInfoKV.Value.cachePage.gameObject);
+                pendingDeleteCachePage.Add(cachePageInfoKV.Key);
             }
         }
         foreach (string pageName in pendingDeleteCachePage) {
@@ -64,24 +64,31 @@ public class UIManager : ModuleBase
 
     public void ShowPage<TPage>() where TPage : UIPage, new()
     {
-        UiPageDataType uiConfig = UiPageDataType.GetConfigData(UIPage.GetPageName<TPage>());
+        string pageName = UIPage.GetPageName<TPage>();
+        UiPageDataType uiConfig = UiPageDataType.GetConfigData(pageName);
         if (uiConfig == null) {
-            Logger.LogError("Invalid ui config, show page failed.", ("pageName", UIPage.GetPageName<TPage>()));
+            Logger.LogError("Invalid ui config, show page failed.", ("pageName", pageName));
             return;
         }
         UIContextType contextType = UIUtils.ParseUIContextType(uiConfig.contextType);
 
         if (uiConfig.isPopup) {
             if (contextDict.TryGetValue(contextType, out var uiContext)) {
-                TPage page = UIPage.CreatePageInstance<TPage>(uiContext);
-                uiContext.ShowPopupPage(page);
+                if (cachePages.TryGetValue(pageName, out var cachePageInfo)) {
+                    uiContext.ShowPopupPage(cachePageInfo.cachePage, true);
+                    cachePages.Remove(pageName);
+                } else {
+                    TPage page = UIPage.CreatePageInstance<TPage>(uiContext);
+                    uiContext.ShowPopupPage(page, false);
+                }
             } else {
                 Logger.LogWarn("Invalid context type for show popup page", ("contextType", contextType.ToString()));
             }
         } else {
             if (contextDict.TryGetValue(contextType, out var uiContext)) {
                 TPage page = UIPage.CreatePageInstance<TPage>(uiContext);
-                uiContext.ShowMainPage(page);
+                uiContext.ShowMainPage(page, false);
+                cachePages.Remove(pageName);
             } else {
                 Logger.LogWarn("Invalid context type for show main page", ("contextType", contextType.ToString()));
             }
@@ -90,9 +97,10 @@ public class UIManager : ModuleBase
 
     public void ClosePage<TPage>() where TPage : UIPage
     {
-        UiPageDataType uiConfig = UiPageDataType.GetConfigData(UIPage.GetPageName<TPage>());
+        string pageName = UIPage.GetPageName<TPage>();
+        UiPageDataType uiConfig = UiPageDataType.GetConfigData(pageName);
         if (uiConfig == null) {
-            Logger.LogError("Invalid ui config, close page failed.", ("pageName", UIPage.GetPageName<TPage>()));
+            Logger.LogError("Invalid ui config, close page failed.", ("pageName", pageName));
             return;
         }
         UIContextType contextType = UIUtils.ParseUIContextType(uiConfig.contextType);
@@ -106,7 +114,7 @@ public class UIManager : ModuleBase
                         RecycleClosedPage(page);
                     }
                 } else {
-                    Logger.LogWarn("Page not found, close popup page failed.", ("pageName", UIPage.GetPageName<TPage>()), ("contextType", contextType.ToString()));
+                    Logger.LogWarn("Page not found, close popup page failed.", ("pageName", pageName), ("contextType", contextType.ToString()));
                 }
             }
         } else {
@@ -117,7 +125,7 @@ public class UIManager : ModuleBase
                         RecycleClosedPage(page);
                     }
                 } else {
-                    Logger.LogWarn("Page not found, close main page failed.", ("pageName", UIPage.GetPageName<TPage>()), ("contextType", contextType.ToString()));
+                    Logger.LogWarn("Page not found, close main page failed.", ("pageName", pageName), ("contextType", contextType.ToString()));
                 }
             }
         }
@@ -138,7 +146,7 @@ public class UIManager : ModuleBase
 
     private void RecycleClosedPage(UIPage page)
     {
-        if (page.gameObject == null) {
+        if (!page.isLoaded) {
             return;
         }
 
@@ -147,15 +155,15 @@ public class UIManager : ModuleBase
             GameObject.Destroy(page.gameObject);
         } else {
             page.gameObject.SetActive(false);
-            cachePages[page.pageName] = new CachePageInfo(page.gameObject);
+            cachePages[page.pageName] = new CachePageInfo(page);
         }
     }
 
-    public bool TryGetCachePageGO(string pageName, out GameObject pageGO)
+    public bool TryGetCachePage(string pageName, out UIPage cachePage)
     {
-        pageGO = null;
+        cachePage = null;
         if (cachePages.TryGetValue(pageName, out var pageInfo)) {
-            pageGO = pageInfo.cacheGO;
+            cachePage = pageInfo.cachePage;
             cachePages.Remove(pageName);
             return true;
         } else {

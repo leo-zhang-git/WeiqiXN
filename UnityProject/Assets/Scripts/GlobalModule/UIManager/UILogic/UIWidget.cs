@@ -33,6 +33,15 @@ public abstract class UIWidget : UILogicBase
         OnHide();
         OnClose();
     }
+
+    protected override void OnOpen()
+    {
+        base.OnOpen();
+
+        foreach (var widget in childWidgets) {
+            widget.Open();
+        }
+    }
 }
 
 public abstract class UIWidgetWithBinder<TBinder> : UIWidget where TBinder : UIBinderBase
@@ -49,7 +58,7 @@ public abstract class UIWidgetWithBinder<TBinder> : UIWidget where TBinder : UIB
             if (binder.binderWidgetGOs.TryGetValue(widgetKV.Key, out var widgetGO)) {
                 UIWidget widget = widgetKV.Value;
                 childWidgets.Add(widget);
-                widget.onUnityResourceLoaded(widgetGO);
+                widget.OnUnityResourceLoaded(widgetGO);
             }
         }
     }
@@ -67,11 +76,11 @@ public abstract class UIWidgetWithBinder<TBinder> : UIWidget where TBinder : UIB
     {
         string assetPath = UIUtils.GetPagePrefabPath(widgetName);
         if (isAsync) {
-            Global.Instance.resourceManager.LoadGamePrefabAsync(this, assetPath, onUnityResourceLoaded);
+            Global.Instance.resourceManager.LoadGamePrefabAsync(this, assetPath, OnUnityResourceLoaded);
         } else {
             GameObject widgetGO = Global.Instance.resourceManager.LoadGamePrefab(assetPath);
             if (widgetGO != null) {
-                onUnityResourceLoaded(widgetGO);
+                OnUnityResourceLoaded(widgetGO);
             }
         }
     }

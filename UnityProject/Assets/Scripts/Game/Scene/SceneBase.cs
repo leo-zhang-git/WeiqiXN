@@ -23,6 +23,10 @@ public class SceneBase : ITimerAttacher, IEventReceiver
     #region LifeCycle
     public void OnUnitySceneLoaded(UnityEngine.SceneManagement.Scene unityScene, UnityEngine.SceneManagement.LoadSceneMode mode)
     {
+        if (unityScene.name != configData.unitySceneName) {
+            return;
+        }
+
         UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnUnitySceneLoaded;
         this.unityScene = unityScene;
         isLoaded = true;

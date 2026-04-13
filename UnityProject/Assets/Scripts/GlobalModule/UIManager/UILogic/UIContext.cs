@@ -45,10 +45,15 @@ public class UIContext
         return page;
     }
 
-    public void ShowMainPage(UIPage mainPage)
+    public void ShowMainPage(UIPage mainPage, bool isCachePage)
     {
         mainPage.canvasOrder = baseCanvasOrder + mainPageStack.Count * UIConfig.MAINPAGE_INCREASE_CANVAS_ORDER;
-        mainPage.LoadPage();
+        if (isCachePage) {
+            mainPage.InitPage(this);
+            mainPage.Open();
+        } else {
+            mainPage.LoadPage();
+        }
         mainPageStack.AddLast(mainPage);
         Logger.LogInfo("UIContext show main page.", ("contextType", contextType.ToString()), ("pageName", mainPage.pageName));
     }
@@ -77,12 +82,17 @@ public class UIContext
         }
     }
 
-    public void ShowPopupPage(UIPage popupPage)
+    public void ShowPopupPage(UIPage popupPage, bool isCachePage)
     {
         popupPage.canvasOrder =
             baseCanvasOrder + mainPageStack.Count * UIConfig.MAINPAGE_INCREASE_CANVAS_ORDER +
             popupList.Count * UIConfig.POPUP_INCREASE_CANVAS_ORDER;
-        popupPage.LoadPage();
+        if (isCachePage) {
+            popupPage.InitPage(this);
+            popupPage.Open();
+        } else {
+            popupPage.LoadPage();
+        }
         popupList.Add(popupPage);
         Logger.LogInfo("UIContext show popup page.", ("contextType", contextType.ToString()), ("pageName", popupPage.pageName));
     }

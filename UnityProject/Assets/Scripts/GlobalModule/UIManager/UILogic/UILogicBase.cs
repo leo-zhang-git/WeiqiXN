@@ -50,7 +50,7 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
     }
     private List<Action> resourceLoadedCBs = new List<Action>();
 
-    public void onUnityResourceLoaded(GameObject uiGameObject)
+    public void OnUnityResourceLoaded(GameObject uiGameObject)
     {
         _gameObject = uiGameObject;
         isLoaded = true;
@@ -64,6 +64,12 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
         }
         resourceLoadedCBs.Clear();
 
+        Open();
+    }
+
+    public void Open()
+    {
+        gameObject.SetActive(true);
         OnOpen();
     }
 
