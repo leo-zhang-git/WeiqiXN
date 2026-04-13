@@ -5,6 +5,10 @@ public static class GameSaveConfig
 {
 #if UNITY_EDITOR
     public static readonly string UserSaveFilePath = Path.Combine(Application.persistentDataPath, "User.json");
+    public static string GetDuelSceneSavePath(int saveSlotIndex)
+    {
+        return Path.Combine(Application.persistentDataPath, "SavedScene", $"_DuelScene_{saveSlotIndex}.json");
+    }
 #else
     // TODO 打包版本的存档路径
 #endif

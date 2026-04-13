@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class SceneBase : ITimerAttacher, IEventReceiver
+public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
 {
     public readonly SceneDataType configData;
     public bool isLoaded;
+    protected AsyncOperation unitySceneLoadAsync;
     public Dictionary<string, EntityBase> entityDict = new Dictionary<string, EntityBase>();
     public Dictionary<string, HashSet<EntityBase>> entityTypeDict = new Dictionary<string, HashSet<EntityBase>>();
     public List<SceneComponentBase> compList = new List<SceneComponentBase>();
@@ -29,23 +31,28 @@ public class SceneBase : ITimerAttacher, IEventReceiver
 
         UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnUnitySceneLoaded;
         this.unityScene = unityScene;
+        unitySceneLoadAsync = null;
         isLoaded = true;
-        Global.Instance.uiManager.ClosePage<LoadingPage>();
-        OnSceneLoaded();
         if (isMainScene) {
             UnityEngine.SceneManagement.SceneManager.SetActiveScene(unityScene);
             EmitSystemEvent(new OnActiveSceneChanged());
         }
+        OnSceneLoaded();
         Logger.LogInfo("Unity scene load success.", ("sceneTypeId", configData.id), ("unitySceneName", unityScene.name));
     }
 
     public virtual void OnSceneLoaded()
     {
-
+        Global.Instance.uiManager.ClosePage<LoadingPage>();
     }
 
     protected virtual void OnUpdate()
     {
+        if (!isLoaded && unitySceneLoadAsync != null) {
+            // TODO update load progress
+            return;
+        }
+
         foreach (var system in systemList) {
             system.OnUpdate();
         }
@@ -65,6 +72,10 @@ public class SceneBase : ITimerAttacher, IEventReceiver
         }
         OnTimerAttacherDestroyed();
         OnEventReceiverDestroyed();
+
+        if (isMainScene) {
+            EmitSystemEvent(new OnExitMainScene(this));
+        }
     }
 
     public void Update()
@@ -153,7 +164,7 @@ public class SceneBase : ITimerAttacher, IEventReceiver
     {
         UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnUnitySceneLoaded;
         try {
-            UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(configData.unitySceneName);
+            unitySceneLoadAsync = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(configData.unitySceneName);
             Global.Instance.uiManager.ShowPage<LoadingPage>();
             Logger.LogInfo("Load scene async start.", ("sceneTypeId", configData.id), ("unitySceneName", configData.unitySceneName));
         }

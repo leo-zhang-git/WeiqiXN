@@ -3,5 +3,10 @@
     "id": "MainMenu",
     "unitySceneName": "MainMenu",
     "sceneType": "MainMenu"
+  },
+  "Duel": {
+    "id": "Duel",
+    "unitySceneName": "Duel",
+    "sceneType": "Duel"
   }
 }

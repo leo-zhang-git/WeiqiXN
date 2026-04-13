@@ -43,3 +43,14 @@ public class OnActiveSceneChanged : SystemEventBase
 {
     public override string GetEventType() => GetEventType<OnActiveSceneChanged>();
 }
+
+public class OnExitMainScene : SystemEventBase
+{
+    public override string GetEventType() => GetEventType<OnExitMainScene>();
+
+    public SceneBase scene;
+    public OnExitMainScene(SceneBase scene)
+    {
+        this.scene = scene;
+    }
+}

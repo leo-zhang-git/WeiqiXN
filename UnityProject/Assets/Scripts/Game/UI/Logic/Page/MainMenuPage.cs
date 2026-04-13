@@ -12,9 +12,20 @@
         binder.btn_user_info.onClick.AddListener(OnClickBtnUserInfo);
     }
 
+    protected override void OnOpen()
+    {
+        base.OnOpen();
+
+        //binder.btn_continue.interactable = File.Exists(GameSaveConfig.GetDuelSceneSavePath(0));
+    }
+
     public void OnClickBtnContinue()
     {
+        //if (File.Exists(GameSaveConfig.GetDuelSceneSavePath(0))) {
 
+        //}
+
+        Global.Instance.sceneManager.EnterMainScene(SceneConfig.DUEL_SCENE_TYPE_ID);
     }
 
     public void OnClickBtnNewGame()

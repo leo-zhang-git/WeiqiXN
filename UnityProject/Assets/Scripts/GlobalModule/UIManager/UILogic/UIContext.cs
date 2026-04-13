@@ -112,6 +112,15 @@ public class UIContext
         }
     }
 
+    public void CloseAllMainPages()
+    {
+        while (mainPageStack.Count > 0) {
+            UIPage topPage = mainPageStack.Last.Value;
+            topPage.ClosePage();
+        }
+        Logger.LogInfo("UIContext close all main pages.", ("contextType", contextType.ToString()));
+    }
+
     public void CloseAllPopupPages()
     {
         foreach (var page in popupList) {

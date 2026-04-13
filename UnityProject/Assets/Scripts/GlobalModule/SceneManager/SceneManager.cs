@@ -1,3 +1,5 @@
+using System;
+
 public class SceneManager : ModuleBase
 {
     public SceneBase mainScene;
@@ -47,11 +49,17 @@ public class SceneManager : ModuleBase
     private bool CreateSceneWithConfigData(SceneDataType sceneData, out SceneBase scene)
     {
         scene = null;
-        switch (sceneData.sceneType) {
-            case SceneConfig.SCENE_TYPE_MAIN_MENU_SCENE:
-                scene = new MainMenuScene(sceneData);
-                return true;
+        if (Enum.TryParse(sceneData.sceneType, out SceneConfig.SceneTypeEnum sceneType)) {
+            switch (sceneType) {
+                case SceneConfig.SceneTypeEnum.MainMenu:
+                    scene = new MainMenuScene(sceneData);
+                    return true;
+                case SceneConfig.SceneTypeEnum.Duel:
+                    scene = new DuelScene(sceneData);
+                    return true;
+            }
         }
+
         return false;
     }
 }

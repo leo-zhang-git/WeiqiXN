@@ -25,6 +25,7 @@ public class UIManager : ModuleBase
     public override void Init()
     {
         Global.Instance.eventManager.RegisterSystemEvent<OnActiveSceneChanged>(this, OnActiveSceneChanged);
+        Global.Instance.eventManager.RegisterSystemEvent<OnExitMainScene>(this, OnExitMainScene);
 
         uiRoot = new GameObject(UIConfig.NAME_UI_ROOT);
         GameObject.DontDestroyOnLoad(uiRoot);
@@ -43,6 +44,17 @@ public class UIManager : ModuleBase
     public void OnActiveSceneChanged(OnActiveSceneChanged evt)
     {
         UpdateUICamera();
+    }
+
+    public void OnExitMainScene(OnExitMainScene evt)
+    {
+        // 退出场景时关闭当前场景所有主界面
+        if (contextDict.TryGetValue(UIContextType.Header, out var headerContext)) {
+            headerContext.CloseAllMainPages();
+        }
+        if (contextDict.TryGetValue(UIContextType.General, out var generalContext)) {
+            generalContext.CloseAllMainPages();
+        }
     }
 
     public override void Update()
