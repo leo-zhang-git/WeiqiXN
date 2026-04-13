@@ -185,6 +185,7 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
             Logger.LogError("Duplicated system add to same scene. systemName:{system.systemName}", ("systemName", system.systemName));
             return;
         }
+        system.Init();
         systemList.Add(system);
         systemNames.Add(system.systemName);
     }

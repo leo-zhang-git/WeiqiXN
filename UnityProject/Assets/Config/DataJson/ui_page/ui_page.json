@@ -22,5 +22,11 @@
     "contextType": "General",
     "isPopup": true,
     "isLoadAsync": true
+  },
+  "DuelPage": {
+    "id": "DuelPage",
+    "contextType": "Header",
+    "isPopup": false,
+    "isLoadAsync": true
   }
 }

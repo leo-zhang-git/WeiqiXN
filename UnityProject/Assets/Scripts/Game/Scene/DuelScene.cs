@@ -1,15 +1,18 @@
 public class DuelScene : SceneBase
 {
-    public SceneComponentBoardInfo compBoardInfo;
+    public SceneComponentChessBoard compChessBoard;
 
     public DuelScene(SceneDataType configData) : base(configData)
     {
-        compBoardInfo = new SceneComponentBoardInfo(this);
+        compChessBoard = new SceneComponentChessBoard(this);
     }
 
     public override void OnSceneLoaded()
     {
         base.OnSceneLoaded();
 
+        AddSystem(new DuelSaveSystem(this));
+
+        Global.Instance.uiManager.ShowPage<DuelPage>();
     }
 }

@@ -169,6 +169,36 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
     {
         Global.Instance.eventManager.UnregisterEventsByReceiver(this);
     }
+
+    public void EmitSystemEvent<TEvent>(TEvent systemEvent) where TEvent : SystemEventBase
+    {
+        Global.Instance.eventManager.EmitSystemEvent(systemEvent);
+    }
+
+    public void RegisterSystemEvent<TEvent>(Action<TEvent> eventCB) where TEvent : SystemEventBase
+    {
+        Global.Instance.eventManager.RegisterSystemEvent(this, eventCB);
+    }
+
+    public void UnregisterSystemEvent(ISystemEventHandler handler)
+    {
+        Global.Instance.eventManager.UnregisterSystemEvent(handler);
+    }
+
+    public void EmitEntityEvent<TEntity, TEvent>(TEntity entity, TEvent entityEvent) where TEntity : EntityBase where TEvent : EntityEventBase
+    {
+        Global.Instance.eventManager.EmitEntityEvent(entity, entityEvent);
+    }
+
+    public void RegisterEntityEvent<TEntity, TEvent>(Action<TEntity, TEvent> eventCB) where TEntity : EntityBase where TEvent : EntityEventBase
+    {
+        Global.Instance.eventManager.RegisterEntityEvent(this, eventCB);
+    }
+
+    public void UnregisterEntityEvent(IEntityEventHandler handler)
+    {
+        Global.Instance.eventManager.UnregisterEntityEvent(handler);
+    }
     #endregion
 
     #region Resource

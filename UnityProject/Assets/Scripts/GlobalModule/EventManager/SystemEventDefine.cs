@@ -54,3 +54,8 @@ public class OnExitMainScene : SystemEventBase
         this.scene = scene;
     }
 }
+
+public class OnSaveDuelScene : SystemEventBase
+{
+    public override string GetEventType() => GetEventType<OnSaveDuelScene>();
+}

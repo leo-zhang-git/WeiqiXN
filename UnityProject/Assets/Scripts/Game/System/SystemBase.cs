@@ -3,14 +3,22 @@ using System;
 public abstract class SystemBase
 {
     public abstract string systemName { get; }
-    public SceneBase scene;
+    private SceneBase scene;
 
     public SystemBase(SceneBase scene)
     {
         this.scene = scene;
     }
 
-    public abstract void Init();
+    public static string GetSystemName<TSystem>() where TSystem : SystemBase
+    {
+        return typeof(TSystem).Name;
+    }
+
+    public virtual void Init()
+    {
+
+    }
 
     public virtual void OnUpdate()
     {
@@ -39,3 +47,14 @@ public abstract class SystemBase
     }
     #endregion
 }
+
+public abstract class SystemFixed<TScene> : SystemBase where TScene : SceneBase
+{
+    public TScene scene;
+
+    protected SystemFixed(TScene scene) : base(scene)
+    {
+        this.scene = scene;
+    }
+}
+

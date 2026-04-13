@@ -17,12 +17,12 @@ public class SceneManager : ModuleBase
         }
     }
 
-    public SceneBase EnterMainScene(string sceneTypeId)
+    public void EnterMainScene(string sceneTypeId, string saveFilePath = "")
     {
         SceneDataType sceneData = SceneDataType.GetConfigData(sceneTypeId);
         if (sceneData == null) {
             Logger.LogError("Scene config invalid, enter main scene failed.", ("sceneTypeId", sceneTypeId));
-            return null;
+            return;
         }
 
         if (CreateSceneWithConfigData(sceneData, out SceneBase scene)) {
@@ -30,12 +30,14 @@ public class SceneManager : ModuleBase
             mainScene = scene;
         } else {
             Logger.LogError("Create scene with config data failed, enter main scene failed.", ("sceneTypeId", sceneTypeId));
-            return null;
+            return;
         }
 
+        if (!string.IsNullOrEmpty(saveFilePath)) {
+            scene.RestoreSceneData(saveFilePath);
+        }
         scene.LoadScene();
         Logger.LogInfo("Enter main scene success.", ("sceneTypeId", sceneTypeId));
-        return scene;
     }
 
     public void ExitMainScene()

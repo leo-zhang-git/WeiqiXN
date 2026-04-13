@@ -25,8 +25,7 @@ public class MainMenuPage : UIPageWithBinder<MainMenuPageUI>
     {
         string saveFilePath = GameSaveConfig.GetDuelSceneSavePath(0);
         if (File.Exists(saveFilePath)) {
-            var duelScene = Global.Instance.sceneManager.EnterMainScene(SceneConfig.DUEL_SCENE_TYPE_ID);
-            duelScene.RestoreSceneData(saveFilePath);
+            Global.Instance.sceneManager.EnterMainScene(SceneConfig.DUEL_SCENE_TYPE_ID, saveFilePath);
         }
     }
 
