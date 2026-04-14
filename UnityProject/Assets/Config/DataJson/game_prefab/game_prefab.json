@@ -2,5 +2,9 @@
   "eventSystem": {
     "id": "eventSystem",
     "resPath": "UI/Prefab/EventSystem"
+  },
+  "IngameDebugConsole": {
+    "id": "IngameDebugConsole",
+    "resPath": "Plugins/IngameDebugConsole/IngameDebugConsole"
   }
 }

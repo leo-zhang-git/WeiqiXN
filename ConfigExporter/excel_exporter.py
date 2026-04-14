@@ -92,6 +92,7 @@ class ExcelExporter:
                 "using System;",
                 "using System.Collections.Generic;",
                 "using System.IO;",
+                "using XNClient.Logger;",
                 "",
                 "public class " + class_name,
                 "{",
@@ -125,7 +126,7 @@ class ExcelExporter:
             lines.append(f"                    {dict_class_name}[property.Name] = item;")
             lines.append("                }")
             lines.append("                catch (Exception ex) {")
-            lines.append("                    Logger.LogError($\"读表错误，跳过条目 {property.Name}: {ex.Message}\");")
+            lines.append("                    XNLogger.LogError($\"读表错误，跳过条目 {property.Name}: {ex.Message}\");")
             lines.append("                }")
             lines.append("            }")
             lines.append("        }")

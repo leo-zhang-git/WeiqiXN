@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using UnityEngine;
+using XNClient.Logger;
 
 public class Global
 {
@@ -46,6 +48,13 @@ public class Global
         sceneManager = new SceneManager();
         moduleList.Add(sceneManager);
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        GameObject debugConsoleGO = resourceManager.LoadGamePrefabWithConfigId(GlobalConfig.INGAME_DEBUG_CONSOLE_PREFAB_CONFIG_ID);
+        if (debugConsoleGO != null) {
+            GameObject.DontDestroyOnLoad(debugConsoleGO);
+            XNLogger.LogInfo("Ingame debug console go loaded.");
+        }
+#endif
         sceneManager.EnterMainScene(SceneConfig.MAIN_MENU_SCENE_TYPE_ID);
         User.Instance.Init();
     }
