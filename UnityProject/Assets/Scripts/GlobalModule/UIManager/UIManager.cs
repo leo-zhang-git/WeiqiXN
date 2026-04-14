@@ -12,7 +12,7 @@ public class UIManager : ModuleBase
     private Dictionary<UIContextType, UIContext> contextDict = new Dictionary<UIContextType, UIContext>();
     private class CachePageInfo
     {
-        public float cacheDuration; // �Ѿ������ʱ��
+        public float cacheDuration;
         public UIPage cachePage;
 
         public CachePageInfo(UIPage cachePage)
@@ -49,7 +49,6 @@ public class UIManager : ModuleBase
 
     public void OnExitMainScene(OnExitMainScene evt)
     {
-        // �˳�����ʱ�رյ�ǰ��������������
         if (contextDict.TryGetValue(UIContextType.Header, out var headerContext)) {
             headerContext.CloseAllMainPages();
         }
@@ -193,12 +192,11 @@ public class UIManager : ModuleBase
             return;
         }
 
-        foreach (var camera in Camera.allCameras) {
-            if (camera.scene == activeScene) {
-                uiCamera = camera;
-                XNLogger.LogInfo("Update ui camera success.", ("uiCameraName", uiCamera.gameObject.name));
-                break;
-            }
+        foreach (var rootGO in activeScene.GetRootGameObjects()) {
+            var camera = rootGO.GetComponentInChildren<Camera>();
+            uiCamera = camera;
+            XNLogger.LogInfo("Update ui camera success.", ("uiCameraName", uiCamera.gameObject.name));
+            break;
         }
 
         if (uiCamera != null) {
