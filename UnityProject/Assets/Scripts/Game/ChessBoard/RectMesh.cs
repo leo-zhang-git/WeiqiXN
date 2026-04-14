@@ -26,6 +26,7 @@ namespace XNClient.ChessBoard
             rectMesh.SetVertices(vertices);
             rectMesh.SetTriangles(triangles, 0);
             rectMesh.SetColors(colors);
+            rectMesh.RecalculateNormals();
 
             meshCollider.sharedMesh = rectMesh;
         }

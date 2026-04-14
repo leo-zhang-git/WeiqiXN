@@ -17,6 +17,7 @@ namespace XNClient.ChessBoard
         {
             if (isDirty) {
                 TriangulateChunk();
+                isDirty = false;
             }
         }
 
@@ -48,8 +49,17 @@ namespace XNClient.ChessBoard
 
         public void AddCellToChunk(RectCell cell)
         {
-            if (cell == null || cell.coordinates == null) {
-                XNLogger.LogError("Cell or coordinates is null, add cell to chunk failed.");
+            if (cell == null || cell.owner == null || cell.coordinates == null) {
+                XNLogger.LogError("Cell, owner or coordinates is null, add cell to chunk failed.");
+                return;
+            }
+
+            if (cell.owner != this) {
+                XNLogger.LogError(
+                    "Cell owner does not match chunk, add cell to chunk failed.",
+                    ("cellOwner", cell.owner.name),
+                    ("chunkName", name)
+                );
                 return;
             }
 
@@ -74,11 +84,12 @@ namespace XNClient.ChessBoard
             }
 
             cellList.Add(cell);
+            isDirty = true;
         }
 
-        public IReadOnlyList<RectCell> GetCells()
+        public void SetDirty()
         {
-            return cellList;
+            isDirty = true;
         }
 
         private void TriangulateChunk()
@@ -88,19 +99,25 @@ namespace XNClient.ChessBoard
             foreach (RectCell cell in cellList) {
                 TriangulateCell(cell);
             }
+            ground.RefreshMesh();
         }
 
         private void TriangulateCell(RectCell cell)
         {
             // 将方格拆分为东南西北四个方向进行构建
-            for (RectDirection dir = RectDirection.E; dir <= RectDirection.W; dir++) {
+            for (RectDirection dir = RectDirection.E; dir <= RectDirection.N; dir++) {
                 TriangulateCell(cell, dir);
             }
         }
 
         private void TriangulateCell(RectCell cell, RectDirection dir)
         {
-
+            (Vector3, Vector3) edgeCornerOffsets = ChessBoardConfig.GetOuterCornerOffsets(dir);
+            ground.AddTriangle(
+                cell.centerPosInChunk,
+                cell.centerPosInChunk + edgeCornerOffsets.Item1,
+                cell.centerPosInChunk + edgeCornerOffsets.Item2
+            );
         }
 
         public string GetDebugCellLayout()
