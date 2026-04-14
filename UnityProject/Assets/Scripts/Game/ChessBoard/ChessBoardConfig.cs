@@ -15,7 +15,8 @@ namespace XNClient.ChessBoard
         public const float rectCellSideLength = 6f; // 方格边长
         private const float sqrt2 = 1.41421356f;
         public const float rectCellOuterRadius = rectCellSideLength / 2f * sqrt2; // 方格外切圆半径（中心到顶点长度）
-        public const float shrinkFactor = 0.6f; // 方格内圈收缩因子
+        public const float shrinkFactor = 0.6f; // 方格内圈收缩部分比例
+        public const float blendFactor = 1 - shrinkFactor; // 方格外圈过渡部分比例
 
         // 正方格右上逆时针到左上四个顶点相对偏移
         public static Vector3[] rectCornerOffsets =

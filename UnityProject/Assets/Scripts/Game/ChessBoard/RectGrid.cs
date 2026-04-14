@@ -75,11 +75,31 @@ namespace XNClient.ChessBoard
                     }
 
                     RectGridChunk ownerChunk = chunkList[chunkIndex];
-                    RectCell cell = new RectCell(ownerChunk, new RectCoordinates(cellX, cellZ));
+                    RectCell cell = CreateCell(ownerChunk, cellX, cellZ);
                     cellList.Add(cell);
                     chunkList[chunkIndex].AddCellToChunk(cell);
                 }
             }
+        }
+
+        private RectCell CreateCell(RectGridChunk ownerChunk, int x, int z)
+        {
+            RectCell cell = new RectCell(ownerChunk, new RectCoordinates(x, z));
+
+            if (x > 0) {
+                RectCell westNeighbor = cellList[cellList.Count - 1];
+                cell.neighbors[(int)RectDirection.W] = westNeighbor;
+                westNeighbor.neighbors[(int)RectDirection.E] = cell;
+            }
+
+            if (z > 0) {
+                int southNeighborIndex = (z - 1) * ChessBoardConfig.defaultGridSize + x;
+                RectCell southNeighbor = cellList[southNeighborIndex];
+                cell.neighbors[(int)RectDirection.S] = southNeighbor;
+                southNeighbor.neighbors[(int)RectDirection.N] = cell;
+            }
+
+            return cell;
         }
 
         [ContextMenu("Debug Print All Cells")]

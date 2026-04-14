@@ -49,15 +49,15 @@ namespace XNClient.ChessBoard
 
         public void AddCellToChunk(RectCell cell)
         {
-            if (cell == null || cell.owner == null || cell.coordinates == null) {
+            if (cell == null || cell.chunk == null || cell.coordinates == null) {
                 XNLogger.LogError("Cell, owner or coordinates is null, add cell to chunk failed.");
                 return;
             }
 
-            if (cell.owner != this) {
+            if (cell.chunk != this) {
                 XNLogger.LogError(
                     "Cell owner does not match chunk, add cell to chunk failed.",
-                    ("cellOwner", cell.owner.name),
+                    ("cellOwner", cell.chunk.name),
                     ("chunkName", name)
                 );
                 return;
@@ -112,12 +112,33 @@ namespace XNClient.ChessBoard
 
         private void TriangulateCell(RectCell cell, RectDirection dir)
         {
-            (Vector3, Vector3) edgeCornerOffsets = ChessBoardConfig.GetOuterCornerOffsets(dir);
+            TriangulateCellInner(cell, dir);
+            TriangulateCellOuter(cell, dir);
+        }
+
+        // 内部纯色三角
+        private void TriangulateCellInner(RectCell cell, RectDirection dir)
+        {
+            (Vector3, Vector3) edgeCornerOffsets = ChessBoardConfig.GetInnerCornerOffsets(dir);
             ground.AddTriangle(
                 cell.centerPosInChunk,
                 cell.centerPosInChunk + edgeCornerOffsets.Item1,
                 cell.centerPosInChunk + edgeCornerOffsets.Item2
             );
+            ground.AddTriangleColor(
+                cell.cellColor,
+                cell.cellColor,
+                cell.cellColor
+            );
+        }
+
+        // 外侧混色梯形
+        private void TriangulateCellOuter(RectCell cell, RectDirection dir)
+        {
+            // 中部矩形
+            (Vector3, Vector3) edgeCornerOffsets = ChessBoardConfig.GetInnerCornerOffsets(dir);
+
+            // 左右两侧三角
         }
 
         public string GetDebugCellLayout()
