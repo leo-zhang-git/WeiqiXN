@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using XNLogger = XNClient.Logger.XNLogger;
 
 public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
 {
@@ -38,7 +39,7 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
             EmitSystemEvent(new OnActiveSceneChanged());
         }
         OnSceneLoaded();
-        Logger.LogInfo("Unity scene load success.", ("sceneTypeId", configData.id), ("unitySceneName", unityScene.name));
+        XNLogger.LogInfo("Unity scene load success.", ("sceneTypeId", configData.id), ("unitySceneName", unityScene.name));
     }
 
     public virtual void OnSceneLoaded()
@@ -171,10 +172,10 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
         try {
             unitySceneLoadAsync = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(configData.unitySceneName);
             Global.Instance.uiManager.ShowPage<LoadingPage>();
-            Logger.LogInfo("Load scene async start.", ("sceneTypeId", configData.id), ("unitySceneName", configData.unitySceneName));
+            XNLogger.LogInfo("Load scene async start.", ("sceneTypeId", configData.id), ("unitySceneName", configData.unitySceneName));
         }
         catch (Exception ex) {
-            Logger.LogError("Load unity scene async error.", ("unitySceneName", configData.unitySceneName), ("exception", ex.Message));
+            XNLogger.LogError("Load unity scene async error.", ("unitySceneName", configData.unitySceneName), ("exception", ex.Message));
             UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnUnitySceneLoaded;
         }
     }
@@ -182,7 +183,7 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
     protected void AddSystem(SystemBase system)
     {
         if (systemNames.Contains(system.systemName)) {
-            Logger.LogError("Duplicated system add to same scene. systemName:{system.systemName}", ("systemName", system.systemName));
+            XNLogger.LogError("Duplicated system add to same scene. systemName:{system.systemName}", ("systemName", system.systemName));
             return;
         }
         system.Init();
@@ -193,7 +194,7 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
     public void AddEntity(EntityBase entity)
     {
         if (entityDict.ContainsKey(entity.guid)) {
-            Logger.LogError("Duplicated entity guid, add entity failed.", ("guid", entity.guid));
+            XNLogger.LogError("Duplicated entity guid, add entity failed.", ("guid", entity.guid));
             return;
         }
         entityDict[entity.guid] = entity;
@@ -204,13 +205,13 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
             entityTypeDict[entity.GetEntityType()] = entSet;
         }
         entSet.Add(entity);
-        Logger.LogInfo("Add entity success.", ("guid", entity.guid));
+        XNLogger.LogInfo("Add entity success.", ("guid", entity.guid));
     }
 
     public void RemoveEntity(EntityBase entity)
     {
         if (!entityDict.ContainsKey(entity.guid)) {
-            Logger.LogError("Target entity not in scene, remove entity failed.", ("guid", entity.guid), ("sceneTypeId", configData.id));
+            XNLogger.LogError("Target entity not in scene, remove entity failed.", ("guid", entity.guid), ("sceneTypeId", configData.id));
             return;
         }
         entityDict.Remove(entity.guid);
@@ -219,7 +220,7 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
         if (entityTypeDict.TryGetValue(entity.GetEntityType(), out entSet)) {
             entSet.Remove(entity);
         }
-        Logger.LogInfo("Remove entity success.", ("guid", entity.guid), ("sceneTypeId", configData.id));
+        XNLogger.LogInfo("Remove entity success.", ("guid", entity.guid), ("sceneTypeId", configData.id));
     }
 
     public EntityBase GetEntity(string guid)
@@ -242,3 +243,4 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
         return null;
     }
 }
+

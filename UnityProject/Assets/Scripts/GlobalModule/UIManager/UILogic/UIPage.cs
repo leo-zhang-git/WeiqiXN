@@ -1,5 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using XNLogger = XNClient.Logger.XNLogger;
 
 public abstract class UIPage : UILogicBase
 {
@@ -41,7 +42,7 @@ public abstract class UIPage : UILogicBase
         get
         {
             if (!isLoaded) {
-                Logger.LogError("Try get canvas before ui resorece is loaded.", ("pageName", GetType().Name));
+                XNLogger.LogError("Try get canvas before ui resorece is loaded.", ("pageName", GetType().Name));
                 return null;
             }
             if (_canvas == null) {
@@ -164,3 +165,4 @@ public abstract class UIPageWithBinder<TBinder> : UIPage where TBinder : UIBinde
         }
     }
 }
+

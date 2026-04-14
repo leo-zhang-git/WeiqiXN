@@ -1,6 +1,7 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using XNClient.Logger;
 
 public class SavableSimpleSet<TValue> : SavableObj
 {
@@ -72,7 +73,7 @@ public class SavableSimpleSet<TValue> : SavableObj
             }
             catch (Exception ex) {
                 _innerSet.Clear();
-                Logger.LogError($"Failed to load savable simple set.", ("err", ex.Message));
+                XNLogger.LogError($"Failed to load savable simple set.", ("err", ex.Message));
             }
         }
     }
@@ -100,3 +101,4 @@ public static class SavableSimpleSetFactory
         return new SavableSimpleSet<string>();
     }
 }
+

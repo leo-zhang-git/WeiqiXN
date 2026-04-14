@@ -1,5 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using XNLogger = XNClient.Logger.XNLogger;
 
 public class UIContext
 {
@@ -55,7 +56,7 @@ public class UIContext
             mainPage.LoadPage();
         }
         mainPageStack.AddLast(mainPage);
-        Logger.LogInfo("UIContext show main page.", ("contextType", contextType.ToString()), ("pageName", mainPage.pageName));
+        XNLogger.LogInfo("UIContext show main page.", ("contextType", contextType.ToString()), ("pageName", mainPage.pageName));
     }
 
     public bool CloseMainPage(UIPage mainPage)
@@ -63,7 +64,7 @@ public class UIContext
         if (mainPageStack.Contains(mainPage)) {
             if (mainPageStack.Count > 0) {
                 if (mainPageStack.Last.Value != mainPage) {
-                    Logger.LogWarn("Try to close main page not on stack top", ("pageName", mainPage.pageName), ("contextType", contextType.ToString()));
+                    XNLogger.LogWarn("Try to close main page not on stack top", ("pageName", mainPage.pageName), ("contextType", contextType.ToString()));
                     mainPageStack.Remove(mainPage);
                 } else {
                     mainPageStack.RemoveLast();
@@ -74,10 +75,10 @@ public class UIContext
             if (mainPageStack.Count > 0) {
                 mainPageStack.Last.Value.SetUIVisible(true);
             }
-            Logger.LogInfo("UIContext close main page.", ("contextType", contextType.ToString()), ("pageName", mainPage.pageName));
+            XNLogger.LogInfo("UIContext close main page.", ("contextType", contextType.ToString()), ("pageName", mainPage.pageName));
             return true;
         } else {
-            Logger.LogError("Target main page not in current context", ("pageName", mainPage.pageName), ("contextType", contextType.ToString()));
+            XNLogger.LogError("Target main page not in current context", ("pageName", mainPage.pageName), ("contextType", contextType.ToString()));
             return false;
         }
     }
@@ -94,7 +95,7 @@ public class UIContext
             popupPage.LoadPage();
         }
         popupList.Add(popupPage);
-        Logger.LogInfo("UIContext show popup page.", ("contextType", contextType.ToString()), ("pageName", popupPage.pageName));
+        XNLogger.LogInfo("UIContext show popup page.", ("contextType", contextType.ToString()), ("pageName", popupPage.pageName));
     }
 
     public bool ClosePopupPage(UIPage popupPage)
@@ -104,10 +105,10 @@ public class UIContext
             for (int i = 0; i < popupList.Count; i++) {
                 popupList[i].canvasOrder = baseCanvasOrder + (i + 1) * UIConfig.POPUP_INCREASE_CANVAS_ORDER;
             }
-            Logger.LogInfo("UIContext close popup page.", ("contextType", contextType.ToString()), ("pageName", popupPage.pageName));
+            XNLogger.LogInfo("UIContext close popup page.", ("contextType", contextType.ToString()), ("pageName", popupPage.pageName));
             return true;
         } else {
-            Logger.LogError("Target popup page not in current context", ("pageName", popupPage.pageName), ("contextType", contextType.ToString()));
+            XNLogger.LogError("Target popup page not in current context", ("pageName", popupPage.pageName), ("contextType", contextType.ToString()));
             return false;
         }
     }
@@ -118,7 +119,7 @@ public class UIContext
             UIPage topPage = mainPageStack.Last.Value;
             topPage.ClosePage();
         }
-        Logger.LogInfo("UIContext close all main pages.", ("contextType", contextType.ToString()));
+        XNLogger.LogInfo("UIContext close all main pages.", ("contextType", contextType.ToString()));
     }
 
     public void CloseAllPopupPages()
@@ -127,7 +128,7 @@ public class UIContext
             page.ClosePage();
         }
         popupList.Clear();
-        Logger.LogInfo("UIContext close all popup pages.", ("contextType", contextType.ToString()));
+        XNLogger.LogInfo("UIContext close all popup pages.", ("contextType", contextType.ToString()));
     }
 
     public void UpdateUICamera(Camera uiCamera)
@@ -145,3 +146,4 @@ public class UIContext
         }
     }
 }
+

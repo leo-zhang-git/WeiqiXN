@@ -48,11 +48,11 @@ public abstract class SystemBase
     #endregion
 }
 
-public abstract class SystemFixed<TScene> : SystemBase where TScene : SceneBase
+public abstract class SceneSystem<TScene> : SystemBase where TScene : SceneBase
 {
     public TScene scene;
 
-    protected SystemFixed(TScene scene) : base(scene)
+    protected SceneSystem(TScene scene) : base(scene)
     {
         this.scene = scene;
     }

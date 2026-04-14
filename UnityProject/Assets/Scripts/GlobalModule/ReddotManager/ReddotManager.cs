@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using XNClient.Logger;
 
 public class ReddotManager : ModuleBase
 {
@@ -78,7 +79,7 @@ public class ReddotManager : ModuleBase
             }
         }
         catch (Exception ex) {
-            Logger.LogError("Remove reddot node error.", ("reddotKey", reddotKey), ("err", ex.Message));
+            XNLogger.LogError("Remove reddot node error.", ("reddotKey", reddotKey), ("err", ex.Message));
         }
     }
 
@@ -94,3 +95,4 @@ public class ReddotManager : ModuleBase
         nodeDict.Clear();
     }
 }
+

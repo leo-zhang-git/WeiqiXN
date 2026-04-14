@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.IO;
+using XNClient.Logger;
 
 public interface IResourceLoadHandler
 {
@@ -46,7 +47,7 @@ public class ResourceLoadHandler<TAsset> : IResourceLoadHandler where TAsset : U
                 loadedCB.Invoke(assetRequest.asset as TAsset);
             }
             catch (Exception e) {
-                Logger.LogError("Resource load handler loaded callback error", ("errMsg", e.Message), ("assetFullPath", assetFullPath));
+                XNLogger.LogError("Resource load handler loaded callback error", ("errMsg", e.Message), ("assetFullPath", assetFullPath));
             }
         }
 
@@ -56,7 +57,7 @@ public class ResourceLoadHandler<TAsset> : IResourceLoadHandler where TAsset : U
     public void Cancel()
     {
         loadedCB = null;
-        Logger.LogInfo("Resource load handler canceled.", ("loaderId", loaderId));
+        XNLogger.LogInfo("Resource load handler canceled.", ("loaderId", loaderId));
     }
 
     public void Dispose()
@@ -67,3 +68,4 @@ public class ResourceLoadHandler<TAsset> : IResourceLoadHandler where TAsset : U
         loadedCB = null;
     }
 }
+

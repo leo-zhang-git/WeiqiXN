@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using XNLogger = XNClient.Logger.XNLogger;
 
 public class ResourceManager : ModuleBase
 {
@@ -74,7 +75,7 @@ public class ResourceManager : ModuleBase
         if (config != null) {
             return LoadGamePrefab(config.resPath);
         } else {
-            Logger.LogError("Config id invalid, laod game prefab failed.", ("configId", configId));
+            XNLogger.LogError("Config id invalid, laod game prefab failed.", ("configId", configId));
             return null;
         }
     }
@@ -96,7 +97,7 @@ public class ResourceManager : ModuleBase
         if (config != null) {
             return LoadGamePrefabAsync(binder, config.resPath, goInstantiateCB);
         } else {
-            Logger.LogError("Config id invalid, load game prefab async failed.", ("configId", configId));
+            XNLogger.LogError("Config id invalid, load game prefab async failed.", ("configId", configId));
             return null;
         }
     }
@@ -166,4 +167,5 @@ public class ResourceManager : ModuleBase
         }
     }
 }
+
 

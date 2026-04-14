@@ -1,7 +1,8 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using XNClient.Logger;
 
 public class GameSaveManager : ModuleBase
 {
@@ -15,7 +16,7 @@ public class GameSaveManager : ModuleBase
     public void SaveData(SavableObj savableObj, string saveFilePath)
     {
         if (savingLock) {
-            Logger.LogError("Saving lock is being occupied, save data failed.");
+            XNLogger.LogError("Saving lock is being occupied, save data failed.");
             return;
         }
 
@@ -31,13 +32,13 @@ public class GameSaveManager : ModuleBase
         }
         JObject saveJObject = savableObj.SaveObj();
         File.WriteAllText(saveFilePath, saveJObject.ToString());
-        Logger.LogInfo("Save data success.", ("saveRootName", saveRootName), ("saveFilePath", saveFilePath));
+        XNLogger.LogInfo("Save data success.", ("saveRootName", saveRootName), ("saveFilePath", saveFilePath));
     }
 
     public async Task SaveDataAsync(SavableObj savableObj, string saveFilePath)
     {
         if (savingLock) {
-            Logger.LogError("Saving lock is being occupied, save data async failed.");
+            XNLogger.LogError("Saving lock is being occupied, save data async failed.");
             return;
         }
 
@@ -57,13 +58,13 @@ public class GameSaveManager : ModuleBase
         await File.WriteAllTextAsync(saveFilePath, saveJObject.ToString());
         savingLock = false;
         Global.Instance.uiManager.ClosePage<SavingPopup>();
-        Logger.LogInfo("Save data async success.", ("saveRootName", saveRootName), ("saveFilePath", saveFilePath));
+        XNLogger.LogInfo("Save data async success.", ("saveRootName", saveRootName), ("saveFilePath", saveFilePath));
     }
 
     public void LoadData(SavableObj savableObj, string saveFilePath)
     {
         if (!File.Exists(saveFilePath)) {
-            Logger.LogError("Save file not exists, load save data failed.", ("saveFilePath", saveFilePath));
+            XNLogger.LogError("Save file not exists, load save data failed.", ("saveFilePath", saveFilePath));
             return;
         }
 
@@ -75,11 +76,12 @@ public class GameSaveManager : ModuleBase
         try {
             JObject jObject = JObject.Parse(jsonStr);
             savableObj.LoadObj(jObject);
-            Logger.LogInfo("Load data success.", ("saveRootName", saveRootName), ("saveFilePath", saveFilePath));
+            XNLogger.LogInfo("Load data success.", ("saveRootName", saveRootName), ("saveFilePath", saveFilePath));
         }
         catch (Exception ex) {
-            Logger.LogError("Load data failed.", ("saveRootName", saveRootName), ("saveFilePath", saveFilePath), ("err", ex.Message));
+            XNLogger.LogError("Load data failed.", ("saveRootName", saveRootName), ("saveFilePath", saveFilePath), ("err", ex.Message));
         }
     }
 }
+
 

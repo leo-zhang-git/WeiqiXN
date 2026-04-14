@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using XNClient.Logger;
 
 public class EventManager : ModuleBase
 {
@@ -19,7 +20,7 @@ public class EventManager : ModuleBase
 
     public void EmitSystemEvent<TEvent>(TEvent systemEvent) where TEvent : SystemEventBase
     {
-        Logger.LogInfo("Emit system event.", ("eventName", systemEvent.GetEventType()));
+        XNLogger.LogInfo("Emit system event.", ("eventName", systemEvent.GetEventType()));
         if (systemEventHandlers.TryGetValue(systemEvent.GetEventType(), out var handlerSet)) {
             foreach (var handler in handlerSet) {
                 handler.Execute(systemEvent);
@@ -50,7 +51,7 @@ public class EventManager : ModuleBase
 
     public void EmitEntityEvent<TEntity, TEvent>(TEntity entity, TEvent entityEvent) where TEntity : EntityBase where TEvent : EntityEventBase
     {
-        Logger.LogInfo("Emit entity event.", ("eventName", entityEvent.GetEventType()), ("entityType", entity.GetEntityType()));
+        XNLogger.LogInfo("Emit entity event.", ("eventName", entityEvent.GetEventType()), ("entityType", entity.GetEntityType()));
         if (entityEventHandlers.TryGetValue(entityEvent.GetEventType(), out var handlerSet)) {
             foreach (var handler in handlerSet) {
                 if (handler.entityType == entityEvent.GetEventType()) {
@@ -98,3 +99,4 @@ public class EventManager : ModuleBase
         eventReceiver.registeredEntityEventHandlers.Clear();
     }
 }
+

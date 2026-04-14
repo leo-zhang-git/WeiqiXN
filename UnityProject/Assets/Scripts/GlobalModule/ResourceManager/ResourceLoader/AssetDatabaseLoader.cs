@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEditor;
+using XNClient.Logger;
 
 public class AssetDatabaseLoader : ResourceLoaderBase
 {
@@ -12,7 +13,7 @@ public class AssetDatabaseLoader : ResourceLoaderBase
     public override T Loadasset<T>(string assetFullPath)
     {
         if (!CheckAssetExisits(assetFullPath)) {
-            Logger.LogError("Target asset not exists!", ("assetFullPath", assetFullPath));
+            XNLogger.LogError("Target asset not exists!", ("assetFullPath", assetFullPath));
             return null;
         }
 
@@ -21,7 +22,7 @@ public class AssetDatabaseLoader : ResourceLoaderBase
             return asset;
         }
         catch (Exception e) {
-            Logger.LogError("Resource load by asset database failed.", ("assetFullPath", assetFullPath), ("exception", e.Message));
+            XNLogger.LogError("Resource load by asset database failed.", ("assetFullPath", assetFullPath), ("exception", e.Message));
         }
         return null;
     }
@@ -36,3 +37,4 @@ public class AssetDatabaseLoader : ResourceLoaderBase
         return null;
     }
 }
+

@@ -1,5 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using XNLogger = XNClient.Logger.XNLogger;
 
 public static class ResourceUtils
 {
@@ -15,9 +16,10 @@ public static class ResourceUtils
         if (AssetExtendDict.TryGetValue(typeof(TAsset).Name, out string ext)) {
             return $"Assets/{path}{ext}";
         } else {
-            Logger.LogError("Invalid type for get asset full path.", ("type", typeof(TAsset).Name));
+            XNLogger.LogError("Invalid type for get asset full path.", ("type", typeof(TAsset).Name));
         }
 
         return string.Empty;
     }
 }
+

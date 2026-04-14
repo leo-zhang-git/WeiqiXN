@@ -1,6 +1,7 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using XNClient.Logger;
 
 public class SavableSimpleList<TValue> : SavableObj
 {
@@ -103,7 +104,7 @@ public class SavableSimpleList<TValue> : SavableObj
             }
             catch (Exception ex) {
                 _innerList.Clear();
-                Logger.LogError($"Failed to load savable simple list.", ("err", ex.Message));
+                XNLogger.LogError($"Failed to load savable simple list.", ("err", ex.Message));
             }
         }
     }
@@ -131,3 +132,4 @@ public static class SavableSimpleListFactory
         return new SavableSimpleList<string>();
     }
 }
+

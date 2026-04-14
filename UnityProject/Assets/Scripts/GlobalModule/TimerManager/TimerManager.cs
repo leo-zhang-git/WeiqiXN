@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using XNLogger = XNClient.Logger.XNLogger;
 
 public class TimerManager : ModuleBase
 {
@@ -54,7 +55,7 @@ public class TimerManager : ModuleBase
             timerAttacher.attachedTimerIds.Add(timerId);
             timer.OnTimerStart();
         } else {
-            Logger.LogError("Carete second timeout timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
+            XNLogger.LogError("Carete second timeout timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
         }
     }
 
@@ -67,7 +68,7 @@ public class TimerManager : ModuleBase
             timerAttacher.attachedTimerIds.Add(timerId);
             timer.OnTimerStart();
         } else {
-            Logger.LogError("Carete second interval timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
+            XNLogger.LogError("Carete second interval timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
         }
     }
 
@@ -80,7 +81,7 @@ public class TimerManager : ModuleBase
             timerAttacher.attachedTimerIds.Add(timerId);
             timer.OnTimerStart();
         } else {
-            Logger.LogError("Carete frame timeout timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
+            XNLogger.LogError("Carete frame timeout timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
         }
     }
 
@@ -93,7 +94,7 @@ public class TimerManager : ModuleBase
             timerAttacher.attachedTimerIds.Add(timerId);
             timer.OnTimerStart();
         } else {
-            Logger.LogError("Carete frame timeout timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
+            XNLogger.LogError("Carete frame timeout timer failed.", ("timerId", timerId), ("attacherType", timerAttacher.GetType().Name));
         }
     }
 
@@ -137,3 +138,4 @@ public class TimerManager : ModuleBase
         return timerId;
     }
 }
+

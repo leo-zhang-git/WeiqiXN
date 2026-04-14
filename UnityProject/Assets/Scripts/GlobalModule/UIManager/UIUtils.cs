@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using XNClient.Logger;
 
 public static class UIUtils
 {
@@ -17,7 +18,7 @@ public static class UIUtils
         if (Enum.TryParse(contextTypeStr, out UIContextType t)) {
             return t;
         } else {
-            Logger.LogError("Parse ui context type string failed.", ("contextTypeStr", contextTypeStr));
+            XNLogger.LogError("Parse ui context type string failed.", ("contextTypeStr", contextTypeStr));
             return UIContextType.General;
         }
     }
@@ -28,3 +29,4 @@ public static class UIUtils
         return typeValue * UIConfig.CONTEXT_INCREASE_CANVAS_ORDER;
     }
 }
+

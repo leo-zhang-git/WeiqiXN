@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using XNLogger = XNClient.Logger.XNLogger;
 
 public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoadBinder
 {
@@ -12,7 +13,7 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
         get
         {
             if (!isLoaded) {
-                Logger.LogError("Try get gameObject before ui resource is loaded", ("uiClsName", GetType().Name));
+                XNLogger.LogError("Try get gameObject before ui resource is loaded", ("uiClsName", GetType().Name));
                 return null;
             }
             return _gameObject;
@@ -24,7 +25,7 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
         get
         {
             if (!isLoaded) {
-                Logger.LogError("Try get transform before ui resource is loaded", ("uiClsName", GetType().Name));
+                XNLogger.LogError("Try get transform before ui resource is loaded", ("uiClsName", GetType().Name));
                 return null;
             }
             if (_transform == null) {
@@ -39,7 +40,7 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
         get
         {
             if (!isLoaded) {
-                Logger.LogError("Try get rectTransform before ui resorece is loaded.", ("pageName", GetType().Name));
+                XNLogger.LogError("Try get rectTransform before ui resorece is loaded.", ("pageName", GetType().Name));
                 return null;
             }
             if (_rectTransform == null) {
@@ -224,3 +225,4 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
     }
     #endregion
 }
+

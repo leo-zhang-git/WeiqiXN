@@ -1,4 +1,5 @@
 ﻿using System;
+using XNClient.Logger;
 
 public interface ISystemEventHandler
 {
@@ -24,7 +25,7 @@ public class SystemEventHandler<TEvent> : ISystemEventHandler where TEvent : Sys
         if (systemEvent is TEvent tEvent) {
             callback?.Invoke(tEvent);
         } else {
-            Logger.LogError("Type not matched, execute system event failed.", ("dstEvent", SystemEventBase.GetEventType<TEvent>()), ("srcEvent", systemEvent.GetEventType()));
+            XNLogger.LogError("Type not matched, execute system event failed.", ("dstEvent", SystemEventBase.GetEventType<TEvent>()), ("srcEvent", systemEvent.GetEventType()));
         }
     }
 }
@@ -59,3 +60,4 @@ public class OnSaveDuelScene : SystemEventBase
 {
     public override string GetEventType() => GetEventType<OnSaveDuelScene>();
 }
+

@@ -12,6 +12,7 @@ public class DuelScene : SceneBase
         base.OnSceneLoaded();
 
         AddSystem(new DuelSaveSystem(this));
+        AddSystem(new ChessBoardSystem(this));
 
         Global.Instance.uiManager.ShowPage<DuelPage>();
     }

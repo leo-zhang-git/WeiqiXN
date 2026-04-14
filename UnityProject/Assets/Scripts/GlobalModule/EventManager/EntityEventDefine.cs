@@ -1,4 +1,5 @@
 ﻿using System;
+using XNClient.Logger;
 
 public interface IEntityEventHandler
 {
@@ -26,7 +27,7 @@ public class EntityEventHandler<TEntity, TEvent> : IEntityEventHandler where TEn
         if (entity is TEntity tEntity && entityEvent is TEvent tEvent) {
             callback?.Invoke(tEntity, tEvent);
         } else {
-            Logger.LogError("Type not matched, execute entity event failed.",
+            XNLogger.LogError("Type not matched, execute entity event failed.",
                 ("dstEntity", EntityBase.GetEntityType<TEntity>()), ("dstEvent", EntityEventBase.GetEventType<TEvent>()),
                 ("srcEntity", entity.GetEntityType()), ("srcEvent", entityEvent.GetEventType())
             );

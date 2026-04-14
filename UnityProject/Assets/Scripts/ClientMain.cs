@@ -2,6 +2,7 @@
 using UnityEditor;
 #endif
 using UnityEngine;
+using XNLogger = XNClient.Logger.XNLogger;
 
 public class ClientMain
 {
@@ -19,7 +20,7 @@ public class ClientMain
 
     private void Start()
     {
-        Logger.Instance.Init();
+        XNLogger.Instance.Init();
         Global.Instance.Start();
     }
 
@@ -41,7 +42,7 @@ public class ClientMain
     private void Destroy()
     {
         Global.Instance.Destroy();
-        Logger.Instance.Destroy();
+        XNLogger.Instance.Destroy();
     }
 
 #if UNITY_EDITOR

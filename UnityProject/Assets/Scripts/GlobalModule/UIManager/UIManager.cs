@@ -1,7 +1,8 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using XNLogger = XNClient.Logger.XNLogger;
 
 public class UIManager : ModuleBase
 {
@@ -11,7 +12,7 @@ public class UIManager : ModuleBase
     private Dictionary<UIContextType, UIContext> contextDict = new Dictionary<UIContextType, UIContext>();
     private class CachePageInfo
     {
-        public float cacheDuration; // ÒÑ¾­»º´æµÄÊ±¼ä
+        public float cacheDuration; // ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
         public UIPage cachePage;
 
         public CachePageInfo(UIPage cachePage)
@@ -33,7 +34,7 @@ public class UIManager : ModuleBase
         if (uiEventSystemGO != null) {
             GameObject.DontDestroyOnLoad(uiEventSystemGO);
         } else {
-            Logger.LogError("UI event system go create failed!!!!!");
+            XNLogger.LogError("UI event system go create failed!!!!!");
         }
 
         foreach (UIContextType type in Enum.GetValues(typeof(UIContextType))) {
@@ -48,7 +49,7 @@ public class UIManager : ModuleBase
 
     public void OnExitMainScene(OnExitMainScene evt)
     {
-        // ÍË³ö³¡¾°Ê±¹Ø±Õµ±Ç°³¡¾°ËùÓÐÖ÷½çÃæ
+        // ï¿½Ë³ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Ø±Õµï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         if (contextDict.TryGetValue(UIContextType.Header, out var headerContext)) {
             headerContext.CloseAllMainPages();
         }
@@ -79,7 +80,7 @@ public class UIManager : ModuleBase
         string pageName = UIPage.GetPageName<TPage>();
         UiPageDataType uiConfig = UiPageDataType.GetConfigData(pageName);
         if (uiConfig == null) {
-            Logger.LogError("Invalid ui config, show page failed.", ("pageName", pageName));
+            XNLogger.LogError("Invalid ui config, show page failed.", ("pageName", pageName));
             return;
         }
         UIContextType contextType = UIUtils.ParseUIContextType(uiConfig.contextType);
@@ -94,7 +95,7 @@ public class UIManager : ModuleBase
                     uiContext.ShowPopupPage(page, false);
                 }
             } else {
-                Logger.LogWarn("Invalid context type for show popup page", ("contextType", contextType.ToString()));
+                XNLogger.LogWarn("Invalid context type for show popup page", ("contextType", contextType.ToString()));
             }
         } else {
             if (contextDict.TryGetValue(contextType, out var uiContext)) {
@@ -102,7 +103,7 @@ public class UIManager : ModuleBase
                 uiContext.ShowMainPage(page, false);
                 cachePages.Remove(pageName);
             } else {
-                Logger.LogWarn("Invalid context type for show main page", ("contextType", contextType.ToString()));
+                XNLogger.LogWarn("Invalid context type for show main page", ("contextType", contextType.ToString()));
             }
         }
     }
@@ -112,7 +113,7 @@ public class UIManager : ModuleBase
         string pageName = UIPage.GetPageName<TPage>();
         UiPageDataType uiConfig = UiPageDataType.GetConfigData(pageName);
         if (uiConfig == null) {
-            Logger.LogError("Invalid ui config, close page failed.", ("pageName", pageName));
+            XNLogger.LogError("Invalid ui config, close page failed.", ("pageName", pageName));
             return;
         }
         UIContextType contextType = UIUtils.ParseUIContextType(uiConfig.contextType);
@@ -126,7 +127,7 @@ public class UIManager : ModuleBase
                         RecycleClosedPage(page);
                     }
                 } else {
-                    Logger.LogWarn("Page not found, close popup page failed.", ("pageName", pageName), ("contextType", contextType.ToString()));
+                    XNLogger.LogWarn("Page not found, close popup page failed.", ("pageName", pageName), ("contextType", contextType.ToString()));
                 }
             }
         } else {
@@ -137,7 +138,7 @@ public class UIManager : ModuleBase
                         RecycleClosedPage(page);
                     }
                 } else {
-                    Logger.LogWarn("Page not found, close main page failed.", ("pageName", pageName), ("contextType", contextType.ToString()));
+                    XNLogger.LogWarn("Page not found, close main page failed.", ("pageName", pageName), ("contextType", contextType.ToString()));
                 }
             }
         }
@@ -188,14 +189,14 @@ public class UIManager : ModuleBase
         Scene activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
         if (!activeScene.IsValid()) {
             uiCamera = null;
-            Logger.LogError("Active scene invalid, update ui camera failed.");
+            XNLogger.LogError("Active scene invalid, update ui camera failed.");
             return;
         }
 
         foreach (var camera in Camera.allCameras) {
             if (camera.scene == activeScene) {
                 uiCamera = camera;
-                Logger.LogInfo("Update ui camera success.", ("uiCameraName", uiCamera.gameObject.name));
+                XNLogger.LogInfo("Update ui camera success.", ("uiCameraName", uiCamera.gameObject.name));
                 break;
             }
         }
@@ -206,7 +207,7 @@ public class UIManager : ModuleBase
             }
         } else {
             uiCamera = null;
-            Logger.LogWarn("Camera not found in active scene, update ui camera failed.", ("sceneName", activeScene.name));
+            XNLogger.LogWarn("Camera not found in active scene, update ui camera failed.", ("sceneName", activeScene.name));
         }
     }
 }

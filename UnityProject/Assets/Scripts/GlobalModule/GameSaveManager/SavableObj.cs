@@ -1,7 +1,8 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using XNClient.Logger;
 
 public class SavableObj
 {
@@ -12,7 +13,7 @@ public class SavableObj
     {
         var jObject = new JObject();
         if (string.IsNullOrEmpty(savePath)) {
-            Logger.LogError("Save path not set, save obj failed.", ("objType", GetType().Name));
+            XNLogger.LogError("Save path not set, save obj failed.", ("objType", GetType().Name));
             return jObject;
         }
 
@@ -24,7 +25,7 @@ public class SavableObj
             if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(SavableField<>)) {
                 var valueType = field.FieldType.GetGenericArguments()[0];
                 if (!CheckValidSaveType(valueType)) {
-                    Logger.LogError("Invalid type for savableField, skip save field.", ("objType", GetType().Name), ("fieldName", field.Name), ("valueType", valueType.Name));
+                    XNLogger.LogError("Invalid type for savableField, skip save field.", ("objType", GetType().Name), ("fieldName", field.Name), ("valueType", valueType.Name));
                     continue;
                 }
                 // Extract TValue inside savableField
@@ -41,7 +42,7 @@ public class SavableObj
                 var childObj = (SavableObj)field.GetValue(this);
                 if (childObj != null) {
                     if (visitedSavableObjs.Contains(childObj)) {
-                        Logger.LogError("Savable field chain checked, skip save child obj.", ("fieldName", field.Name));
+                        XNLogger.LogError("Savable field chain checked, skip save child obj.", ("fieldName", field.Name));
                         continue;
                     }
 
@@ -60,17 +61,17 @@ public class SavableObj
     public virtual void LoadObj(JObject jObject)
     {
         if (string.IsNullOrEmpty(savePath)) {
-            Logger.LogError("Save path not set, load obj failed.", ("objType", GetType().Name));
+            XNLogger.LogError("Save path not set, load obj failed.", ("objType", GetType().Name));
             return;
         }
 
         if (jObject[GameSaveConfig.SavableObj_Type_Field_Name] == null) {
-            Logger.LogError("Type name of jObject not found, load jObject failed.", ("typeFullName", GetType().FullName));
+            XNLogger.LogError("Type name of jObject not found, load jObject failed.", ("typeFullName", GetType().FullName));
             return;
         }
         Type loadType = Type.GetType((string)jObject[GameSaveConfig.SavableObj_Type_Field_Name].ToObject(typeof(string)));
         if (loadType == null || loadType.FullName != GetType().FullName) {
-            Logger.LogError("Load type name invalid, load jObject failed.", ("typeFullName", GetType().FullName));
+            XNLogger.LogError("Load type name invalid, load jObject failed.", ("typeFullName", GetType().FullName));
             return;
         }
 
@@ -79,7 +80,7 @@ public class SavableObj
                 if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(SavableField<>)) {
                     var valueType = field.FieldType.GetGenericArguments()[0];
                     if (!CheckValidSaveType(valueType)) {
-                        Logger.LogError("Invalid type for savableField, skip load field.", ("objType", GetType().Name), ("fieldName", field.Name), ("valueType", valueType.Name));
+                        XNLogger.LogError("Invalid type for savableField, skip load field.", ("objType", GetType().Name), ("fieldName", field.Name), ("valueType", valueType.Name));
                         continue;
                     }
                     var value = jObject[field.Name].ToObject(valueType);
@@ -107,3 +108,4 @@ public class SavableObj
         return false;
     }
 }
+

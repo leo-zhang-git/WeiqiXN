@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor;
+using XNLogger = XNClient.Logger.XNLogger;
 
 public static class UICodeGenerator
 {
@@ -44,7 +45,7 @@ public static class UICodeGenerator
                         generator.AddLine($"public {logicType.Name} {node.name};");
                         widgetBinderEditors.Add((node.name, childBinderEditor));
                     } else {
-                        Logger.LogError("Child widget binder script not attached!", ("widgetLogicType", logicType.Name));
+                        XNLogger.LogError("Child widget binder script not attached!", ("widgetLogicType", logicType.Name));
                     }
                 } else {
                     generator.AddLine($"public {node.value.GetType().Name} {node.name};");
@@ -95,3 +96,4 @@ public static class UICodeGenerator
         }
     }
 }
+

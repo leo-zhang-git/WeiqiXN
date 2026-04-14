@@ -1,4 +1,4 @@
-public class DuelSaveSystem : SystemFixed<DuelScene>
+public class DuelSaveSystem : SceneSystem<DuelScene>
 {
     public override string systemName => GetSystemName<DuelSaveSystem>();
 
@@ -9,6 +9,7 @@ public class DuelSaveSystem : SystemFixed<DuelScene>
 
     public override void Init()
     {
+        base.Init();
         scene.RegisterSystemEvent<OnSaveDuelScene>(OnSaveDuelScene);
     }
 

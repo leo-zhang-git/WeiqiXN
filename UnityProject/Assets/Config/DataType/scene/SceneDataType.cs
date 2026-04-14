@@ -1,7 +1,8 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using XNClient.Logger;
 
 public class SceneDataType
 {
@@ -23,7 +24,7 @@ public class SceneDataType
                     SceneDict[property.Name] = item;
                 }
                 catch (Exception ex) {
-                    Logger.LogError($"读表错误，跳过条目 {property.Name}: {ex.Message}");
+                    XNLogger.LogError($"读表错误，跳过条目 {property.Name}: {ex.Message}");
                 }
             }
         }

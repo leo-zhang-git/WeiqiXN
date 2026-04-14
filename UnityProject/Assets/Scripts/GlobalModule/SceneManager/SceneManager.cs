@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using XNClient.Logger;
 
 public class SceneManager : ModuleBase
 {
@@ -21,7 +22,7 @@ public class SceneManager : ModuleBase
     {
         SceneDataType sceneData = SceneDataType.GetConfigData(sceneTypeId);
         if (sceneData == null) {
-            Logger.LogError("Scene config invalid, enter main scene failed.", ("sceneTypeId", sceneTypeId));
+            XNLogger.LogError("Scene config invalid, enter main scene failed.", ("sceneTypeId", sceneTypeId));
             return;
         }
 
@@ -29,7 +30,7 @@ public class SceneManager : ModuleBase
             ExitMainScene();
             mainScene = scene;
         } else {
-            Logger.LogError("Create scene with config data failed, enter main scene failed.", ("sceneTypeId", sceneTypeId));
+            XNLogger.LogError("Create scene with config data failed, enter main scene failed.", ("sceneTypeId", sceneTypeId));
             return;
         }
 
@@ -37,13 +38,13 @@ public class SceneManager : ModuleBase
             scene.RestoreSceneData(saveFilePath);
         }
         scene.LoadScene();
-        Logger.LogInfo("Enter main scene success.", ("sceneTypeId", sceneTypeId));
+        XNLogger.LogInfo("Enter main scene success.", ("sceneTypeId", sceneTypeId));
     }
 
     public void ExitMainScene()
     {
         if (mainScene != null) {
-            Logger.LogInfo("Exit main scene success.", ("sceneTypeId", mainScene.configData.id));
+            XNLogger.LogInfo("Exit main scene success.", ("sceneTypeId", mainScene.configData.id));
             mainScene.OnSceneExit();
             mainScene = null;
         }
@@ -66,3 +67,4 @@ public class SceneManager : ModuleBase
         return false;
     }
 }
+

@@ -1,5 +1,6 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
+using XNClient.Logger;
 
 public class ReddotNode
 {
@@ -21,11 +22,11 @@ public class ReddotNode
     public void ChangeNodeCount(int newCount)
     {
         if (childNodes.Count > 0) {
-            Logger.LogError("Only leaf reddot node is allowed to change count!", ("reddotKey", reddotKey), ("newCount", newCount.ToString()));
+            XNLogger.LogError("Only leaf reddot node is allowed to change count!", ("reddotKey", reddotKey), ("newCount", newCount.ToString()));
             return;
         }
         if (newCount < 0) {
-            Logger.LogError("Count value of reddot node should not be nagative!", ("reddotKey", reddotKey), ("newCount", newCount.ToString()));
+            XNLogger.LogError("Count value of reddot node should not be nagative!", ("reddotKey", reddotKey), ("newCount", newCount.ToString()));
             return;
         }
 
@@ -36,7 +37,7 @@ public class ReddotNode
                     handler.Invoke(reddotCount);
                 }
                 catch (Exception ex) {
-                    Logger.LogError("Invoke reddot count change handler error.", ("reddotKey", reddotKey), ("err", ex.Message));
+                    XNLogger.LogError("Invoke reddot count change handler error.", ("reddotKey", reddotKey), ("err", ex.Message));
                 }
             }
 
@@ -59,7 +60,7 @@ public class ReddotNode
                 handler.Invoke(reddotCount);
             }
             catch (Exception ex) {
-                Logger.LogError("Invoke reddot count change error.", ("reddotKey", reddotKey), ("err", ex.Message));
+                XNLogger.LogError("Invoke reddot count change error.", ("reddotKey", reddotKey), ("err", ex.Message));
             }
         }
 
@@ -70,7 +71,7 @@ public class ReddotNode
 
     public void ClearNodeCount()
     {
-        // ¹ã¶È±ãÀû×Ó½Úµã
+        // ï¿½ï¿½È±ï¿½ï¿½ï¿½ï¿½Ó½Úµï¿½
         Stack<ReddotNode> stack = new Stack<ReddotNode>();
         foreach (var childNode in childNodes.Values) {
             stack.Push(childNode);
@@ -91,7 +92,7 @@ public class ReddotNode
             }
         }
         catch (Exception ex) {
-            Logger.LogError("Clear node count error.", ("reddotKey", reddotKey), ("err", ex.Message));
+            XNLogger.LogError("Clear node count error.", ("reddotKey", reddotKey), ("err", ex.Message));
         }
     }
 
@@ -104,7 +105,7 @@ public class ReddotNode
             countChangeHandlers.Add(handler);
         }
         catch (Exception ex) {
-            Logger.LogError("Register reddot handler error.", ("reddotKey", reddotKey), ("err", ex.Message));
+            XNLogger.LogError("Register reddot handler error.", ("reddotKey", reddotKey), ("err", ex.Message));
         }
     }
 
@@ -115,3 +116,4 @@ public class ReddotNode
         }
     }
 }
+

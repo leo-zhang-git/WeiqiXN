@@ -1,6 +1,7 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using XNClient.Logger;
 
 public class SavableSimpleDict<TValue> : SavableObj
 {
@@ -80,7 +81,7 @@ public class SavableSimpleDict<TValue> : SavableObj
             }
             catch (Exception ex) {
                 _innerDict.Clear();
-                Logger.LogError($"Failed to load savable simple dict.", ("key", key), ("err", ex.Message));
+                XNLogger.LogError($"Failed to load savable simple dict.", ("key", key), ("err", ex.Message));
             }
         }
     }
@@ -108,3 +109,4 @@ public static class SavableSimpleDictFactory
         return new SavableSimpleDict<string>();
     }
 }
+
