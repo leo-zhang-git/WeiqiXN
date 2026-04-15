@@ -18,7 +18,7 @@ namespace XNClient.ChessBoard
         public const float shrinkFactor = 0.6f; // 方格内圈收缩部分比例
         public const float blendFactor = 1 - shrinkFactor; // 方格外圈过渡部分比例
 
-        // 正方格右上逆时针到左上四个顶点相对偏移
+        // 正方格四个顶点相对偏移，按右上 -> 右下 -> 左下 -> 左上的顺时针顺序存储
         public static Vector3[] rectCornerOffsets =
         {
             new Vector3(rectCellSideLength / 2f, 0, rectCellSideLength / 2f),
@@ -29,14 +29,40 @@ namespace XNClient.ChessBoard
             new Vector3(rectCellSideLength / 2f, 0, rectCellSideLength / 2f)
         };
 
+        public static RectDirection GetPrevDirection(this RectDirection dir)
+        {
+            if (dir == RectDirection.E) {
+                return RectDirection.N;
+            } else {
+                return (RectDirection)((int)dir - 1);
+            }
+        }
+
+        public static RectDirection GetNextDirection(this RectDirection dir)
+        {
+            if (dir == RectDirection.N) {
+                return RectDirection.E;
+            } else {
+                return (RectDirection)((int)dir + 1);
+            }
+        }
+
         public static (Vector3, Vector3) GetInnerCornerOffsets(RectDirection dir)
         {
-            return (rectCornerOffsets[(int)dir] * shrinkFactor, rectCornerOffsets[(int)dir + 1] * shrinkFactor);
+            return (rectCornerOffsets[(int)dir] * shrinkFactor, rectCornerOffsets[(int)dir.GetNextDirection()] * shrinkFactor);
         }
 
         public static (Vector3, Vector3) GetOuterCornerOffsets(RectDirection dir)
         {
-            return (rectCornerOffsets[(int)dir], rectCornerOffsets[(int)dir + 1]);
+            return (rectCornerOffsets[(int)dir], rectCornerOffsets[(int)dir.GetNextDirection()]);
+        }
+
+        public static (Vector3, Vector3) GetBlendCornerOffsets(RectDirection dir)
+        {
+            Vector3 midDir = ((rectCornerOffsets[(int)dir] + rectCornerOffsets[(int)dir.GetNextDirection()]) / 2f).normalized;
+            var innerCornerOffstes = GetInnerCornerOffsets(dir);
+            float blendWidth = rectCellSideLength / 2f * blendFactor;
+            return (innerCornerOffstes.Item1 + midDir * blendWidth, innerCornerOffstes.Item2 + midDir * blendWidth);
         }
 
         public const int defaultGridSize = 19;

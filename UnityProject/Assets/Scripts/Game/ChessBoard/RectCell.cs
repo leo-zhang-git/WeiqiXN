@@ -42,10 +42,38 @@ namespace XNClient.ChessBoard
             neighbor = null;
             RectCell lineNeighbor = neighbors[(int)dir];
             if (lineNeighbor != null) {
-                neighbor = lineNeighbor.neighbors[(int)(dir - 1)];
+                neighbor = lineNeighbor.neighbors[(int)(dir.GetPrevDirection())];
                 return neighbor != null;
             }
             return false;
+        }
+
+        public Color GetLineNeighborBlendColor(RectDirection dir)
+        {
+            Color blendColor = cellColor;
+            if (TryGetLineNeighbor(dir, out var neighbor)) {
+                blendColor = (blendColor + neighbor.cellColor) / 2f;
+            }
+            return blendColor;
+        }
+
+        public Color GetPointNeighborBlendColor(RectDirection dir)
+        {
+            Color blendColor = cellColor;
+            float blendCount = 1f;
+            if (TryGetLineNeighbor(dir.GetPrevDirection(), out var neighbor1)) {
+                blendColor += neighbor1.cellColor;
+                blendCount += 1;
+            }
+            if (TryGetPointNeighbor(dir, out var neighbor2)) {
+                blendColor += neighbor2.cellColor;
+                blendCount += 1;
+            }
+            if (TryGetLineNeighbor(dir, out var neighbor3)) {
+                blendColor += neighbor3.cellColor;
+                blendCount += 1;
+            }
+            return blendColor / blendCount;
         }
     }
 

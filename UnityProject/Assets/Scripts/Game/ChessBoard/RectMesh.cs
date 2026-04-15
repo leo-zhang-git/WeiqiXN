@@ -40,7 +40,7 @@ namespace XNClient.ChessBoard
             colors.Clear();
         }
 
-        // 注意顶点需要以逆时针顺序传进来，影响正反面判定
+        // 注意顶点需要以使得三角面法线方向朝上的顺序传进来，影响正反面判定
         public void AddTriangle(Vector3 v1, Vector3 v2, Vector3 v3)
         {
             int vertexIndex = vertices.Count;
@@ -81,6 +81,8 @@ namespace XNClient.ChessBoard
             triangles.Add(vertexIndex + 1);
 
             triangles.Add(vertexIndex + 1);
+            triangles.Add(vertexIndex + 2);
+            triangles.Add(vertexIndex + 3);
         }
 
         public void AddQuadColor(Color c)
@@ -94,7 +96,7 @@ namespace XNClient.ChessBoard
         public void AddQuadColor(Color lineStartColor1, Color lineEndColor1, Color lineStartColor2, Color lineEndColor2)
         {
             colors.Add(lineStartColor1);
-            colors.Add(lineEndColor2);
+            colors.Add(lineEndColor1);
             colors.Add(lineStartColor2);
             colors.Add(lineEndColor2);
         }
