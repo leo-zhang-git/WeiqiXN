@@ -8,7 +8,13 @@ namespace XNClient.ChessBoard
         public RectCoordinates coordinates;
         // 共用边的四个邻接cell
         public RectCell[] neighbors = new RectCell[4];
-        public Color cellColor = Color.white;
+        private static readonly Color[] presetColors = new Color[3]
+        {
+            Color.red,
+            Color.green,
+            Color.blue
+        };
+        public Color cellColor = presetColors[Random.Range(0, presetColors.Length)];
         public Vector3 centerPosInChunk
         {
             get
