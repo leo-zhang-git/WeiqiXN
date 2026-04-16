@@ -12,6 +12,7 @@ namespace XNClient.ChessBoard
 
     public static class ChessBoardConfig
     {
+        public const int chessBoardChunkSize = 5; // 棋盘grid分块大小，主要影响mesh数量
         public const float rectCellSideLength = 6f; // 方格边长
         private const float sqrt2 = 1.41421356f;
         public const float rectCellOuterRadius = rectCellSideLength / 2f * sqrt2; // 方格外切圆半径（中心到顶点长度）
@@ -64,9 +65,6 @@ namespace XNClient.ChessBoard
             float blendWidth = rectCellSideLength / 2f * blendFactor;
             return (innerCornerOffstes.Item1 + midDir * blendWidth, innerCornerOffstes.Item2 + midDir * blendWidth);
         }
-
-        public const int defaultGridSize = 19;
-        public const int defaultChunkSize = 5;
     }
 
 }

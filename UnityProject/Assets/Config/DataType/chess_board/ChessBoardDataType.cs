@@ -8,6 +8,7 @@ public class ChessBoardDataType
 {
     public string id;  // id
     public int boardSize;  // 棋盘大小
+    public float vcamYOffset;  // 相机y轴额外偏移
 
     public static Dictionary<string, ChessBoardDataType> ChessBoardDict;
 

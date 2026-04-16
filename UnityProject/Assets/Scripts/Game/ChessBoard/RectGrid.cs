@@ -8,31 +8,39 @@ namespace XNClient.ChessBoard
     public class RectGrid : MonoBehaviour
     {
         public GameObject chunkPrefab;
+        public int gridSize;
         private List<RectGridChunk> chunkList = new List<RectGridChunk>();
         private List<RectCell> cellList = new List<RectCell>();
 
-        private void Start()
-        {
-            InitGrid();
-        }
-
-        public void InitGrid()
+        public void InitGrid(int gridSize)
         {
             if (chunkPrefab == null || chunkPrefab.GetComponent<RectGridChunk>() == null) {
                 XNLogger.LogError("Chunk prefab invalid, init grid failed.");
                 return;
             }
+            if (gridSize <= 0) {
+                XNLogger.LogError("Grid size should be positive, init grid failed.", ("gridSize", gridSize.ToString()));
+                return;
+            }
+            this.gridSize = gridSize;
 
             CreateChunks();
             CreateCells();
         }
 
+        public Bounds GetGridBounds()
+        {
+            float gridSideLength = gridSize * ChessBoardConfig.rectCellSideLength;
+            Vector3 localCenter = new Vector3(gridSideLength / 2f, 0f, gridSideLength / 2f);
+            Vector3 worldCenter = transform.TransformPoint(localCenter);
+            Vector3 size = new Vector3(gridSideLength, 0f, gridSideLength);
+            return new Bounds(worldCenter, size);
+        }
+
         private void CreateChunks()
         {
-            int gridSize = ChessBoardConfig.defaultGridSize;
-            int chunkSize = ChessBoardConfig.defaultChunkSize;
-
             chunkList.Clear();
+            int chunkSize = ChessBoardConfig.chessBoardChunkSize;
             for (int startCellZ = 0; startCellZ < gridSize; startCellZ += chunkSize) {
                 int curChunkSizeZ = Mathf.Min(chunkSize, gridSize - startCellZ);
 
@@ -52,8 +60,7 @@ namespace XNClient.ChessBoard
 
         private void CreateCells()
         {
-            int gridSize = ChessBoardConfig.defaultGridSize;
-            int chunkSize = ChessBoardConfig.defaultChunkSize;
+            int chunkSize = ChessBoardConfig.chessBoardChunkSize;
             int chunkCountX = Mathf.CeilToInt((float)gridSize / chunkSize);
 
             cellList.Clear();
@@ -93,7 +100,7 @@ namespace XNClient.ChessBoard
             }
 
             if (z > 0) {
-                int southNeighborIndex = (z - 1) * ChessBoardConfig.defaultGridSize + x;
+                int southNeighborIndex = (z - 1) * gridSize + x;
                 RectCell southNeighbor = cellList[southNeighborIndex];
                 cell.neighbors[(int)RectDirection.S] = southNeighbor;
                 southNeighbor.neighbors[(int)RectDirection.N] = cell;
@@ -124,7 +131,7 @@ namespace XNClient.ChessBoard
 
             XNLogger.LogInfo(
                 sb.ToString(),
-                ("gridSize", ChessBoardConfig.defaultGridSize.ToString()),
+                ("gridSize", gridSize.ToString()),
                 ("chunkCount", chunkList.Count.ToString()),
                 ("cellCount", cellList.Count.ToString())
             );

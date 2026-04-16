@@ -194,9 +194,11 @@ public class UIManager : ModuleBase
 
         foreach (var rootGO in activeScene.GetRootGameObjects()) {
             var camera = rootGO.GetComponentInChildren<Camera>();
-            uiCamera = camera;
-            XNLogger.LogInfo("Update ui camera success.", ("uiCameraName", uiCamera.gameObject.name));
-            break;
+            if (camera != null) {
+                uiCamera = camera;
+                XNLogger.LogInfo("Update ui camera success.", ("uiCameraName", uiCamera.gameObject.name));
+                break;
+            }
         }
 
         if (uiCamera != null) {
