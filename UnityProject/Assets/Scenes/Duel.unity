@@ -224,6 +224,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chessBoardGrid: {fileID: 909276521}
+  duelVCam: {fileID: 47845794}
 --- !u!4 &257435079
 Transform:
   m_ObjectHideFlags: 0
@@ -482,6 +483,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chunkPrefab: {fileID: 643947896}
+  gridSize: 0
 --- !u!4 &909276522
 Transform:
   m_ObjectHideFlags: 0

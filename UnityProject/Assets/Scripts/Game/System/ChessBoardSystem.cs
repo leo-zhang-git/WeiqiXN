@@ -34,14 +34,14 @@ public class ChessBoardSystem : SceneSystem<DuelScene>
 
         Transform duelVCamTransform = scene.compChessBoard.duelVCam.transform;
 
-        // 让相机始终垂直朝向 y 轴负方向，形成俯视棋盘的视角。
+        // 让相机始终垂直朝向 y 轴负方向，形成俯视棋盘的视角
         duelVCamTransform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);
 
         float nearClipPlane = scene.compChessBoard.duelVCam.m_Lens.NearClipPlane;
         float halfVerticalFovRad = scene.compChessBoard.duelVCam.m_Lens.FieldOfView * 0.5f * Mathf.Deg2Rad;
         float aspect = Camera.main != null ? Camera.main.aspect : 16f / 9f;
 
-        // 先计算近平面在当前镜头参数下的半高和半宽。
+        // 先计算近平面在当前镜头参数下的半高和半宽
         float nearPlaneHalfHeight = Mathf.Tan(halfVerticalFovRad) * nearClipPlane;
         float nearPlaneHalfWidth = nearPlaneHalfHeight * aspect;
 
@@ -50,7 +50,11 @@ public class ChessBoardSystem : SceneSystem<DuelScene>
         float requiredDistanceByX = nearPlaneHalfWidth > 0f ? gridBound.extents.x * nearClipPlane / nearPlaneHalfWidth : 0f;
         float requiredDistance = Mathf.Max(requiredDistanceByX, requiredDistanceByZ, nearClipPlane);
 
-        // 以棋盘中心为基准，只沿 y 轴正方向抬升相机位置。
-        duelVCamTransform.position = gridBound.center + Vector3.up * requiredDistance;
+        // 以棋盘中心为基准，只沿 y 轴正方向抬升相机位置
+        float extraYOffset = 0;
+        if (chessBoardData != null) {
+            extraYOffset = chessBoardData.vcamYOffset;
+        }
+        duelVCamTransform.position = gridBound.center + Vector3.up * requiredDistance + new Vector3(0, extraYOffset, 0);
     }
 }
