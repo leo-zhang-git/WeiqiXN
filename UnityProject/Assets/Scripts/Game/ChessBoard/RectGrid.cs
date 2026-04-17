@@ -37,6 +37,18 @@ namespace XNClient.ChessBoard
             return new Bounds(worldCenter, size);
         }
 
+        public bool CheckCellOnEdge(RectCell cell)
+        {
+            if (cell?.coordinates == null) {
+                XNLogger.LogError("Cell or coordinates is null, check cell edge failed.");
+                return false;
+            }
+
+            int cellX = cell.coordinates.x;
+            int cellZ = cell.coordinates.z;
+            return cellX == 0 || cellX == gridSize - 1 || cellZ == 0 || cellZ == gridSize - 1;
+        }
+
         private void CreateChunks()
         {
             chunkList.Clear();
@@ -92,6 +104,7 @@ namespace XNClient.ChessBoard
         private RectCell CreateCell(RectGridChunk ownerChunk, int x, int z)
         {
             RectCell cell = new RectCell(ownerChunk, new RectCoordinates(x, z));
+            cell.isOnEdge = CheckCellOnEdge(cell);
 
             if (x > 0) {
                 RectCell westNeighbor = cellList[cellList.Count - 1];

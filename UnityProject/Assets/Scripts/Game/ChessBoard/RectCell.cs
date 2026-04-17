@@ -6,6 +6,7 @@ namespace XNClient.ChessBoard
     {
         public RectGridChunk chunk;
         public RectCoordinates coordinates;
+        public bool isOnEdge;
         // 共用边的四个邻接cell
         public RectCell[] neighbors = new RectCell[4];
         // Test Code
@@ -36,14 +37,14 @@ namespace XNClient.ChessBoard
             this.coordinates = coordinates;
         }
 
-        // 查找共用边的邻接cell
+        // 锟斤拷锟揭癸拷锟矫边碉拷锟节斤拷cell
         public bool TryGetLineNeighbor(RectDirection dir, out RectCell neighbor)
         {
             neighbor = neighbors[(int)dir];
             return neighbor != null;
         }
 
-        // 查找共用顶点的邻接cell，如输入E方向，则给出NE方向的cell
+        // 锟斤拷锟揭癸拷锟矫讹拷锟斤拷锟斤拷诮锟絚ell锟斤拷锟斤拷锟斤拷锟斤拷E锟斤拷锟斤拷锟斤拷锟斤拷锟絅E锟斤拷锟斤拷锟絚ell
         public bool TryGetPointNeighbor(RectDirection dir, out RectCell neighbor)
         {
             neighbor = null;

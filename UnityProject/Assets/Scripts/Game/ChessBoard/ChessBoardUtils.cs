@@ -54,9 +54,25 @@ namespace XNClient.ChessBoard
             return (innerCornerOffstes.Item1 + midDir * blendWidth, innerCornerOffstes.Item2 + midDir * blendWidth);
         }
 
-        public static (Vector3, Vector3) GetRoadCornerOffsets(RectDirection dir)
+        public static (Vector3, Vector3) GetRoadCenterCornerOffsets(RectDirection dir, bool isOnEdge)
         {
-            return (ChessBoardConfig.rectCornerOffsets[(int)dir] * ChessBoardConfig.roadFactor, ChessBoardConfig.rectCornerOffsets[(int)dir.GetNextDirection()] * ChessBoardConfig.roadFactor);
+            float factor = isOnEdge ? ChessBoardConfig.roadBoderFactor : ChessBoardConfig.roadNormalFactor;
+            return (ChessBoardConfig.rectCornerOffsets[(int)dir] * factor, ChessBoardConfig.rectCornerOffsets[(int)dir.GetNextDirection()] * factor);
+        }
+
+        public static (Vector3, Vector3) GetRoadInnerCornerOffsets(RectDirection dir, bool isOnEdge, bool isNeighborOnEdge)
+        {
+            float factor = isOnEdge && isNeighborOnEdge ? ChessBoardConfig.roadBoderFactor : ChessBoardConfig.roadNormalFactor;
+            return (ChessBoardConfig.rectCornerOffsets[(int)dir] * factor, ChessBoardConfig.rectCornerOffsets[(int)dir.GetNextDirection()] * factor);
+
+        }
+
+        public static (Vector3, Vector3) GetRoadOuterCornerOffsets(RectDirection dir, bool isOnEdge, bool isNeighborOnEdge)
+        {
+            (Vector3, Vector3) innerOffset = GetRoadInnerCornerOffsets(dir, isOnEdge, isNeighborOnEdge);
+            float factor = isOnEdge && isNeighborOnEdge ? 1 - ChessBoardConfig.roadBoderFactor : 1 - ChessBoardConfig.roadNormalFactor;
+            Vector3 midDir = ((innerOffset.Item1 + innerOffset.Item2) / 2f).normalized;
+            return (innerOffset.Item1 + midDir * (ChessBoardConfig.rectCellSideLength / 2f * factor), innerOffset.Item2 + midDir * (ChessBoardConfig.rectCellSideLength / 2f * factor));
         }
     }
 }
