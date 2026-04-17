@@ -8,6 +8,7 @@ namespace XNClient.ChessBoard
         public RectCoordinates coordinates;
         // 共用边的四个邻接cell
         public RectCell[] neighbors = new RectCell[4];
+        // Test Code
         private static readonly Color[] presetColors = new Color[3]
         {
             Color.red,

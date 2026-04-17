@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using XNClient.Logger;
 
 namespace XNClient.ChessBoard
 {
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
     public class RectMesh : MonoBehaviour
     {
+        public bool useMeshColor;
+
         private Mesh rectMesh;
         private MeshCollider meshCollider;
 
@@ -25,7 +28,13 @@ namespace XNClient.ChessBoard
         {
             rectMesh.SetVertices(vertices);
             rectMesh.SetTriangles(triangles, 0);
-            rectMesh.SetColors(colors);
+            if (useMeshColor) {
+                if (vertices.Count != colors.Count) {
+                    XNLogger.LogError("Rect mesh colors length invalid, set colors failed.");
+                } else {
+                    rectMesh.SetColors(colors);
+                }
+            }
             rectMesh.RecalculateNormals();
 
             meshCollider.sharedMesh = rectMesh;
@@ -40,7 +49,7 @@ namespace XNClient.ChessBoard
             colors.Clear();
         }
 
-        // 注意顶点需要以使得三角面法线方向朝上的顺序传进来，影响正反面判定
+        // 注意顶点需要以使得三角面法线方向朝上的顺序（顺时针）传进来，影响正反面判定
         public void AddTriangle(Vector3 v1, Vector3 v2, Vector3 v3)
         {
             int vertexIndex = vertices.Count;

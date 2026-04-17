@@ -8,7 +8,7 @@ namespace XNClient.ChessBoard
     {
         public int startCellX, startCellZ;
         public int chunkSizeX, chunkSizeZ;
-        public RectMesh ground;
+        public RectMesh groundMesh, roadMesh;
 
         private List<RectCell> cellList = new List<RectCell>();
         private bool isDirty;
@@ -94,38 +94,41 @@ namespace XNClient.ChessBoard
 
         private void TriangulateChunk()
         {
-            ground.ClearMesh();
+            groundMesh.ClearMesh();
+            roadMesh.ClearMesh();
 
             foreach (RectCell cell in cellList) {
                 TriangulateCell(cell);
             }
-            ground.RefreshMesh();
+            groundMesh.RefreshMesh();
+            roadMesh.RefreshMesh();
         }
 
         private void TriangulateCell(RectCell cell)
         {
             // 将方格拆分为东南西北四个方向进行构建
-            for (RectDirection dir = RectDirection.E; dir <= RectDirection.N; dir++) {
-                TriangulateCell(cell, dir);
+            foreach (RectDirection dir in ChessBoardUtils.GetAllRectDirections()) {
+                TriangulateCellByDirection(cell, dir);
             }
         }
 
-        private void TriangulateCell(RectCell cell, RectDirection dir)
+        private void TriangulateCellByDirection(RectCell cell, RectDirection dir)
         {
             TriangulateCellInner(cell, dir);
             TriangulateCellOuter(cell, dir);
+            TriangulateCellRoad(cell, dir);
         }
 
         // 内部纯色三角
         private void TriangulateCellInner(RectCell cell, RectDirection dir)
         {
-            (Vector3, Vector3) edgeCornerOffsets = ChessBoardConfig.GetInnerCornerOffsets(dir);
-            ground.AddTriangle(
+            (Vector3, Vector3) edgeCornerOffsets = ChessBoardUtils.GetInnerCornerOffsets(dir);
+            groundMesh.AddTriangle(
                 cell.centerPosInChunk,
                 cell.centerPosInChunk + edgeCornerOffsets.Item1,
                 cell.centerPosInChunk + edgeCornerOffsets.Item2
             );
-            ground.AddTriangleColor(
+            groundMesh.AddTriangleColor(
                 cell.cellColor,
                 cell.cellColor,
                 cell.cellColor
@@ -136,37 +139,53 @@ namespace XNClient.ChessBoard
         private void TriangulateCellOuter(RectCell cell, RectDirection dir)
         {
             // 中部过渡矩形
-            (Vector3, Vector3) innerCornerOffsets = ChessBoardConfig.GetInnerCornerOffsets(dir);
-            (Vector3, Vector3) blendCornerOffsets = ChessBoardConfig.GetBlendCornerOffsets(dir);
-            ground.AddQuad(
+            (Vector3, Vector3) innerCornerOffsets = ChessBoardUtils.GetInnerCornerOffsets(dir);
+            (Vector3, Vector3) blendCornerOffsets = ChessBoardUtils.GetBlendCornerOffsets(dir);
+            groundMesh.AddQuad(
                 cell.centerPosInChunk + innerCornerOffsets.Item1, cell.centerPosInChunk + innerCornerOffsets.Item2,
                 cell.centerPosInChunk + blendCornerOffsets.Item1, cell.centerPosInChunk + blendCornerOffsets.Item2
             );
-            ground.AddQuadColor(cell.cellColor, cell.GetLineNeighborBlendColor(dir));
+            groundMesh.AddQuadColor(cell.cellColor, cell.GetLineNeighborBlendColor(dir));
 
             // 左右两侧三角
-            (Vector3, Vector3) outerCornerOffsets = ChessBoardConfig.GetOuterCornerOffsets(dir);
+            (Vector3, Vector3) outerCornerOffsets = ChessBoardUtils.GetOuterCornerOffsets(dir);
             // 注意两个三角的顶点顺序是反过来的
-            ground.AddTriangle(
+            groundMesh.AddTriangle(
                 cell.centerPosInChunk + innerCornerOffsets.Item1,
                 cell.centerPosInChunk + outerCornerOffsets.Item1,
                 cell.centerPosInChunk + blendCornerOffsets.Item1
             );
-            ground.AddTriangleColor(
+            groundMesh.AddTriangleColor(
                 cell.cellColor,
                 cell.GetPointNeighborBlendColor(dir),
                 cell.GetLineNeighborBlendColor(dir)
             );
 
-            ground.AddTriangle(
+            groundMesh.AddTriangle(
                 cell.centerPosInChunk + innerCornerOffsets.Item2,
                 cell.centerPosInChunk + blendCornerOffsets.Item2,
                 cell.centerPosInChunk + outerCornerOffsets.Item2
             );
-            ground.AddTriangleColor(
+            groundMesh.AddTriangleColor(
                 cell.cellColor,
                 cell.GetLineNeighborBlendColor(dir),
                 cell.GetPointNeighborBlendColor(dir.GetNextDirection())
+            );
+        }
+
+        private void TriangulateCellRoad(RectCell cell, RectDirection dir)
+        {
+            // 道路内侧小三角
+            (Vector3, Vector3) roadOffset = ChessBoardUtils.GetRoadCornerOffsets(dir);
+            roadMesh.AddTriangle(
+                cell.centerPosInChunk,
+                cell.centerPosInChunk + roadOffset.Item1,
+                cell.centerPosInChunk + roadOffset.Item2
+            );
+            roadMesh.AddTriangleColor(
+                ChessBoardConfig.roadColor,
+                ChessBoardConfig.roadColor,
+                ChessBoardConfig.roadColor
             );
         }
 
