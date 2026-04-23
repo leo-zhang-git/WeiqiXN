@@ -8,9 +8,15 @@ public abstract class FSMBase
 
     public Dictionary<string, int> intParamDict = new Dictionary<string, int>();
     public Dictionary<string, float> floatParamDict = new Dictionary<string, float>();
-    public Dictionary<string, string> stringParamDict = new Dictionary<string, string>();
     public Dictionary<string, bool> boolParamDict = new Dictionary<string, bool>();
     public Dictionary<string, bool> triggerParamDict = new Dictionary<string, bool>();
+
+    public void Update()
+    {
+        if (curState != null) {
+            curState.OnUpdateState();
+        }
+    }
 
     public void RegisterState(FSMState state)
     {
@@ -51,17 +57,6 @@ public abstract class FSMBase
         }
     }
 
-    public void SetParameterString(string paramName, string paramVal)
-    {
-        if (stringParamDict.ContainsKey(paramName)) {
-            stringParamDict[paramName] = paramVal;
-            if (curState != null) {
-                curState.TryActivateTransitions();
-            }
-            XNLogger.LogInfo("FSM set string parameter.", ("paramName", paramName), ("paramVal", paramVal));
-        }
-    }
-
     public void SetParameterBool(string paramName, bool paramVal)
     {
         if (boolParamDict.ContainsKey(paramName)) {
@@ -70,6 +65,18 @@ public abstract class FSMBase
                 curState.TryActivateTransitions();
             }
             XNLogger.LogInfo("FSM set bool parameter.", ("paramName", paramName), ("paramVal", paramVal.ToString()));
+        }
+    }
+
+    public void SetParamterTrigger(string paramName)
+    {
+        if (triggerParamDict.ContainsKey(paramName)) {
+            triggerParamDict[paramName] = true;
+            if (curState != null) {
+                curState.TryActivateTransitions();
+            }
+            triggerParamDict[paramName] = false;
+            XNLogger.LogInfo("FSM set trigger parameter.", ("paramName", paramName));
         }
     }
 }

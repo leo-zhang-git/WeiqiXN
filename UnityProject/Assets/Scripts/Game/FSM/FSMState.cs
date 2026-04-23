@@ -5,7 +5,7 @@ public abstract class FSMState
 
     public string stateName;
     public FSMBase fsm;
-    public List<FSMTransitionBase> transitionList = new List<FSMTransitionBase>();
+    public List<FSMTransition> transitionList = new List<FSMTransition>();
 
     public FSMState(string stateName, FSMBase fsm)
     {
