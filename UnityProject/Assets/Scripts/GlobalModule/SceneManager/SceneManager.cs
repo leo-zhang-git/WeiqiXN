@@ -18,7 +18,7 @@ public class SceneManager : ModuleBase
         }
     }
 
-    public void EnterMainScene(string sceneTypeId, string saveFilePath = "")
+    public void EnterMainScene(string sceneTypeId, SceneCreateParams sceneCreateParams)
     {
         SceneDataType sceneData = SceneDataType.GetConfigData(sceneTypeId);
         if (sceneData == null) {
@@ -26,7 +26,7 @@ public class SceneManager : ModuleBase
             return;
         }
 
-        if (CreateSceneWithConfigData(sceneData, out SceneBase scene)) {
+        if (CreateSceneWithConfigData(sceneData, sceneCreateParams, out SceneBase scene)) {
             ExitMainScene();
             mainScene = scene;
         } else {
@@ -34,8 +34,8 @@ public class SceneManager : ModuleBase
             return;
         }
 
-        if (!string.IsNullOrEmpty(saveFilePath)) {
-            scene.RestoreSceneData(saveFilePath);
+        if (!string.IsNullOrEmpty(sceneCreateParams.saveFilePath)) {
+            scene.RestoreSceneData(sceneCreateParams.saveFilePath);
         }
         scene.LoadScene();
         XNLogger.LogInfo("Enter main scene success.", ("sceneTypeId", sceneTypeId));
@@ -50,16 +50,16 @@ public class SceneManager : ModuleBase
         }
     }
 
-    private bool CreateSceneWithConfigData(SceneDataType sceneData, out SceneBase scene)
+    private bool CreateSceneWithConfigData(SceneDataType sceneData, SceneCreateParams sceneCreateParams, out SceneBase scene)
     {
         scene = null;
         if (Enum.TryParse(sceneData.sceneType, out SceneConfig.SceneTypeEnum sceneType)) {
             switch (sceneType) {
                 case SceneConfig.SceneTypeEnum.MainMenu:
-                    scene = new MainMenuScene(sceneData);
+                    scene = new MainMenuScene(sceneData, sceneCreateParams);
                     return true;
                 case SceneConfig.SceneTypeEnum.Duel:
-                    scene = new DuelScene(sceneData);
+                    scene = new DuelScene(sceneData, sceneCreateParams);
                     return true;
             }
         }

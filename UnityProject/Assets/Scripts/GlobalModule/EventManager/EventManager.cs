@@ -51,7 +51,7 @@ public class EventManager : ModuleBase
 
     public void EmitEntityEvent<TEntity, TEvent>(TEntity entity, TEvent entityEvent) where TEntity : EntityBase where TEvent : EntityEventBase
     {
-        XNLogger.LogInfo("Emit entity event.", ("eventName", entityEvent.GetEventType()), ("entityType", entity.GetEntityType()));
+        XNLogger.LogInfo("Emit entity event.", ("eventName", entityEvent.GetEventType()), ("entityType", entity.entityType));
         if (entityEventHandlers.TryGetValue(entityEvent.GetEventType(), out var handlerSet)) {
             foreach (var handler in handlerSet) {
                 if (handler.entityType == entityEvent.GetEventType()) {

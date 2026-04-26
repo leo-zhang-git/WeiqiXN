@@ -1,15 +1,14 @@
 using System.Collections.Generic;
 
-public abstract class FSMState
+public abstract class FSMStateBase
 {
 
-    public string stateName;
+    public abstract string stateName { get; }
     public FSMBase fsm;
-    public List<FSMTransition> transitionList = new List<FSMTransition>();
+    protected List<FSMTransition> transitionList = new List<FSMTransition>();
 
-    public FSMState(string stateName, FSMBase fsm)
+    public FSMStateBase(FSMBase fsm)
     {
-        this.stateName = stateName;
         this.fsm = fsm;
     }
 
@@ -28,6 +27,13 @@ public abstract class FSMState
         if (fsm.curState != null && fsm.curState.stateName == stateName) {
             fsm.curState = null;
         }
+    }
+
+    public FSMTransition AddTransition(FSMStateBase dstState)
+    {
+        FSMTransition transtion = new FSMTransition(this, dstState);
+        transitionList.Add(transtion);
+        return transtion;
     }
 
     public void TryActivateTransitions()

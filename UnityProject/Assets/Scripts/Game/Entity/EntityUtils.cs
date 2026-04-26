@@ -15,4 +15,13 @@ public static class EntityUtils
         }
         return $"{entityType}_{timeStamp}_{_guidInc}";
     }
+
+    public static Player CreatePlayer(SceneBase scene, PlayerFlag playerFlag)
+    {
+        string guid = CreateGuidWithEntityType(EntityBase.GetEntityType<Player>());
+        Player player = new Player(scene, guid, playerFlag);
+        scene.AddEntity(player);
+
+        return player;
+    }
 }

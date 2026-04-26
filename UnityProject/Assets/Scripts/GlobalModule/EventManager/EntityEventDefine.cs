@@ -29,7 +29,7 @@ public class EntityEventHandler<TEntity, TEvent> : IEntityEventHandler where TEn
         } else {
             XNLogger.LogError("Type not matched, execute entity event failed.",
                 ("dstEntity", EntityBase.GetEntityType<TEntity>()), ("dstEvent", EntityEventBase.GetEventType<TEvent>()),
-                ("srcEntity", entity.GetEntityType()), ("srcEvent", entityEvent.GetEventType())
+                ("srcEntity", entity.entityType), ("srcEvent", entityEvent.GetEventType())
             );
         }
     }

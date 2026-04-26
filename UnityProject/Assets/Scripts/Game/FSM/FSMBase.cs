@@ -3,22 +3,30 @@ using XNClient.Logger;
 
 public abstract class FSMBase
 {
-    public FSMState curState;
-    public Dictionary<string, FSMState> stateDict = new Dictionary<string, FSMState>();
+    public FSMStateBase curState;
+    protected FSMStateBase defaultState;
+    protected Dictionary<string, FSMStateBase> stateDict = new Dictionary<string, FSMStateBase>();
 
     public Dictionary<string, int> intParamDict = new Dictionary<string, int>();
     public Dictionary<string, float> floatParamDict = new Dictionary<string, float>();
     public Dictionary<string, bool> boolParamDict = new Dictionary<string, bool>();
     public Dictionary<string, bool> triggerParamDict = new Dictionary<string, bool>();
 
-    public void Update()
+    public virtual void Start()
+    {
+        if (defaultState != null) {
+            curState = defaultState;
+        }
+    }
+
+    public virtual void Update()
     {
         if (curState != null) {
             curState.OnUpdateState();
         }
     }
 
-    public void RegisterState(FSMState state)
+    public void RegisterState(FSMStateBase state)
     {
         if (stateDict.ContainsKey(state.stateName)) {
             XNLogger.LogError("Duplicated state name, register state for fsm failed.", ("stateName", state.stateName));
@@ -27,7 +35,7 @@ public abstract class FSMBase
         stateDict.Add(state.stateName, state);
     }
 
-    public bool TryGetState(string stateName, out FSMState state)
+    public bool TryGetState(string stateName, out FSMStateBase state)
     {
         if (stateDict.TryGetValue(stateName, out state)) {
             return true;

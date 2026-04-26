@@ -1,6 +1,6 @@
 ﻿public class MainMenuScene : SceneBase
 {
-    public MainMenuScene(SceneDataType configData) : base(configData)
+    public MainMenuScene(SceneDataType configData, SceneCreateParams sceneCreateParams) : base(configData, sceneCreateParams)
     {
     }
 

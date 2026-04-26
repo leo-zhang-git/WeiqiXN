@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using XNLogger = XNClient.Logger.XNLogger;
 
@@ -124,7 +125,8 @@ public class UIContext
 
     public void CloseAllPopupPages()
     {
-        foreach (var page in popupList) {
+        // 创建副本防止迭代器遍历时删除报错
+        foreach (var page in popupList.ToList()) {
             page.ClosePage();
         }
         popupList.Clear();

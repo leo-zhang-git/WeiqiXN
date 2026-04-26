@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 
-public abstract class EntityBase : ITimerAttacher
+public abstract class EntityBase : SavableObj, ITimerAttacher
 {
+    public abstract string entityType { get; }
     public readonly SceneBase scene;
     public string guid;
     public List<EntityComponentBase> compList = new List<EntityComponentBase>();
@@ -17,8 +18,6 @@ public abstract class EntityBase : ITimerAttacher
     {
         return typeof(TEntity).Name;
     }
-
-    public abstract string GetEntityType();
 
     #region LifeCycle
     protected virtual void OnDestroy()

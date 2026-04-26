@@ -1,12 +1,12 @@
-using UnityEngine;
-
 public class DuelScene : SceneBase
 {
     public SceneComponentChessBoard compChessBoard;
+    public SceneComponentDuel compDuel;
 
-    public DuelScene(SceneDataType configData) : base(configData)
+    public DuelScene(SceneDataType configData, SceneCreateParams sceneCreateParams) : base(configData, sceneCreateParams)
     {
         compChessBoard = new SceneComponentChessBoard(this);
+        compDuel = new SceneComponentDuel(this);
     }
 
     public override void OnSceneLoaded()
@@ -21,13 +21,6 @@ public class DuelScene : SceneBase
                 break;
             }
         }
-
-        // Test Code
-        string[] settings = new string[]
-        {
-            "9x9", "13x13", "19x19"
-        };
-        compChessBoard.boardCfgId.value = settings[Random.Range(0, settings.Length)];
 
         AddSystem(new DuelSaveSystem(this));
         AddSystem(new ChessBoardSystem(this));

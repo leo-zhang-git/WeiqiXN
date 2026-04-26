@@ -23,6 +23,12 @@
     "isPopup": true,
     "isLoadAsync": true
   },
+  "DuelSetupPopup": {
+    "id": "DuelSetupPopup",
+    "contextType": "General",
+    "isPopup": true,
+    "isLoadAsync": true
+  },
   "DuelPage": {
     "id": "DuelPage",
     "contextType": "Header",

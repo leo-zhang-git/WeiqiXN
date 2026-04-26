@@ -1,18 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public class DuelStateTurnEnd : MonoBehaviour
+public class DuelStateTurnEnd : FSMStateBase
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public override string stateName => DuelStateDefine.STATE_TURN_END;
 
-    // Update is called once per frame
-    void Update()
+    public DuelStateTurnEnd(FSMBase fsm) : base(fsm)
     {
-        
+
     }
 }

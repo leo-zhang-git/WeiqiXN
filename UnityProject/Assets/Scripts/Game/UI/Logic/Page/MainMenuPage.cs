@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using XNClient.Logger;
 
 public class MainMenuPage : UIPageWithBinder<MainMenuPageUI>
 {
@@ -25,13 +26,19 @@ public class MainMenuPage : UIPageWithBinder<MainMenuPageUI>
     {
         string saveFilePath = GameSaveConfig.GetDuelSceneSavePath(0);
         if (File.Exists(saveFilePath)) {
-            Global.Instance.sceneManager.EnterMainScene(SceneConfig.DUEL_SCENE_TYPE_ID, saveFilePath);
+            SceneCreateParams sceneCreateParams = new SceneCreateParams()
+            {
+                saveFilePath = saveFilePath,
+            };
+            Global.Instance.sceneManager.EnterMainScene(SceneConfig.DUEL_SCENE_TYPE_ID, sceneCreateParams);
+        } else {
+            XNLogger.LogError("Save file not exist, reload duel scene failed.", ("saveFilePath", saveFilePath));
         }
     }
 
     public void OnClickBtnNewGame()
     {
-        Global.Instance.sceneManager.EnterMainScene(SceneConfig.DUEL_SCENE_TYPE_ID);
+        Global.Instance.uiManager.ShowPage<DuelSetupPopup>();
     }
 
     public void OnClickBtnExit()

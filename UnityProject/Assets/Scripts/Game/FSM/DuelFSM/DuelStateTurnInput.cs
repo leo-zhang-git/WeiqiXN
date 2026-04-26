@@ -1,18 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public class DuelStateTurnInput : MonoBehaviour
+public class DuelStateTurnInput : FSMStateBase
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public override string stateName => DuelStateDefine.STATE_TURN_INPUT;
 
-    // Update is called once per frame
-    void Update()
+    public DuelStateTurnInput(FSMBase fsm) : base(fsm)
     {
-        
+
     }
 }

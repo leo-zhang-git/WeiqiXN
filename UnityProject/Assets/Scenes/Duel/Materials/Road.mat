@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Road
-  m_Shader: {fileID: 4800000, guid: 07f8122b472ac0c49854e092189f7f0b, type: 3}
+  m_Shader: {fileID: 4800000, guid: c834df9f50bd66a4da1a0f8442a413f2, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []

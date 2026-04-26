@@ -15,6 +15,16 @@ public class ChessBoardSystem : SceneSystem<DuelScene>
     {
         base.Init();
 
+        // 非读档进来的需要手动初始化
+        if (scene.sceneCreateParams.saveFilePath == null) {
+            if (scene.sceneCreateParams.duelSceneCreateParamas != null) {
+                scene.compChessBoard.boardCfgId.value = scene.sceneCreateParams.duelSceneCreateParamas.boardCfgId;
+            } else {
+                XNLogger.LogError("Scene create params for duel scene is empty, init scene with default values.");
+                scene.compChessBoard.boardCfgId.value = "9x9";
+            }
+        }
+
         chessBoardData = ChessBoardDataType.GetConfigData(scene.compChessBoard.boardCfgId.value);
         if (chessBoardData != null) {
             scene.compChessBoard.chessBoardGrid.InitGrid(chessBoardData.boardSize);

@@ -1,18 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public class DuelStateGameStart : MonoBehaviour
+public class DuelStateGameStart : FSMStateBase
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public override string stateName => DuelStateDefine.STATE_GAME_START;
 
-    // Update is called once per frame
-    void Update()
+    public DuelStateGameStart(FSMBase fsm) : base(fsm)
     {
-        
+
     }
 }

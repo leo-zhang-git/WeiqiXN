@@ -55,7 +55,7 @@ public class Global
             XNLogger.LogInfo("Ingame debug console go loaded.");
         }
 #endif
-        sceneManager.EnterMainScene(SceneConfig.MAIN_MENU_SCENE_TYPE_ID);
+        sceneManager.EnterMainScene(SceneConfig.MAIN_MENU_SCENE_TYPE_ID, SceneCreateParams.Default);
         User.Instance.Init();
     }
 

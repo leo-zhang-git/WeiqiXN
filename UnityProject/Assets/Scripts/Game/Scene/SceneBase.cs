@@ -6,6 +6,7 @@ using XNLogger = XNClient.Logger.XNLogger;
 public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
 {
     public readonly SceneDataType configData;
+    public SceneCreateParams sceneCreateParams;
     public bool isLoaded;
     protected AsyncOperation unitySceneLoadAsync;
     public Dictionary<string, EntityBase> entityDict = new Dictionary<string, EntityBase>();
@@ -18,9 +19,10 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
 
     public bool isMainScene => Global.Instance.sceneManager.mainScene == this;
 
-    public SceneBase(SceneDataType configData)
+    public SceneBase(SceneDataType configData, SceneCreateParams sceneCreateParams)
     {
         this.configData = configData;
+        this.sceneCreateParams = sceneCreateParams;
     }
 
     #region LifeCycle
@@ -200,9 +202,9 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
         entityDict[entity.guid] = entity;
 
         HashSet<EntityBase> entSet;
-        if (!entityTypeDict.TryGetValue(entity.GetEntityType(), out entSet)) {
+        if (!entityTypeDict.TryGetValue(entity.entityType, out entSet)) {
             entSet = new HashSet<EntityBase>();
-            entityTypeDict[entity.GetEntityType()] = entSet;
+            entityTypeDict[entity.entityType] = entSet;
         }
         entSet.Add(entity);
         XNLogger.LogInfo("Add entity success.", ("guid", entity.guid));
@@ -217,7 +219,7 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
         entityDict.Remove(entity.guid);
 
         HashSet<EntityBase> entSet;
-        if (entityTypeDict.TryGetValue(entity.GetEntityType(), out entSet)) {
+        if (entityTypeDict.TryGetValue(entity.entityType, out entSet)) {
             entSet.Remove(entity);
         }
         XNLogger.LogInfo("Remove entity success.", ("guid", entity.guid), ("sceneTypeId", configData.id));
@@ -235,7 +237,7 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
     public TEntity GetEntity<TEntity>(string guid) where TEntity : EntityBase
     {
         if (entityDict.TryGetValue(guid, out var entity)) {
-            if (entity.GetEntityType() == EntityBase.GetEntityType<TEntity>()) {
+            if (entity.entityType == EntityBase.GetEntityType<TEntity>()) {
                 return (TEntity)entity;
             }
         }
