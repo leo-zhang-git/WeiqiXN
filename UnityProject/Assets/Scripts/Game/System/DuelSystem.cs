@@ -1,7 +1,6 @@
 public class DuelSystem : SceneSystem<DuelScene>
 {
     public override string systemName => GetSystemName<DuelSystem>();
-    public DuelFSM duelFSM;
 
     public DuelSystem(DuelScene scene) : base(scene)
     {
@@ -21,8 +20,6 @@ public class DuelSystem : SceneSystem<DuelScene>
 
             scene.compDuel.curTurnPlayerGuid.value = player1.guid;
         }
-
-        duelFSM = new DuelFSM(this);
     }
 
     public override void OnUpdate()

@@ -6,8 +6,25 @@
     {
         base.OnLoaded();
 
+        RegisterSystemEvent<OnDuelStateChanged>(OnDuelStateChanged);
+
         binder.btn_save.onClick.AddListener(OnClickBtnSave);
         binder.btn_exit.onClick.AddListener(OnClickBtnExit);
+    }
+
+    protected override void OnShow()
+    {
+        base.OnShow();
+
+        DuelScene scene = Global.Instance.sceneManager.mainScene as DuelScene;
+        if (scene != null) {
+            binder.txt_cur_state.text = scene.compDuel.duelFSM.curState.stateName;
+        }
+    }
+
+    public void OnDuelStateChanged(OnDuelStateChanged evt)
+    {
+        binder.txt_cur_state.text = evt.curStateName;
     }
 
     public void OnClickBtnSave()

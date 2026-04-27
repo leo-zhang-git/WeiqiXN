@@ -1,8 +1,8 @@
-public class DuelStateGameEnd : FSMStateBase
+public class DuelStateGameEnd : DuelFSMState
 {
     public override string stateName => "gameEnd";
 
-    public DuelStateGameEnd(FSMBase fsm) : base(fsm)
+    public DuelStateGameEnd(DuelFSM fsm) : base(fsm)
     {
 
     }

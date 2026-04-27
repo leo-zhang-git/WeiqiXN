@@ -1,8 +1,8 @@
-public class DuelStateGameStart : FSMStateBase
+public class DuelStateGameStart : FSMStateFixed<DuelFSM>
 {
     public override string stateName => DuelStateDefine.STATE_GAME_START;
 
-    public DuelStateGameStart(FSMBase fsm) : base(fsm)
+    public DuelStateGameStart(DuelFSM fsm) : base(fsm)
     {
 
     }

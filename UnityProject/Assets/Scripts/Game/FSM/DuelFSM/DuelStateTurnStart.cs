@@ -1,8 +1,8 @@
-public class DuelStateTurnStart : FSMStateBase
+public class DuelStateTurnStart : FSMStateFixed<DuelFSM>
 {
     public override string stateName => DuelStateDefine.STATE_TURN_START;
 
-    public DuelStateTurnStart(FSMBase fsm) : base(fsm)
+    public DuelStateTurnStart(DuelFSM fsm) : base(fsm)
     {
 
     }

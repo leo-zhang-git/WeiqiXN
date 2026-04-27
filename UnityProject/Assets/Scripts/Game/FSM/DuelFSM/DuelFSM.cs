@@ -1,17 +1,10 @@
 public class DuelFSM : FSMBase
 {
-    private DuelSystem duelSystem;
-    public DuelScene scene
-    {
-        get
-        {
-            return duelSystem.scene;
-        }
-    }
+    public DuelScene scene;
 
-    public DuelFSM(DuelSystem duelSystem)
+    public DuelFSM(DuelScene scene)
     {
-        this.duelSystem = duelSystem;
+        this.scene = scene;
 
         // State define
         DuelStateGameStart stateGameStart = new DuelStateGameStart(this);

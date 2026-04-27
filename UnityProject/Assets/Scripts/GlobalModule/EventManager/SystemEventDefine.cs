@@ -61,3 +61,13 @@ public class OnSaveDuelScene : SystemEventBase
     public override string GetEventType() => GetEventType<OnSaveDuelScene>();
 }
 
+public class OnDuelStateChanged : SystemEventBase
+{
+    public override string GetEventType() => GetEventType<OnDuelStateChanged>();
+
+    public string curStateName;
+    public OnDuelStateChanged(string curStateName)
+    {
+        this.curStateName = curStateName;
+    }
+}
