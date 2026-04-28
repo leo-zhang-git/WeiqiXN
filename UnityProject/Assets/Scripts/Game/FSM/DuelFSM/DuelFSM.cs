@@ -1,8 +1,8 @@
 public class DuelFSM : FSMBase
 {
-    public DuelScene scene;
+    public SceneBase scene;
 
-    public DuelFSM(DuelScene scene)
+    public DuelFSM(SceneBase scene)
     {
         this.scene = scene;
 

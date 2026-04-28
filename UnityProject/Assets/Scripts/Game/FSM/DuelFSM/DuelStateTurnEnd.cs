@@ -11,10 +11,13 @@ public class DuelStateTurnEnd : DuelFSMState
     {
         base.OnEnterState();
 
-        if (fsm.scene.compDuel.curTurnPlayerGuid.value == fsm.scene.compDuel.player1Guid.value) {
-            fsm.scene.compDuel.curTurnPlayerGuid.value = fsm.scene.compDuel.player2Guid.value;
-        } else {
-            fsm.scene.compDuel.curTurnPlayerGuid.value = fsm.scene.compDuel.player1Guid.value;
+        var compDuel = fsm.scene.GetComponent<SceneComponentDuel>();
+        if (compDuel != null) {
+            if (compDuel.curTurnPlayerGuid.value == compDuel.player1Guid.value) {
+                compDuel.curTurnPlayerGuid.value = compDuel.player2Guid.value;
+            } else {
+                compDuel.curTurnPlayerGuid.value = compDuel.player1Guid.value;
+            }
         }
 
         fsm.SetParamterTrigger(DuelParamDefine.TRIGGER_PARAM_TURN_START);

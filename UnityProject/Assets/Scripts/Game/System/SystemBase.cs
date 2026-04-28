@@ -3,7 +3,8 @@ using System;
 public abstract class SystemBase
 {
     public abstract string systemName { get; }
-    private SceneBase scene;
+    [SkipSavableCheck]
+    public SceneBase scene;
 
     public SystemBase(SceneBase scene)
     {
@@ -47,14 +48,3 @@ public abstract class SystemBase
     }
     #endregion
 }
-
-public abstract class SceneSystem<TScene> : SystemBase where TScene : SceneBase
-{
-    public TScene scene;
-
-    protected SceneSystem(TScene scene) : base(scene)
-    {
-        this.scene = scene;
-    }
-}
-

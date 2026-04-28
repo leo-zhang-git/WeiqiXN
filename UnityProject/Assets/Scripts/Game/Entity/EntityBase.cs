@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using XNClient.Logger;
 
 public abstract class EntityBase : SavableObj, ITimerAttacher
 {
     public abstract string entityType { get; }
     public readonly SceneBase scene;
     public string guid;
-    public List<EntityComponentBase> compList = new List<EntityComponentBase>();
+    public Dictionary<Type, EntityComponentBase> compDict = new Dictionary<Type, EntityComponentBase>();
 
     public EntityBase(SceneBase scene, string guid)
     {
@@ -19,14 +21,33 @@ public abstract class EntityBase : SavableObj, ITimerAttacher
         return typeof(TEntity).Name;
     }
 
+    public void AddComponent<TComponent>(TComponent comp) where TComponent : EntityComponentBase
+    {
+        if (compDict.ContainsKey(typeof(TComponent))) {
+            XNLogger.LogError("Try add duplicated component to entity, add entity component failed.", ("component", typeof(TComponent).Name));
+        } else {
+            compDict[typeof(TComponent)] = comp;
+        }
+    }
+
+    public TComponent GetComponent<TComponent>() where TComponent : EntityComponentBase
+    {
+        if (compDict.TryGetValue(typeof(TComponent), out EntityComponentBase comp)) {
+            return (TComponent)comp;
+        } else {
+            return null;
+        }
+    }
+
     #region LifeCycle
     protected virtual void OnDestroy()
     {
         OnTimerAttacherDestroyed();
 
-        foreach (var comp in compList) {
+        foreach (var comp in compDict.Values.ToList()) {
             comp.OnDestroy();
         }
+        compDict.Clear();
     }
 
     public void Destroy()

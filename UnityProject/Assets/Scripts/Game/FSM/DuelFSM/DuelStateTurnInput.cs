@@ -12,9 +12,13 @@ public class DuelStateTurnInput : DuelFSMState
     {
         base.OnEnterState();
 
-        Player curPlayer = fsm.scene.GetEntity<Player>(fsm.scene.compDuel.curTurnPlayerGuid.value);
+        var compDuel = fsm.scene.GetComponent<SceneComponentDuel>();
+        if (compDuel == null) return;
+
+        Player curPlayer = fsm.scene.GetEntity<Player>(compDuel.curTurnPlayerGuid.value);
         if (curPlayer != null) {
-            curPlayer.compDuelInfo.turnLeftTimes.value = 30;
+            var compDuelInfo = curPlayer.GetComponent<ComponentDuelInfo>();
+            compDuelInfo.turnLeftTimes.value = 30;
             turnTimer = fsm.scene.SetSecondInterval(1, OnTurnPassSecond);
         }
     }
@@ -23,9 +27,13 @@ public class DuelStateTurnInput : DuelFSMState
     {
         base.OnUpdateState();
 
-        Player curPlayer = fsm.scene.GetEntity<Player>(fsm.scene.compDuel.curTurnPlayerGuid.value);
+        var compDuel = fsm.scene.GetComponent<SceneComponentDuel>();
+        if (compDuel == null) return;
+
+        Player curPlayer = fsm.scene.GetEntity<Player>(compDuel.curTurnPlayerGuid.value);
         if (curPlayer != null) {
-            if (curPlayer.compDuelInfo.turnLeftTimes.value <= 0) {
+            var compDuelInfo = curPlayer.GetComponent<ComponentDuelInfo>();
+            if (compDuelInfo != null && compDuelInfo.turnLeftTimes.value <= 0) {
                 fsm.SetParamterTrigger(DuelParamDefine.TRIGGER_PARAM_TURN_TIMEOUT);
             }
         }
@@ -42,9 +50,15 @@ public class DuelStateTurnInput : DuelFSMState
 
     public void OnTurnPassSecond()
     {
-        Player curPlayer = fsm.scene.GetEntity<Player>(fsm.scene.compDuel.curTurnPlayerGuid.value);
+        var compDuel = fsm.scene.GetComponent<SceneComponentDuel>();
+        if (compDuel == null) return;
+
+        Player curPlayer = fsm.scene.GetEntity<Player>(compDuel.curTurnPlayerGuid.value);
         if (curPlayer != null) {
-            curPlayer.compDuelInfo.turnLeftTimes.value -= 1;
+            var compDuelInfo = curPlayer.GetComponent<ComponentDuelInfo>();
+            if (compDuelInfo != null) {
+                compDuelInfo.turnLeftTimes.value -= 1;
+            }
         }
     }
 }

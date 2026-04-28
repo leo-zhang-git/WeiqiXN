@@ -1,12 +1,12 @@
 using UnityEngine;
 using XNClient.Logger;
 
-public class ChessBoardSystem : SceneSystem<DuelScene>
+public class ChessBoardSystem : SystemBase
 {
     public override string systemName => GetSystemName<ChessBoardSystem>();
     public ChessBoardDataType chessBoardData;
 
-    public ChessBoardSystem(DuelScene scene) : base(scene)
+    public ChessBoardSystem(SceneBase scene) : base(scene)
     {
 
     }
@@ -15,40 +15,44 @@ public class ChessBoardSystem : SceneSystem<DuelScene>
     {
         base.Init();
 
+        var compChessBoard = scene.GetComponent<SceneComponentChessBoard>();
+        if (compChessBoard == null) return;
+
         // 非读档进来的需要手动初始化
         if (scene.sceneCreateParams.saveFilePath == null) {
             if (scene.sceneCreateParams.duelSceneCreateParamas != null) {
-                scene.compChessBoard.boardCfgId.value = scene.sceneCreateParams.duelSceneCreateParamas.boardCfgId;
+                compChessBoard.boardCfgId.value = scene.sceneCreateParams.duelSceneCreateParamas.boardCfgId;
             } else {
                 XNLogger.LogError("Scene create params for duel scene is empty, init scene with default values.");
-                scene.compChessBoard.boardCfgId.value = "9x9";
+                compChessBoard.boardCfgId.value = "9x9";
             }
         }
 
-        chessBoardData = ChessBoardDataType.GetConfigData(scene.compChessBoard.boardCfgId.value);
+        chessBoardData = ChessBoardDataType.GetConfigData(compChessBoard.boardCfgId.value);
         if (chessBoardData != null) {
-            scene.compChessBoard.chessBoardGrid.InitGrid(chessBoardData.boardSize);
-            Bounds gridBounds = scene.compChessBoard.chessBoardGrid.GetGridBounds();
+            compChessBoard.chessBoardGrid.InitGrid(chessBoardData.boardSize);
+            Bounds gridBounds = compChessBoard.chessBoardGrid.GetGridBounds();
             InitDuelVCam(gridBounds);
         } else {
-            XNLogger.LogError("Chess board config not found!", ("chessBoardCfgId", scene.compChessBoard.boardCfgId.value));
+            XNLogger.LogError("Chess board config not found!", ("chessBoardCfgId", compChessBoard.boardCfgId.value));
         }
     }
 
     private void InitDuelVCam(Bounds gridBound)
     {
-        if (scene.compChessBoard.duelVCam == null) {
+        var compChessBoard = scene.GetComponent<SceneComponentChessBoard>();
+        if (compChessBoard.duelVCam == null) {
             XNLogger.LogError("Duel virtual camera not found, init camera failed.");
             return;
         }
 
-        Transform duelVCamTransform = scene.compChessBoard.duelVCam.transform;
+        Transform duelVCamTransform = compChessBoard.duelVCam.transform;
 
         // 让相机始终垂直朝向 y 轴负方向，形成俯视棋盘的视角
         duelVCamTransform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);
 
-        float nearClipPlane = scene.compChessBoard.duelVCam.m_Lens.NearClipPlane;
-        float halfVerticalFovRad = scene.compChessBoard.duelVCam.m_Lens.FieldOfView * 0.5f * Mathf.Deg2Rad;
+        float nearClipPlane = compChessBoard.duelVCam.m_Lens.NearClipPlane;
+        float halfVerticalFovRad = compChessBoard.duelVCam.m_Lens.FieldOfView * 0.5f * Mathf.Deg2Rad;
         float aspect = Camera.main != null ? Camera.main.aspect : 16f / 9f;
 
         // 先计算近平面在当前镜头参数下的半高和半宽

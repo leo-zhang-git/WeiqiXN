@@ -1,4 +1,4 @@
-public class DuelSystem : SceneSystem<DuelScene>
+public class DuelSystem : SystemBase
 {
     public override string systemName => GetSystemName<DuelSystem>();
 
@@ -13,14 +13,16 @@ public class DuelSystem : SceneSystem<DuelScene>
 
         // 非读档进来的需要手动初始化
         if (scene.sceneCreateParams.saveFilePath == null) {
-            Player player1 = EntityUtils.CreatePlayer(scene, PlayerFlag.Player1);
-            scene.compDuel.player1Guid.value = player1.guid;
-            Player player2 = EntityUtils.CreatePlayer(scene, PlayerFlag.Player2);
-            scene.compDuel.player2Guid.value = player2.guid;
+            var compDuel = scene.GetComponent<SceneComponentDuel>();
+            if (compDuel != null) {
+                Player player1 = EntityUtils.CreatePlayer(scene, PlayerFlag.Player1);
+                compDuel.player1Guid.value = player1.guid;
+                Player player2 = EntityUtils.CreatePlayer(scene, PlayerFlag.Player2);
+                compDuel.player2Guid.value = player2.guid;
+                compDuel.curTurnPlayerGuid.value = player1.guid;
 
-            scene.compDuel.curTurnPlayerGuid.value = player1.guid;
-
-            scene.compDuel.duelFSM.Activate();
+                compDuel.duelFSM.Activate();
+            }
         } else {
             // TODO restore duelFSM
         }
@@ -30,8 +32,11 @@ public class DuelSystem : SceneSystem<DuelScene>
     {
         base.OnUpdate();
 
-        if (scene.compDuel.duelFSM.isActivated) {
-            scene.compDuel.duelFSM.Update();
+        var compDuel = scene.GetComponent<SceneComponentDuel>();
+        if (compDuel != null) {
+            if (compDuel.duelFSM.isActivated) {
+                compDuel.duelFSM.Update();
+            }
         }
     }
 }

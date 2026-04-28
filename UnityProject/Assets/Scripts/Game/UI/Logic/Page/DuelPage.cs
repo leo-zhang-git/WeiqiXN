@@ -33,19 +33,21 @@
 
     public void RefreshDebugPanel()
     {
-        DuelScene scene = Global.Instance.sceneManager.mainScene as DuelScene;
-        if (scene != null) {
-            if (scene.compDuel.duelFSM.isActivated) {
-                binder.txt_cur_state.text = scene.compDuel.duelFSM.curState.stateName;
-                switch (scene.compDuel.duelFSM.curState.stateName) {
-                    case DuelStateDefine.STATE_TURN_INPUT:
-                        Player player = scene.GetEntity<Player>(scene.compDuel.curTurnPlayerGuid.value);
-                        if (player != null) {
-                            binder.txt_cur_player.text = player.guid;
-                            binder.txt_turn_time.text = player.compDuelInfo.turnLeftTimes.value.ToString();
+        var mainScene = Global.Instance.sceneManager.mainScene;
+        var compDuel = mainScene.GetComponent<SceneComponentDuel>();
+        if (compDuel != null && compDuel.duelFSM.isActivated) {
+            binder.txt_cur_state.text = compDuel.duelFSM.curState.stateName;
+            switch (compDuel.duelFSM.curState.stateName) {
+                case DuelStateDefine.STATE_TURN_INPUT:
+                    Player player = mainScene.GetEntity<Player>(compDuel.curTurnPlayerGuid.value);
+                    if (player != null) {
+                        binder.txt_cur_player.text = player.guid;
+                        var compDuelInfo = player.GetComponent<ComponentDuelInfo>();
+                        if (compDuelInfo != null) {
+                            binder.txt_turn_time.text = compDuelInfo.turnLeftTimes.value.ToString();
                         }
-                        break;
-                }
+                    }
+                    break;
             }
         }
     }

@@ -1,4 +1,4 @@
-public class DuelSaveSystem : SceneSystem<DuelScene>
+public class DuelSaveSystem : SystemBase
 {
     public override string systemName => GetSystemName<DuelSaveSystem>();
 

@@ -1,4 +1,4 @@
-﻿public class SceneComponentDuel : SceneComponentFixed<DuelScene>
+﻿public class SceneComponentDuel : SceneComponentBase
 {
     public SavableField<string> player1Guid = SavableFieldFactory.CreateStringField(string.Empty);
     public SavableField<string> player2Guid = SavableFieldFactory.CreateStringField(string.Empty);
@@ -6,7 +6,7 @@
 
     public DuelFSM duelFSM;
 
-    public SceneComponentDuel(DuelScene scene) : base(scene)
+    public SceneComponentDuel(SceneBase scene) : base(scene)
     {
         duelFSM = new DuelFSM(scene);
     }

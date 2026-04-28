@@ -10,12 +10,11 @@ public class Player : EntityBase
     public override string entityType => GetEntityType<Player>();
 
     public SavableField<int> playerFlag = SavableFieldFactory.CreateIntField(0);
-    public ComponentDuelInfo compDuelInfo;
 
     public Player(SceneBase scene, string guid, PlayerFlag playerFlag) : base(scene, guid)
     {
         this.playerFlag.value = (int)playerFlag;
 
-        compDuelInfo = new ComponentDuelInfo(this);
+        AddComponent(new ComponentDuelInfo(this));
     }
 }

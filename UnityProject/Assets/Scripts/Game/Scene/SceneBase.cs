@@ -12,7 +12,7 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
     protected AsyncOperation unitySceneLoadAsync;
     public Dictionary<string, EntityBase> entityDict = new Dictionary<string, EntityBase>();
     public Dictionary<string, HashSet<EntityBase>> entityTypeDict = new Dictionary<string, HashSet<EntityBase>>();
-    public List<SceneComponentBase> compList = new List<SceneComponentBase>();
+    public Dictionary<Type, SceneComponentBase> compDict = new Dictionary<Type, SceneComponentBase>();
 
     protected UnityEngine.SceneManagement.Scene unityScene;
     private List<SystemBase> systemList = new List<SystemBase>();
@@ -68,10 +68,10 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
             entity.Destroy();
         }
         entityDict.Clear();
-        foreach (var comp in compList) {
+        foreach (var comp in compDict.Values.ToList()) {
             comp.OnDestroy();
         }
-        compList.Clear();
+        compDict.Clear();
 
         if (!isLoaded) {
             UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnUnitySceneLoaded;
@@ -96,6 +96,24 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
         }
 
         OnUpdate();
+    }
+
+    public void AddComponent<TComponent>(TComponent comp) where TComponent : SceneComponentBase
+    {
+        if (compDict.ContainsKey(typeof(TComponent))) {
+            XNLogger.LogError("Try add duplicated component to scene, add scene component failed.", ("component", typeof(TComponent).Name));
+        } else {
+            compDict[typeof(TComponent)] = comp;
+        }
+    }
+
+    public TComponent GetComponent<TComponent>() where TComponent : SceneComponentBase
+    {
+        if (compDict.TryGetValue(typeof(TComponent), out SceneComponentBase comp)) {
+            return (TComponent)comp;
+        } else {
+            return null;
+        }
     }
     #endregion
 

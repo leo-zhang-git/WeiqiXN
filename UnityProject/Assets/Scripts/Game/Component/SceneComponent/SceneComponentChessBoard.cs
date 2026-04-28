@@ -1,7 +1,7 @@
 using Cinemachine;
 using XNClient.ChessBoard;
 
-public class SceneComponentChessBoard : SceneComponentFixed<DuelScene>
+public class SceneComponentChessBoard : SceneComponentBase
 {
     public SavableField<string> boardCfgId = SavableFieldFactory.CreateStringField(string.Empty);
 
