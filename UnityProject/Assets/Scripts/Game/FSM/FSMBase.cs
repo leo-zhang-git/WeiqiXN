@@ -4,12 +4,21 @@ using XNClient.Logger;
 public abstract class FSMBase
 {
     public FSMStateBase curState;
+    public bool isActivated;
+    protected FSMStateBase defaultState;
     protected Dictionary<string, FSMStateBase> stateDict = new Dictionary<string, FSMStateBase>();
 
     public Dictionary<string, int> intParamDict = new Dictionary<string, int>();
     public Dictionary<string, float> floatParamDict = new Dictionary<string, float>();
     public Dictionary<string, bool> boolParamDict = new Dictionary<string, bool>();
     public Dictionary<string, bool> triggerParamDict = new Dictionary<string, bool>();
+
+    public void Activate()
+    {
+        curState = defaultState;
+        defaultState.OnEnterState();
+        isActivated = true;
+    }
 
     public virtual void Update()
     {

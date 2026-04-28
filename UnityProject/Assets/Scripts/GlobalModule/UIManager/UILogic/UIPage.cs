@@ -102,6 +102,15 @@ public abstract class UIPage : UILogicBase
         }
     }
 
+    protected override void OnUpdate()
+    {
+        base.OnUpdate();
+
+        foreach (var widget in childWidgets) {
+            widget.UpdateWidget();
+        }
+    }
+
     protected override void OnClose()
     {
         foreach (var widget in childWidgets) {
@@ -133,6 +142,13 @@ public abstract class UIPage : UILogicBase
                 OnUnityResourceLoaded(pageGO);
             }
         }
+    }
+
+    public void UpdatePage()
+    {
+        if (!isLoaded) return;
+
+        OnUpdate();
     }
 
     public void ClosePage()

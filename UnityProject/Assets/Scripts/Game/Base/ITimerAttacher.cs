@@ -5,13 +5,13 @@ public interface ITimerAttacher
 {
     List<string> attachedTimerIds { get; }
 
-    public void SetSecondTimeout(float targetSeconds, Action timerCB);
+    public SecondTimeoutTimer SetSecondTimeout(float targetSeconds, Action timerCB);
 
-    public void SetSecondInterval(float intervalSeconds, Action timerCB, int targetRepeatTimes = -1, float firstDelaySeconds = 0);
+    public SecondIntervalTimer SetSecondInterval(float intervalSeconds, Action timerCB, int targetRepeatTimes = -1, float firstDelaySeconds = 0);
 
-    public void SetFrameTimeout(int targetFrames, Action timerCB);
+    public FrameTimeoutTimer SetFrameTimeout(int targetFrames, Action timerCB);
 
-    public void SetFrameInterval(int intervalFrames, Action timerCB, int targetRepeatTimes = -1, int firstDelayFrames = 0);
+    public FrameIntervalTimer SetFrameInterval(int intervalFrames, Action timerCB, int targetRepeatTimes = -1, int firstDelayFrames = 0);
 
     public void OnTimerAttacherDestroyed();
 }

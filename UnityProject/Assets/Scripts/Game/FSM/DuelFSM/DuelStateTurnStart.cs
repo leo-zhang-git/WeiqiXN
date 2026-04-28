@@ -11,6 +11,6 @@ public class DuelStateTurnStart : FSMStateFixed<DuelFSM>
     {
         base.OnEnterState();
 
-        fsm.SetParamterTrigger(DuelParamDefine.TRIGGER_PARAM_TURN_START);
+        fsm.SetParamterTrigger(DuelParamDefine.TRIGGER_PARAM_WAIT_TURN_INPUT);
     }
 }

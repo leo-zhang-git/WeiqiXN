@@ -62,6 +62,7 @@ namespace XNClient.Logger
                 logWritter.Close();
                 logWritter = null;
             }
+            _instance = null;
         }
 
         private void OnUnityLogReceived(string logString, string stackTrace, LogType type)

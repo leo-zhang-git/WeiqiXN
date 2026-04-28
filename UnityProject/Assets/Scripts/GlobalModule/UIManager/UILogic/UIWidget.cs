@@ -25,6 +25,17 @@ public abstract class UIWidget : UILogicBase
         this.owner = owner;
     }
 
+    public void UpdateWidget()
+    {
+        if (!isLoaded) return;
+
+        foreach (var widget in childWidgets) {
+            widget.UpdateWidget();
+        }
+
+        OnUpdate();
+    }
+
     public void CloseWidget()
     {
         foreach (var widget in childWidgets) {

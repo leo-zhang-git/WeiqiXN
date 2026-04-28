@@ -19,6 +19,10 @@ public class DuelSystem : SceneSystem<DuelScene>
             scene.compDuel.player2Guid.value = player2.guid;
 
             scene.compDuel.curTurnPlayerGuid.value = player1.guid;
+
+            scene.compDuel.duelFSM.Activate();
+        } else {
+            // TODO restore duelFSM
         }
     }
 
@@ -26,7 +30,7 @@ public class DuelSystem : SceneSystem<DuelScene>
     {
         base.OnUpdate();
 
-        if (scene.compDuel.duelFSM != null) {
+        if (scene.compDuel.duelFSM.isActivated) {
             scene.compDuel.duelFSM.Update();
         }
     }

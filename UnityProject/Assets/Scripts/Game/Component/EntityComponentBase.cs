@@ -1,4 +1,4 @@
-public class EntityComponentBase
+public class EntityComponentBase : SavableObj
 {
     public readonly EntityBase owner;
 
@@ -13,3 +13,15 @@ public class EntityComponentBase
 
     }
 }
+
+public class EntityComponentFixed<TEntity> : EntityComponentBase where TEntity : EntityBase
+{
+    [SkipSavableCheck]
+    public TEntity owner;
+
+    public EntityComponentFixed(TEntity owner) : base(owner)
+    {
+        this.owner = owner;
+    }
+}
+

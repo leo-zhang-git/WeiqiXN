@@ -16,6 +16,17 @@ public class UIContext
         baseCanvasOrder = UIUtils.GetUIContextBaseOrder(contextType);
     }
 
+    public void Update()
+    {
+        if (mainPageStack.Count > 0) {
+            mainPageStack.Last.Value.UpdatePage();
+        }
+
+        foreach (UIPage popupPage in popupList) {
+            popupPage.UpdatePage();
+        }
+    }
+
     public void OnDestroy()
     {
 

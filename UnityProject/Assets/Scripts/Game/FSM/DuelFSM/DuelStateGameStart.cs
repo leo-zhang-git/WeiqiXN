@@ -6,4 +6,11 @@ public class DuelStateGameStart : FSMStateFixed<DuelFSM>
     {
 
     }
+
+    public override void OnEnterState()
+    {
+        base.OnEnterState();
+
+        fsm.SetParamterTrigger(DuelParamDefine.TRIGGER_PARAM_GAME_START);
+    }
 }

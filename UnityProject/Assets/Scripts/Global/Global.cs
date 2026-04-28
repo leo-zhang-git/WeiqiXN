@@ -85,6 +85,8 @@ public class Global
         for (int i = moduleList.Count - 1; i >= 0; i--) {
             moduleList[i].OnDestroy();
         }
+        moduleList.Clear();
         User.Instance.Destroy();
+        _instance = null;
     }
 }

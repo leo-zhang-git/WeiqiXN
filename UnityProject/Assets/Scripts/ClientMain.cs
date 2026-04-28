@@ -43,6 +43,7 @@ public class ClientMain
     {
         Global.Instance.Destroy();
         XNLogger.Instance.Destroy();
+        _instance = null;
     }
 
 #if UNITY_EDITOR

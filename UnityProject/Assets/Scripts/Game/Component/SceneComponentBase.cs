@@ -17,10 +17,10 @@ public abstract class SceneComponentBase : SavableObj
 public abstract class SceneComponentFixed<TScene> : SceneComponentBase where TScene : SceneBase
 {
     [SkipSavableCheck]
-    public TScene owner;
+    public TScene scene;
 
     protected SceneComponentFixed(TScene scene) : base(scene)
     {
-        this.owner = scene;
+        this.scene = scene;
     }
 }

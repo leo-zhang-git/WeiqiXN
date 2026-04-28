@@ -6,4 +6,17 @@ public class DuelStateTurnEnd : DuelFSMState
     {
 
     }
+
+    public override void OnEnterState()
+    {
+        base.OnEnterState();
+
+        if (fsm.scene.compDuel.curTurnPlayerGuid.value == fsm.scene.compDuel.player1Guid.value) {
+            fsm.scene.compDuel.curTurnPlayerGuid.value = fsm.scene.compDuel.player2Guid.value;
+        } else {
+            fsm.scene.compDuel.curTurnPlayerGuid.value = fsm.scene.compDuel.player1Guid.value;
+        }
+
+        fsm.SetParamterTrigger(DuelParamDefine.TRIGGER_PARAM_TURN_START);
+    }
 }

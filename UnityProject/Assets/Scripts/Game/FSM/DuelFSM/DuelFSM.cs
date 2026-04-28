@@ -14,13 +14,27 @@ public class DuelFSM : FSMBase
         DuelStateTurnEnd stateTurnEnd = new DuelStateTurnEnd(this);
         DuelStateGameEnd stateGameEnd = new DuelStateGameEnd(this);
 
+        // Parameters define
+        triggerParamDict.Add(DuelParamDefine.TRIGGER_PARAM_GAME_START, false);
+        triggerParamDict.Add(DuelParamDefine.TRIGGER_PARAM_WAIT_TURN_INPUT, false);
+        triggerParamDict.Add(DuelParamDefine.TRIGGER_PARAM_TURN_INPUT_FINISH, false);
+        triggerParamDict.Add(DuelParamDefine.TRIGGER_PARAM_TURN_TIMEOUT, false);
+        triggerParamDict.Add(DuelParamDefine.TRIGGER_PARAM_TURN_START, false);
+
         // Transition define
-        FSMTransition transTurnStart = stateGameStart.AddTransition(stateTurnStart);
-        transTurnStart.AddTriggerCondition(DuelParamDefine.TRIGGER_PARAM_TURN_START);
+        FSMTransition transGameStart = stateGameStart.AddTransition(stateTurnStart);
+        transGameStart.AddTriggerCondition(DuelParamDefine.TRIGGER_PARAM_GAME_START);
+
         FSMTransition transWaitTurnInput = stateTurnStart.AddTransition(stateTurnInput);
         transWaitTurnInput.AddTriggerCondition(DuelParamDefine.TRIGGER_PARAM_WAIT_TURN_INPUT);
+
         FSMTransition transTurnInputFinish = stateTurnInput.AddTransition(stateTurnEnd);
         transTurnInputFinish.AddTriggerCondition(DuelParamDefine.TRIGGER_PARAM_TURN_INPUT_FINISH);
+        FSMTransition transTurnTimeout = stateTurnInput.AddTransition(stateTurnEnd);
+        transTurnTimeout.AddTriggerCondition(DuelParamDefine.TRIGGER_PARAM_TURN_TIMEOUT);
+
+        FSMTransition transTurnStart = stateTurnEnd.AddTransition(stateTurnStart);
+        transTurnStart.AddTriggerCondition(DuelParamDefine.TRIGGER_PARAM_TURN_START);
 
         RegisterState(stateGameStart);
         RegisterState(stateTurnStart);
@@ -29,6 +43,6 @@ public class DuelFSM : FSMBase
         RegisterState(stateTurnEnd);
         RegisterState(stateGameEnd);
 
-        curState = stateGameStart;
+        defaultState = stateGameStart;
     }
 }

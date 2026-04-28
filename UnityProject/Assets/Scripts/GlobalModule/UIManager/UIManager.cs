@@ -72,6 +72,10 @@ public class UIManager : ModuleBase
         foreach (string pageName in pendingDeleteCachePage) {
             cachePages.Remove(pageName);
         }
+
+        foreach (UIContext context in contextDict.Values) {
+            context.Update();
+        }
     }
 
     public void ShowPage<TPage>() where TPage : UIPage, new()

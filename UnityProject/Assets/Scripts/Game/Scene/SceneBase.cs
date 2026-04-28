@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using XNLogger = XNClient.Logger.XNLogger;
 
@@ -63,12 +64,14 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
 
     public virtual void OnSceneExit()
     {
-        foreach (var entity in entityDict.Values) {
+        foreach (var entity in entityDict.Values.ToList()) {
             entity.Destroy();
         }
+        entityDict.Clear();
         foreach (var comp in compList) {
             comp.OnDestroy();
         }
+        compList.Clear();
 
         if (!isLoaded) {
             UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnUnitySceneLoaded;
@@ -100,24 +103,24 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
     private List<string> _attachedTimerIds = new List<string>();
     public List<string> attachedTimerIds => _attachedTimerIds;
 
-    public void SetSecondTimeout(float targetSeconds, Action timerCB)
+    public SecondTimeoutTimer SetSecondTimeout(float targetSeconds, Action timerCB)
     {
-        Global.Instance.timerManager.SetSecondTimeout(this, targetSeconds, timerCB);
+        return Global.Instance.timerManager.SetSecondTimeout(this, targetSeconds, timerCB);
     }
 
-    public void SetSecondInterval(float intervalSeconds, Action timerCB, int targetRepeatTimes = -1, float firstDelaySeconds = 0)
+    public SecondIntervalTimer SetSecondInterval(float intervalSeconds, Action timerCB, int targetRepeatTimes = -1, float firstDelaySeconds = 0)
     {
-        Global.Instance.timerManager.SetSecondInterval(this, intervalSeconds, timerCB, targetRepeatTimes, firstDelaySeconds);
+        return Global.Instance.timerManager.SetSecondInterval(this, intervalSeconds, timerCB, targetRepeatTimes, firstDelaySeconds);
     }
 
-    public void SetFrameTimeout(int targetFrames, Action timerCB)
+    public FrameTimeoutTimer SetFrameTimeout(int targetFrames, Action timerCB)
     {
-        Global.Instance.timerManager.SetFrameTimeout(this, targetFrames, timerCB);
+        return Global.Instance.timerManager.SetFrameTimeout(this, targetFrames, timerCB);
     }
 
-    public void SetFrameInterval(int intervalFrames, Action timerCB, int targetRepeatTimes = -1, int firstDelayFrames = 0)
+    public FrameIntervalTimer SetFrameInterval(int intervalFrames, Action timerCB, int targetRepeatTimes = -1, int firstDelayFrames = 0)
     {
-        Global.Instance.timerManager.SetFrameInterval(this, intervalFrames, timerCB, targetRepeatTimes, firstDelayFrames);
+        return Global.Instance.timerManager.SetFrameInterval(this, intervalFrames, timerCB, targetRepeatTimes, firstDelayFrames);
     }
 
     public void OnTimerAttacherDestroyed()
