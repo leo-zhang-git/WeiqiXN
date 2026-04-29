@@ -28,6 +28,7 @@ public class DuelFSM : FSMBase
         RegisterState(stateWaitAction);
         RegisterState(stateTurnEnd);
         RegisterState(stateGameEnd);
-        defaultState = stateGameStart;
+
+        curState = stateGameStart;
     }
 }

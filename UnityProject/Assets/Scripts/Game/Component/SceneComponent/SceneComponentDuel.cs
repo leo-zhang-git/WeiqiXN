@@ -6,8 +6,8 @@
 
     public DuelFSM duelFSM;
 
-    public SceneComponentDuel(DuelScene owner) : base(owner)
+    public SceneComponentDuel(DuelScene scene) : base(scene)
     {
-        duelFSM = new DuelFSM(this);
+        duelFSM = new DuelFSM(scene);
     }
 }

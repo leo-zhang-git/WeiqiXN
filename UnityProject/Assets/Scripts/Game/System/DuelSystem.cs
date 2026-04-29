@@ -26,8 +26,8 @@ public class DuelSystem : SceneSystem<DuelScene>
     {
         base.OnUpdate();
 
-        if (duelFSM != null) {
-            duelFSM.Update();
+        if (scene.compDuel.duelFSM != null) {
+            scene.compDuel.duelFSM.Update();
         }
     }
 }

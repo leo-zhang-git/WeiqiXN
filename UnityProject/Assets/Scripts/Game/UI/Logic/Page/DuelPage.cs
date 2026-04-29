@@ -18,7 +18,9 @@
 
         DuelScene scene = Global.Instance.sceneManager.mainScene as DuelScene;
         if (scene != null) {
-            binder.txt_cur_state.text = scene.compDuel.duelFSM.curState.stateName;
+            if (scene.compDuel.duelFSM.curState != null) {
+                binder.txt_cur_state.text = scene.compDuel.duelFSM.curState.stateName;
+            }
         }
     }
 
