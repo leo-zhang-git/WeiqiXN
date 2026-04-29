@@ -2,6 +2,7 @@
 using UnityEditor;
 using XNClient.Logger;
 
+#if UNITY_EDITOR
 public class AssetDatabaseLoader : ResourceLoaderBase
 {
     public override bool CheckAssetExisits(string assetFullPath)
@@ -37,4 +38,4 @@ public class AssetDatabaseLoader : ResourceLoaderBase
         return null;
     }
 }
-
+#endif
