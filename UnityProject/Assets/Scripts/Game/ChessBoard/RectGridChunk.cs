@@ -13,6 +13,12 @@ namespace XNClient.ChessBoard
         private List<RectCell> cellList = new List<RectCell>();
         private bool isDirty;
 
+        // 设cell中心颜色为(1, 0, 0, 0)，设定edge面朝方向起顺时针的三个相邻cell的相对颜色
+        private static Color color1 = new Color(1f, 0f, 0f, 0f);
+        private static Color color2 = new Color(0f, 1f, 0f, 0f);
+        private static Color color3 = new Color(0f, 0f, 1f, 0f);
+        private static Color color4 = new Color(0f, 0f, 0f, 1f);
+
         private void LateUpdate()
         {
             if (isDirty) {
@@ -128,11 +134,7 @@ namespace XNClient.ChessBoard
                 cell.centerPosInChunk + edgeCornerOffsets.Item1,
                 cell.centerPosInChunk + edgeCornerOffsets.Item2
             );
-            groundMesh.AddTriangleColor(
-                cell.cellColor,
-                cell.cellColor,
-                cell.cellColor
-            );
+            groundMesh.AddTriangleColor(color1);
         }
 
         // 外侧混色梯形
@@ -147,11 +149,10 @@ namespace XNClient.ChessBoard
             Vector3 blendCorner2 = cell.centerPosInChunk + blendCornerOffsets.Item2;
 
             // 共用边中点处为两相邻方格颜色，角点为4相邻方格颜色
-            Color lineMidColor = cell.GetLineNeighborBlendColor(dir);
-            Color pointColor1 = cell.GetPointNeighborBlendColor(dir);
-            Color pointColor2 = cell.GetPointNeighborBlendColor(dir.GetNextDirection());
-            Color edgeColor1 = Color.Lerp(lineMidColor, pointColor1, ChessBoardConfig.blendFactor);
-            Color edgeColor2 = Color.Lerp(lineMidColor, pointColor2, ChessBoardConfig.blendFactor);
+            Color cellColor = color1;
+            Color lineMidColor = (color1 + color2) / 2f;
+            Color pointColor = (color1 + color2 + color3 + color4) / 4f;
+            Color edgeLerpColor = Color.Lerp(lineMidColor, pointColor, ChessBoardConfig.blendFactor);
 
             // 中部过渡矩形
             groundMesh.AddQuad(
@@ -161,10 +162,10 @@ namespace XNClient.ChessBoard
                 blendCorner2
             );
             groundMesh.AddQuadColor(
-                cell.cellColor,
-                cell.cellColor,
-                edgeColor1,
-                edgeColor2
+                cellColor,
+                cellColor,
+                edgeLerpColor,
+                edgeLerpColor
             );
 
             // 左右两侧三角
@@ -174,9 +175,9 @@ namespace XNClient.ChessBoard
                 blendCorner1
             );
             groundMesh.AddTriangleColor(
-                cell.cellColor,
-                pointColor1,
-                edgeColor1
+                cellColor,
+                pointColor,
+                edgeLerpColor
             );
 
             groundMesh.AddTriangle(
@@ -185,9 +186,9 @@ namespace XNClient.ChessBoard
                 outerCorner2
             );
             groundMesh.AddTriangleColor(
-                cell.cellColor,
-                edgeColor2,
-                pointColor2
+                cellColor,
+                edgeLerpColor,
+                pointColor
             );
         }
 

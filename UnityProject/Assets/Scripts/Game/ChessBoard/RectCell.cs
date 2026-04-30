@@ -9,14 +9,6 @@ namespace XNClient.ChessBoard
         public bool isOnEdge;
         // ¹²ÓÃ±ßµÄËÄ¸öÁÚ½Ócell
         public RectCell[] neighbors = new RectCell[4];
-        // Test Code
-        private static readonly Color[] presetColors = new Color[3]
-        {
-            Color.red,
-            Color.green,
-            Color.blue
-        };
-        public Color cellColor = presetColors[Random.Range(0, presetColors.Length)];
         public Vector3 centerPosInChunk
         {
             get
@@ -37,14 +29,12 @@ namespace XNClient.ChessBoard
             this.coordinates = coordinates;
         }
 
-        // ï¿½ï¿½ï¿½Ò¹ï¿½ï¿½Ã±ßµï¿½ï¿½Ú½ï¿½cell
         public bool TryGetLineNeighbor(RectDirection dir, out RectCell neighbor)
         {
             neighbor = neighbors[(int)dir];
             return neighbor != null;
         }
 
-        // ï¿½ï¿½ï¿½Ò¹ï¿½ï¿½Ã¶ï¿½ï¿½ï¿½ï¿½ï¿½Ú½ï¿½cellï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½NEï¿½ï¿½ï¿½ï¿½ï¿½cell
         public bool TryGetPointNeighbor(RectDirection dir, out RectCell neighbor)
         {
             neighbor = null;
@@ -56,33 +46,33 @@ namespace XNClient.ChessBoard
             return false;
         }
 
-        public Color GetLineNeighborBlendColor(RectDirection dir)
-        {
-            Color blendColor = cellColor;
-            if (TryGetLineNeighbor(dir, out var neighbor)) {
-                blendColor = (blendColor + neighbor.cellColor) / 2f;
-            }
-            return blendColor;
-        }
+        //public Color GetLineNeighborBlendColor(RectDirection dir)
+        //{
+        //    Color blendColor = cellColor;
+        //    if (TryGetLineNeighbor(dir, out var neighbor)) {
+        //        blendColor = (blendColor + neighbor.cellColor) / 2f;
+        //    }
+        //    return blendColor;
+        //}
 
-        public Color GetPointNeighborBlendColor(RectDirection dir)
-        {
-            Color blendColor = cellColor;
-            float blendCount = 1f;
-            if (TryGetLineNeighbor(dir.GetPrevDirection(), out var neighbor1)) {
-                blendColor += neighbor1.cellColor;
-                blendCount += 1;
-            }
-            if (TryGetPointNeighbor(dir, out var neighbor2)) {
-                blendColor += neighbor2.cellColor;
-                blendCount += 1;
-            }
-            if (TryGetLineNeighbor(dir, out var neighbor3)) {
-                blendColor += neighbor3.cellColor;
-                blendCount += 1;
-            }
-            return blendColor / blendCount;
-        }
+        //public Color GetPointNeighborBlendColor(RectDirection dir)
+        //{
+        //    Color blendColor = cellColor;
+        //    float blendCount = 1f;
+        //    if (TryGetLineNeighbor(dir.GetPrevDirection(), out var neighbor1)) {
+        //        blendColor += neighbor1.cellColor;
+        //        blendCount += 1;
+        //    }
+        //    if (TryGetPointNeighbor(dir, out var neighbor2)) {
+        //        blendColor += neighbor2.cellColor;
+        //        blendCount += 1;
+        //    }
+        //    if (TryGetLineNeighbor(dir, out var neighbor3)) {
+        //        blendColor += neighbor3.cellColor;
+        //        blendCount += 1;
+        //    }
+        //    return blendColor / blendCount;
+        //}
     }
 
 }
