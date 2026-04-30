@@ -13,7 +13,7 @@ namespace XNClient.ChessBoard
         private List<RectCell> cellList = new List<RectCell>();
         private bool isDirty;
 
-        // 设cell中心颜色为(1, 0, 0, 0)，设定edge面朝方向起顺时针的三个相邻cell的相对颜色
+        // 定义cell中心颜色为(1, 0, 0, 0)，定义每个角的三个相邻cell的颜色，后续用来叠加uv采样出的贴图颜色
         private static Color color1 = new Color(1f, 0f, 0f, 0f);
         private static Color color2 = new Color(0f, 1f, 0f, 0f);
         private static Color color3 = new Color(0f, 0f, 1f, 0f);
@@ -148,11 +148,12 @@ namespace XNClient.ChessBoard
             Vector3 blendCorner1 = cell.centerPosInChunk + blendCornerOffsets.Item1;
             Vector3 blendCorner2 = cell.centerPosInChunk + blendCornerOffsets.Item2;
 
-            // 共用边中点处为两相邻方格颜色，角点为4相邻方格颜色
             Color cellColor = color1;
-            Color lineMidColor = (color1 + color2) / 2f;
-            Color pointColor = (color1 + color2 + color3 + color4) / 4f;
-            Color edgeLerpColor = Color.Lerp(lineMidColor, pointColor, ChessBoardConfig.blendFactor);
+            Color lineMidColor = GetRelativeLineMidColor(cell, dir);
+            Color pointColor1 = GetRelativeOuterPointColor1(cell, dir);
+            Color pointColor2 = GetRelativeOuterPointColor2(cell, dir);
+            Color edgeLerpColor1 = Color.Lerp(pointColor1, lineMidColor, ChessBoardConfig.blendFactor);
+            Color edgeLerpColor2 = Color.Lerp(pointColor2, lineMidColor, ChessBoardConfig.blendFactor);
 
             // 中部过渡矩形
             groundMesh.AddQuad(
@@ -164,8 +165,8 @@ namespace XNClient.ChessBoard
             groundMesh.AddQuadColor(
                 cellColor,
                 cellColor,
-                edgeLerpColor,
-                edgeLerpColor
+                edgeLerpColor1,
+                edgeLerpColor2
             );
 
             // 左右两侧三角
@@ -176,8 +177,8 @@ namespace XNClient.ChessBoard
             );
             groundMesh.AddTriangleColor(
                 cellColor,
-                pointColor,
-                edgeLerpColor
+                pointColor1,
+                edgeLerpColor1
             );
 
             groundMesh.AddTriangle(
@@ -187,9 +188,68 @@ namespace XNClient.ChessBoard
             );
             groundMesh.AddTriangleColor(
                 cellColor,
-                edgeLerpColor,
-                pointColor
+                edgeLerpColor2,
+                pointColor2
             );
+        }
+
+        // 获取当前边中点的相对颜色，仅由自身和该边相邻方格共同决定
+        private Color GetRelativeLineMidColor(RectCell cell, RectDirection dir)
+        {
+            Color relativeColor = color1;
+            float colorCount = 1f;
+            if (cell.TryGetLineNeighbor(dir, out _)) {
+                relativeColor += color2;
+                colorCount += 1f;
+            }
+
+            return relativeColor / colorCount;
+        }
+
+        // 获取当前方向第一个外角的相对颜色，按 prevDir -> point(dir) -> dir 的邻域顺序累加
+        private Color GetRelativeOuterPointColor1(RectCell cell, RectDirection dir)
+        {
+            RectDirection prevDir = dir.GetPrevDirection();
+            Color relativeColor = color1;
+            float colorCount = 1f;
+
+            if (cell.TryGetLineNeighbor(prevDir, out _)) {
+                relativeColor += color4;
+                colorCount += 1f;
+            }
+            if (cell.TryGetPointNeighbor(dir, out _)) {
+                relativeColor += color3;
+                colorCount += 1f;
+            }
+            if (cell.TryGetLineNeighbor(dir, out _)) {
+                relativeColor += color2;
+                colorCount += 1f;
+            }
+
+            return relativeColor / colorCount;
+        }
+
+        // 获取当前方向第二个外角的相对颜色，按 dir -> point(nextDir) -> nextDir 的邻域顺序累加
+        private Color GetRelativeOuterPointColor2(RectCell cell, RectDirection dir)
+        {
+            Color relativeColor = color1;
+            float colorCount = 1f;
+            RectDirection nextDir = dir.GetNextDirection();
+
+            if (cell.TryGetLineNeighbor(dir, out _)) {
+                relativeColor += color2;
+                colorCount += 1f;
+            }
+            if (cell.TryGetPointNeighbor(nextDir, out _)) {
+                relativeColor += color3;
+                colorCount += 1f;
+            }
+            if (cell.TryGetLineNeighbor(nextDir, out _)) {
+                relativeColor += color4;
+                colorCount += 1f;
+            }
+
+            return relativeColor / colorCount;
         }
 
         private void TriangulateCellRoad(RectCell cell, RectDirection dir)

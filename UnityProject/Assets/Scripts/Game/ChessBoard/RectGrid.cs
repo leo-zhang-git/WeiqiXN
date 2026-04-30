@@ -37,6 +37,7 @@ namespace XNClient.ChessBoard
             return new Bounds(worldCenter, size);
         }
 
+        // 检查cell是否位于整个棋盘的最外圈边界上
         public bool CheckCellOnEdge(RectCell cell)
         {
             if (cell?.coordinates == null) {
