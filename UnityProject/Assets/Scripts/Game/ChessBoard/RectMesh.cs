@@ -9,8 +9,8 @@ namespace XNClient.ChessBoard
     public class RectMesh : MonoBehaviour
     {
         public bool useMeshColor;
+        public bool useMeshUV0;
         public bool useMeshUV1;
-        public bool useMeshUV2;
 
         private Mesh rectMesh;
         private MeshCollider meshCollider;
@@ -18,8 +18,8 @@ namespace XNClient.ChessBoard
         [NonSerialized] private List<Vector3> vertices = new List<Vector3>();
         [NonSerialized] private List<int> triangles = new List<int>();
         [NonSerialized] private List<Color> colors = new List<Color>();
+        [NonSerialized] private List<Vector4> uv0s = new List<Vector4>();
         [NonSerialized] private List<Vector4> uv1s = new List<Vector4>();
-        [NonSerialized] private List<Vector4> uv2s = new List<Vector4>();
 
         private void Awake()
         {
@@ -39,18 +39,18 @@ namespace XNClient.ChessBoard
                     rectMesh.SetColors(colors);
                 }
             }
-            if (useMeshUV1) {
-                if (vertices.Count != uv1s.Count) {
-                    XNLogger.LogError("Rect mesh uv1s length invalid, set uv1s failed.");
+            if (useMeshUV0) {
+                if (vertices.Count != uv0s.Count) {
+                    XNLogger.LogError("Rect mesh uv0s length invalid, set uv1s failed.");
                 } else {
-                    rectMesh.SetUVs(1, uv1s);
+                    rectMesh.SetUVs(0, uv0s);
                 }
             }
-            if (useMeshUV2) {
-                if (vertices.Count != uv2s.Count) {
-                    XNLogger.LogError("Rect mesh uv2s length invalid, set uv2s failed.");
+            if (useMeshUV1) {
+                if (vertices.Count != uv1s.Count) {
+                    XNLogger.LogError("Rect mesh uv1s length invalid, set uv2s failed.");
                 } else {
-                    rectMesh.SetUVs(2, uv2s);
+                    rectMesh.SetUVs(1, uv1s);
                 }
             }
             rectMesh.RecalculateNormals();
@@ -65,8 +65,8 @@ namespace XNClient.ChessBoard
             vertices.Clear();
             triangles.Clear();
             colors.Clear();
+            uv0s.Clear();
             uv1s.Clear();
-            uv2s.Clear();
         }
 
         // Vertices must be provided in clockwise order so the face normal points upward.
@@ -95,18 +95,18 @@ namespace XNClient.ChessBoard
             colors.Add(c3);
         }
 
-        public void AddTriangleUV1(Vector4 uv)
+        public void AddTriangleUV0(Vector4 uv)
         {
-            uv1s.Add(uv);
-            uv1s.Add(uv);
-            uv1s.Add(uv);
+            uv0s.Add(uv);
+            uv0s.Add(uv);
+            uv0s.Add(uv);
         }
 
-        public void AddTriangleUV1(Vector4 uv1_1, Vector4 uv1_2, Vector4 uv1_3)
+        public void AddTriangleUV0(Vector4 uv1, Vector4 uv2, Vector4 uv3)
         {
-            uv1s.Add(uv1_1);
-            uv1s.Add(uv1_2);
-            uv1s.Add(uv1_3);
+            uv0s.Add(uv1);
+            uv0s.Add(uv2);
+            uv0s.Add(uv3);
         }
 
         // Quad vertices are passed as two edge endpoints: lower-left, lower-right, upper-left, upper-right.
@@ -152,28 +152,28 @@ namespace XNClient.ChessBoard
             colors.Add(lineColor2);
         }
 
-        public void AddQuadUV1(Vector4 uv)
+        public void AddQuadUV0(Vector4 uv)
         {
-            uv1s.Add(uv);
-            uv1s.Add(uv);
-            uv1s.Add(uv);
-            uv1s.Add(uv);
+            uv0s.Add(uv);
+            uv0s.Add(uv);
+            uv0s.Add(uv);
+            uv0s.Add(uv);
         }
 
-        public void AddQuadUV1(Vector4 lineStartUV1_1, Vector4 lineEndUV1_1, Vector4 lineStartUV1_2, Vector4 lineEndUV1_2)
+        public void AddQuadUV0(Vector4 lineStartUV1, Vector4 lineEndUV1, Vector4 lineStartUV2, Vector4 lineEndUV2)
         {
-            uv1s.Add(lineStartUV1_1);
-            uv1s.Add(lineEndUV1_1);
-            uv1s.Add(lineStartUV1_2);
-            uv1s.Add(lineEndUV1_2);
+            uv0s.Add(lineStartUV1);
+            uv0s.Add(lineEndUV1);
+            uv0s.Add(lineStartUV2);
+            uv0s.Add(lineEndUV2);
         }
 
-        public void AddQuadUV1(Vector4 lineUV1_1, Vector4 lineUV1_2)
+        public void AddQuadUV0(Vector4 lineUV1, Vector4 lineUV2)
         {
-            uv1s.Add(lineUV1_1);
-            uv1s.Add(lineUV1_1);
-            uv1s.Add(lineUV1_2);
-            uv1s.Add(lineUV1_2);
+            uv0s.Add(lineUV1);
+            uv0s.Add(lineUV1);
+            uv0s.Add(lineUV2);
+            uv0s.Add(lineUV2);
         }
     }
 }

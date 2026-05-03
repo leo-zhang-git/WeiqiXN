@@ -14,8 +14,8 @@ Shader "XNShader/Road"
         OFFSET -1, -1
 
         CGPROGRAM
-        // Physically based Standard lighting model, and enable shadows on all light types
-        #pragma surface surf Standard fullforwardshadows
+        // 加入unity built-in shader的贴花指令，在opaque渲染队列之后之后执行透明度混合
+        #pragma surface surf Standard fullforwardshadows decal:blend
 
         // Use shader model 3.0 target, to get nicer looking lighting
         #pragma target 3.0
@@ -25,7 +25,7 @@ Shader "XNShader/Road"
         struct Input
         {
             float2 uv_MainTex;
-            float4 color : COLOR;
+            float3 worldPos;
         };
 
         half _Glossiness;
@@ -41,13 +41,16 @@ Shader "XNShader/Road"
 
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
-            // Albedo comes from a texture tinted by color
-            fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-            o.Albedo = c.rgb * IN.color;
-            // Metallic and smoothness come from slider variables
+            float4 noise = tex2D(_MainTex, IN.worldPos.xz * 0.02);
+            fixed4 c = _Color * (noise.y * 0.75 + 0.25);
+            float blend = IN.uv_MainTex.x;
+            blend *= noise.x + 0.5;
+            blend = smoothstep(0.4, 0.7, blend);
+
+            o.Albedo = c.rgb;
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;
-            o.Alpha = c.a;
+            o.Alpha = blend;
         }
         ENDCG
     }
