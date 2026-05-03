@@ -18,7 +18,6 @@ namespace XNClient.ChessBoard
         public const float rectCellOuterRadius = rectCellSideLength / 2f * sqrt_2; // 方格外切圆半径（中心到顶点长度）
         public const float shrinkFactor = 0.6f; // 方格内圈收缩部分比例
         public const float blendFactor = 1 - shrinkFactor; // 方格外圈过渡部分比例
-        public static readonly Color roadColor = Color.black; // 方格内道路颜色
         public const float roadBoderFactor = 0.2f; // 边界道路从中心扩散出的内侧小三角比例，影响道路宽度
         public const float roadNormalFactor = 0.1f; // 常规道路从中心扩散出的内侧小三角比例，营销道路看睹
 

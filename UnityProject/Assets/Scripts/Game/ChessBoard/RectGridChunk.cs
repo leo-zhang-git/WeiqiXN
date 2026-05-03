@@ -135,7 +135,7 @@ namespace XNClient.ChessBoard
                 cell.centerPosInChunk + edgeCornerOffsets.Item2
             );
             groundMesh.AddTriangleColor(color1);
-            groundMesh.AddTriangleUV1(GetSingleTextureIndices(cell));
+            groundMesh.AddTriangleUV0(GetSingleTextureIndices(cell));
         }
 
         // 外侧混色梯形
@@ -176,7 +176,7 @@ namespace XNClient.ChessBoard
                 edgeLerpColor1,
                 lineMidColor1
             );
-            groundMesh.AddQuadUV1(pointTextureIndices1);
+            groundMesh.AddQuadUV0(pointTextureIndices1);
 
             groundMesh.AddQuad(
                 innerMid,
@@ -190,7 +190,7 @@ namespace XNClient.ChessBoard
                 lineMidColor2,
                 edgeLerpColor2
             );
-            groundMesh.AddQuadUV1(pointTextureIndices2);
+            groundMesh.AddQuadUV0(pointTextureIndices2);
 
             groundMesh.AddTriangle(
                 innerCorner1,
@@ -202,7 +202,7 @@ namespace XNClient.ChessBoard
                 pointColor1,
                 edgeLerpColor1
             );
-            groundMesh.AddTriangleUV1(pointTextureIndices1);
+            groundMesh.AddTriangleUV0(pointTextureIndices1);
 
             groundMesh.AddTriangle(
                 innerCorner2,
@@ -214,7 +214,7 @@ namespace XNClient.ChessBoard
                 edgeLerpColor2,
                 pointColor2
             );
-            groundMesh.AddTriangleUV1(pointTextureIndices2);
+            groundMesh.AddTriangleUV0(pointTextureIndices2);
         }
 
         // 左半边中点颜色，按 self -> point(dir).next 的固定通道语义混合
@@ -340,31 +340,67 @@ namespace XNClient.ChessBoard
 
         private void TriangulateCellRoad(RectCell cell, RectDirection dir)
         {
-            // 道路内侧小三角
+            // 道路内侧小三角，按中线切分为两个
             (Vector3, Vector3) centerOffset = ChessBoardUtils.GetRoadCenterCornerOffsets(dir, cell.isOnEdge);
+            Vector3 endPoint1 = cell.centerPosInChunk + centerOffset.Item1;
+            Vector3 endPoint2 = cell.centerPosInChunk + centerOffset.Item2;
+            Vector3 midPoint = (endPoint1 + endPoint2) / 2f;
             roadMesh.AddTriangle(
                 cell.centerPosInChunk,
-                cell.centerPosInChunk + centerOffset.Item1,
-                cell.centerPosInChunk + centerOffset.Item2
+                endPoint1,
+                midPoint
             );
-            roadMesh.AddTriangleColor(
-                ChessBoardConfig.roadColor,
-                ChessBoardConfig.roadColor,
-                ChessBoardConfig.roadColor
+            roadMesh.AddTriangleUV0(
+                new Vector2(1f, 0f),
+                new Vector2(0f, 0f),
+                new Vector2(1f, 0f)
+            );
+            roadMesh.AddTriangle(
+                cell.centerPosInChunk,
+                midPoint,
+                endPoint2
+            );
+            roadMesh.AddTriangleUV0(
+                new Vector2(1f, 0f),
+                new Vector2(1f, 0f),
+                new Vector2(0f, 0f)
             );
 
-            // 道路主体矩形
+            // 道路主体矩形，按中线切分为两份
             if (cell.TryGetLineNeighbor(dir, out RectCell neighbor)) {
                 (Vector3, Vector3) innerOffset = ChessBoardUtils.GetRoadInnerCornerOffsets(dir, cell.isOnEdge, neighbor.isOnEdge);
                 (Vector3, Vector3) outerOffset = ChessBoardUtils.GetRoadOuterCornerOffsets(dir, cell.isOnEdge, neighbor.isOnEdge);
+                Vector3 innerEndPoint1 = cell.centerPosInChunk + innerOffset.Item1;
+                Vector3 innerEndPoint2 = cell.centerPosInChunk + innerOffset.Item2;
+                Vector3 innerMidPoint = (innerEndPoint1 + innerEndPoint2) / 2f;
+                Vector3 outerEndPoint1 = cell.centerPosInChunk + outerOffset.Item1;
+                Vector3 outerEndPoint2 = cell.centerPosInChunk + outerOffset.Item2;
+                Vector3 outerMidPoint = (outerEndPoint1 + outerEndPoint2) / 2f;
                 roadMesh.AddQuad(
-                    cell.centerPosInChunk + innerOffset.Item1,
-                    cell.centerPosInChunk + innerOffset.Item2,
-                    cell.centerPosInChunk + outerOffset.Item1,
-                    cell.centerPosInChunk + outerOffset.Item2
+                    innerEndPoint1,
+                    innerMidPoint,
+                    outerEndPoint1,
+                    outerMidPoint
 
                 );
-                roadMesh.AddQuadColor(ChessBoardConfig.roadColor);
+                roadMesh.AddQuadUV0(
+                    new Vector2(0f, 0f),
+                    new Vector2(1f, 0f),
+                    new Vector2(0f, 0f),
+                    new Vector2(1f, 0f)
+                );
+                roadMesh.AddQuad(
+                    innerMidPoint,
+                    innerEndPoint2,
+                    outerMidPoint,
+                    outerEndPoint2
+                );
+                roadMesh.AddQuadUV0(
+                    new Vector2(1f, 0f),
+                    new Vector2(0f, 0f),
+                    new Vector2(1f, 0f),
+                    new Vector2(0f, 0f)
+                );
             }
         }
 
