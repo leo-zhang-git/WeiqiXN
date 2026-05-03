@@ -41,7 +41,6 @@ public class SpriteAtlasToTMPSpriteTool
         return platformName;
     }
     private static readonly string STANDARD_SPRITEATLAS_PATH = "Assets/UI/UITexture/Standard.spriteatlas";
-    private static readonly string TMP_SPRITE_ASSET_PATH = "Assets/UI/TextMesh Pro/Resources/Sprite Assets";
     private static readonly string TMP_SPRITE_PATH = "Assets/UI/TextMesh Pro/Sprites/";
 
     [MenuItem("Assets/图集导出工具/按文件夹创建图集", true)]
@@ -101,6 +100,7 @@ public class SpriteAtlasToTMPSpriteTool
                     EditorUtility.DisplayDialog("导出成功", "导出成功", "关闭");
                 }
                 catch (Exception e) {
+                    XNLogger.LogError("SpriteAtlas convert to tmp sprite asset failed.", ("err", e.Message));
                     EditorUtility.DisplayDialog("导出失败", "导出失败，查看控制台报错！", "关闭");
                 }
             }
