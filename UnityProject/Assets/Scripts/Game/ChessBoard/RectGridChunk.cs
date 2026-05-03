@@ -13,7 +13,7 @@ namespace XNClient.ChessBoard
         private List<RectCell> cellList = new List<RectCell>();
         private bool isDirty;
 
-        // 定义cell中心颜色为(1, 0, 0, 0)，定义每个角的三个相邻cell的颜色，后续用来叠加uv采样出的贴图颜色
+        // 固定通道语义：r=self，g=pointNeighbor.prev，b=pointNeighbor，a=pointNeighbor.next
         private static Color color1 = new Color(1f, 0f, 0f, 0f);
         private static Color color2 = new Color(0f, 1f, 0f, 0f);
         private static Color color3 = new Color(0f, 0f, 1f, 0f);
@@ -144,44 +144,56 @@ namespace XNClient.ChessBoard
             (Vector3, Vector3) innerCornerOffsets = ChessBoardUtils.GetInnerCornerOffsets(dir);
             (Vector3, Vector3) blendCornerOffsets = ChessBoardUtils.GetBlendCornerOffsets(dir);
             (Vector3, Vector3) outerCornerOffsets = ChessBoardUtils.GetOuterCornerOffsets(dir);
+            Vector3 innerCorner1 = cell.centerPosInChunk + innerCornerOffsets.Item1;
+            Vector3 innerCorner2 = cell.centerPosInChunk + innerCornerOffsets.Item2;
+            Vector3 innerMid = (innerCorner1 + innerCorner2) / 2f;
             Vector3 outerCorner1 = cell.centerPosInChunk + outerCornerOffsets.Item1;
             Vector3 outerCorner2 = cell.centerPosInChunk + outerCornerOffsets.Item2;
             Vector3 blendCorner1 = cell.centerPosInChunk + blendCornerOffsets.Item1;
             Vector3 blendCorner2 = cell.centerPosInChunk + blendCornerOffsets.Item2;
+            Vector3 blendMid = (blendCorner1 + blendCorner2) / 2f;
 
-            Color cellColor = color1;
-            Color lineMidColor = GetRelativeLineMidColor(cell, dir);
+            Color lineMidColor1 = GetRelativeLineMidColor1(cell, dir);
+            Color lineMidColor2 = GetRelativeLineMidColor2(cell, dir);
             Color pointColor1 = GetRelativeOuterPointColor1(cell, dir);
             Color pointColor2 = GetRelativeOuterPointColor2(cell, dir);
-            Color edgeLerpColor1 = Color.Lerp(pointColor1, lineMidColor, ChessBoardConfig.blendFactor);
-            Color edgeLerpColor2 = Color.Lerp(pointColor2, lineMidColor, ChessBoardConfig.blendFactor);
-            Vector4 cellTextureIndices = GetSingleTextureIndices(cell);
+            Color cellColor = color1;
+            Color edgeLerpColor1 = Color.Lerp(pointColor1, lineMidColor1, ChessBoardConfig.blendFactor);
+            Color edgeLerpColor2 = Color.Lerp(pointColor2, lineMidColor2, ChessBoardConfig.blendFactor);
             Vector4 pointTextureIndices1 = GetRelativeOuterPointTextureIndices1(cell, dir);
             Vector4 pointTextureIndices2 = GetRelativeOuterPointTextureIndices2(cell, dir);
 
-            // 中部过渡矩形
+            // 中部过渡区域拆成左右两个小 quad，分别锚定两个角点邻居
             groundMesh.AddQuad(
-                cell.centerPosInChunk + innerCornerOffsets.Item1,
-                cell.centerPosInChunk + innerCornerOffsets.Item2,
+                innerCorner1,
+                innerMid,
                 blendCorner1,
-                blendCorner2
+                blendMid
             );
             groundMesh.AddQuadColor(
                 cellColor,
                 cellColor,
                 edgeLerpColor1,
+                lineMidColor1
+            );
+            groundMesh.AddQuadUV1(pointTextureIndices1);
+
+            groundMesh.AddQuad(
+                innerMid,
+                innerCorner2,
+                blendMid,
+                blendCorner2
+            );
+            groundMesh.AddQuadColor(
+                cellColor,
+                cellColor,
+                lineMidColor2,
                 edgeLerpColor2
             );
-            groundMesh.AddQuadUV1(
-                cellTextureIndices,
-                cellTextureIndices,
-                pointTextureIndices1,
-                pointTextureIndices2
-            );
+            groundMesh.AddQuadUV1(pointTextureIndices2);
 
-            // 左右两侧三角
             groundMesh.AddTriangle(
-                cell.centerPosInChunk + innerCornerOffsets.Item1,
+                innerCorner1,
                 outerCorner1,
                 blendCorner1
             );
@@ -190,14 +202,10 @@ namespace XNClient.ChessBoard
                 pointColor1,
                 edgeLerpColor1
             );
-            groundMesh.AddTriangleUV1(
-                cellTextureIndices,
-                pointTextureIndices1,
-                pointTextureIndices1
-            );
+            groundMesh.AddTriangleUV1(pointTextureIndices1);
 
             groundMesh.AddTriangle(
-                cell.centerPosInChunk + innerCornerOffsets.Item2,
+                innerCorner2,
                 blendCorner2,
                 outerCorner2
             );
@@ -206,15 +214,24 @@ namespace XNClient.ChessBoard
                 edgeLerpColor2,
                 pointColor2
             );
-            groundMesh.AddTriangleUV1(
-                cellTextureIndices,
-                pointTextureIndices2,
-                pointTextureIndices2
-            );
+            groundMesh.AddTriangleUV1(pointTextureIndices2);
         }
 
-        // 获取当前边中点的相对颜色，仅由自身和该边相邻方格共同决定
-        private Color GetRelativeLineMidColor(RectCell cell, RectDirection dir)
+        // 左半边中点颜色，按 self -> point(dir).next 的固定通道语义混合
+        private Color GetRelativeLineMidColor1(RectCell cell, RectDirection dir)
+        {
+            Color relativeColor = color1;
+            float colorCount = 1f;
+            if (cell.TryGetLineNeighbor(dir, out _)) {
+                relativeColor += color4;
+                colorCount += 1f;
+            }
+
+            return relativeColor / colorCount;
+        }
+
+        // 右半边中点颜色，按 self -> point(nextDir).prev 的固定通道语义混合
+        private Color GetRelativeLineMidColor2(RectCell cell, RectDirection dir)
         {
             Color relativeColor = color1;
             float colorCount = 1f;
@@ -226,7 +243,7 @@ namespace XNClient.ChessBoard
             return relativeColor / colorCount;
         }
 
-        // 获取当前方向第一个外角的相对颜色，按 prevDir -> point(dir) -> dir 的邻域顺序累加
+        // 获取当前方向第一个外角的相对颜色，固定通道语义为 self -> prevDir -> point(dir) -> dir
         private Color GetRelativeOuterPointColor1(RectCell cell, RectDirection dir)
         {
             RectDirection prevDir = dir.GetPrevDirection();
@@ -234,7 +251,7 @@ namespace XNClient.ChessBoard
             float colorCount = 1f;
 
             if (cell.TryGetLineNeighbor(prevDir, out _)) {
-                relativeColor += color4;
+                relativeColor += color2;
                 colorCount += 1f;
             }
             if (cell.TryGetPointNeighbor(dir, out _)) {
@@ -242,14 +259,14 @@ namespace XNClient.ChessBoard
                 colorCount += 1f;
             }
             if (cell.TryGetLineNeighbor(dir, out _)) {
-                relativeColor += color2;
+                relativeColor += color4;
                 colorCount += 1f;
             }
 
             return relativeColor / colorCount;
         }
 
-        // 获取当前方向第二个外角的相对颜色，按 dir -> point(nextDir) -> nextDir 的邻域顺序累加
+        // 获取当前方向第二个外角的相对颜色，固定通道语义为 self -> dir -> point(nextDir) -> nextDir
         private Color GetRelativeOuterPointColor2(RectCell cell, RectDirection dir)
         {
             Color relativeColor = color1;
@@ -277,26 +294,26 @@ namespace XNClient.ChessBoard
             return new Vector4(cell.textureIndex, cell.textureIndex, cell.textureIndex, cell.textureIndex);
         }
 
-        // 获取当前方向第一个外角的贴图索引，按 self -> dir -> point(dir) -> prevDir 的通道顺序写入
+        // 获取当前方向第一个外角的贴图索引，按 self -> prevDir -> point(dir) -> dir 的通道顺序写入
         private Vector4 GetRelativeOuterPointTextureIndices1(RectCell cell, RectDirection dir)
         {
             int selfTextureIndex = cell.textureIndex;
-            int lineTextureIndex = selfTextureIndex;
-            int pointTextureIndex = selfTextureIndex;
             int prevLineTextureIndex = selfTextureIndex;
+            int pointTextureIndex = selfTextureIndex;
+            int lineTextureIndex = selfTextureIndex;
             RectDirection prevDir = dir.GetPrevDirection();
 
-            if (cell.TryGetLineNeighbor(dir, out RectCell lineNeighbor)) {
-                lineTextureIndex = lineNeighbor.textureIndex;
+            if (cell.TryGetLineNeighbor(prevDir, out RectCell prevLineNeighbor)) {
+                prevLineTextureIndex = prevLineNeighbor.textureIndex;
             }
             if (cell.TryGetPointNeighbor(dir, out RectCell pointNeighbor)) {
                 pointTextureIndex = pointNeighbor.textureIndex;
             }
-            if (cell.TryGetLineNeighbor(prevDir, out RectCell prevLineNeighbor)) {
-                prevLineTextureIndex = prevLineNeighbor.textureIndex;
+            if (cell.TryGetLineNeighbor(dir, out RectCell lineNeighbor)) {
+                lineTextureIndex = lineNeighbor.textureIndex;
             }
 
-            return new Vector4(selfTextureIndex, lineTextureIndex, pointTextureIndex, prevLineTextureIndex);
+            return new Vector4(selfTextureIndex, prevLineTextureIndex, pointTextureIndex, lineTextureIndex);
         }
 
         // 获取当前方向第二个外角的贴图索引，按 self -> dir -> point(nextDir) -> nextDir 的通道顺序写入
