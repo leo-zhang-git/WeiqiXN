@@ -1,25 +1,88 @@
+ï»¿using System;
 using System.IO;
 using UnityEditor;
+using UnityEngine;
 
 public class AssetBundleGenerator
 {
-    [MenuItem("Assets/Build AssetBundles (Windows)")]
-    private static void BuildAllAssetBundles()
+    [MenuItem("Assets/æ‰“åŒ…/Build AssetBundles (Windows)")]
+    public static void BuildAllAssetBundles()
     {
-        // 1. ÉèÖÃÊä³öÂ·¾¶
-        string outputPath = "Assets/AssetBundles/Windows";
-
-        // 2. ÈôÄ¿Â¼²»´æÔÚ£¬Ôò´´½¨Ëü
-        if (!Directory.Exists(outputPath))
+        // æ¸…ç©ºStreamingAssetsç›®å½•
+        string outputPath = BuildConfig.PATH_BUILDIN_ASSETBUNDLE;
+        if (!Directory.Exists(outputPath)) {
             Directory.CreateDirectory(outputPath);
+        } else {
+            foreach (string filePath in Directory.GetFiles(outputPath)) {
+                File.Delete(filePath);
+            }
 
-        // 3. Ö´ĞĞ´ò°ü
-        BuildPipeline.BuildAssetBundles(outputPath,
-                                        BuildAssetBundleOptions.None,
-                                        BuildTarget.StandaloneWindows);
+            foreach (string subDirectoryPath in Directory.GetDirectories(outputPath)) {
+                Directory.Delete(subDirectoryPath, true);
+            }
+        }
 
-        // 4. Ë¢ĞÂ±à¼­Æ÷£¬ÏÔÊ¾´ò°üºÃµÄÎÄ¼ş
+        PackAllJsonCfgFiles();
+        PackAllSceneFiles();
+        PackAllUIPrefabFiles();
+
+        BuildPipeline.BuildAssetBundles(outputPath, BuildAssetBundleOptions.None, BuildTarget.StandaloneWindows);
         AssetDatabase.Refresh();
-        UnityEngine.Debug.Log("AssetBundle´ò°üÍê³É£¡Êä³öÂ·¾¶£º" + outputPath);
+        Debug.Log("AssetBundleæ‰“åŒ…å®Œæˆï¼è¾“å‡ºè·¯å¾„ï¼š" + outputPath);
+    }
+
+    [MenuItem("Assets/æ‰“åŒ…/æ‰“åŒ…é¢„å¤„ç†/æ£€æŸ¥jsonè¡¨æ‰“åŒ…æ ‡ç­¾")]
+    public static void PackAllJsonCfgFiles()
+    {
+        PackAssetsByType(BuildConfig.PATH_PACK_JSON, "TextAsset", BuildConfig.AB_LABEL_JSON);
+    }
+
+    [MenuItem("Assets/æ‰“åŒ…/æ‰“åŒ…é¢„å¤„ç†/æ£€æŸ¥sceneèµ„æºæ‰“åŒ…æ ‡ç­¾")]
+    public static void PackAllSceneFiles()
+    {
+        PackAssetsByType(BuildConfig.PATH_PACK_SCENE, "SceneAsset", BuildConfig.AB_LABEL_SCENE);
+    }
+
+    [MenuItem("Assets/æ‰“åŒ…/æ‰“åŒ…é¢„å¤„ç†/æ£€æŸ¥UI prefabèµ„æºæ‰“åŒ…æ ‡ç­¾")]
+    public static void PackAllUIPrefabFiles()
+    {
+        PackAssetsByType(BuildConfig.PATH_PACK_UI_PREFAB, "GameObject", BuildConfig.AB_LABEL_UI_PREFAB);
+    }
+
+    private static void PackAssetsByType(string rootFolderFullPath, string typeName, string assetBundleName)
+    {
+        string rootFolderPath = FullPathToAssetPath(rootFolderFullPath);
+        if (string.IsNullOrEmpty(rootFolderPath)) {
+            Debug.LogWarning($"æ‰¾ä¸åˆ°èµ„æºç›®å½•ï¼š{rootFolderFullPath}");
+            return;
+        }
+
+        string[] guids = AssetDatabase.FindAssets($"t:{typeName}", new[] { rootFolderPath });
+        int newImportCount = 0;
+        foreach (string guid in guids) {
+            string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+            AssetImporter importer = AssetImporter.GetAtPath(assetPath);
+            if (importer == null)
+                continue;
+
+            if (importer.assetBundleName != assetBundleName) {
+                importer.assetBundleName = assetBundleName;
+                newImportCount++;
+            }
+        }
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        Debug.Log($"æ–°å¢ {newImportCount} ä¸ª {typeName} èµ„æºï¼Œè®¾ç½® AB æ ‡ç­¾ï¼š{assetBundleName}");
+    }
+
+    private static string FullPathToAssetPath(string fullPath)
+    {
+        string dataPath = Application.dataPath.Replace('\\', '/');
+        string normalizedPath = fullPath.Replace('\\', '/');
+        if (!normalizedPath.StartsWith(dataPath, StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        return "Assets" + normalizedPath.Substring(dataPath.Length);
     }
 }
