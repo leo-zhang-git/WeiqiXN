@@ -4,6 +4,8 @@ Shader "XNShader/Road"
     {
         _Color ("Color", Color) = (1,1,1,1)
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
+        _NoiseTex ("Noise Tex", 2D) = "white" {}
+        [Toggle(_ROAD_BLEND_ALPHA)] _UseBlendAlpha ("Use Blend Alpha", Float) = 0
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
     }
@@ -14,13 +16,15 @@ Shader "XNShader/Road"
         OFFSET -1, -1
 
         CGPROGRAM
-        // ¼ÓÈëunity built-in shaderµÄÌù»¨Ö¸Áî£¬ÔÚopaqueäÖÈ¾¶ÓÁĞÖ®ºóÖ®ºóÖ´ĞĞÍ¸Ã÷¶È»ìºÏ
+        // åŠ å…¥unity built-in shaderçš„è´´èŠ±æŒ‡ä»¤ï¼Œåœ¨opaqueæ¸²æŸ“é˜Ÿåˆ—ä¹‹åä¹‹åæ‰§è¡Œé€æ˜åº¦æ··åˆ
         #pragma surface surf Standard fullforwardshadows decal:blend
+        #pragma shader_feature_local _ROAD_BLEND_ALPHA
 
         // Use shader model 3.0 target, to get nicer looking lighting
         #pragma target 3.0
 
         sampler2D _MainTex;
+        sampler2D _NoiseTex;
 
         struct Input
         {
@@ -41,16 +45,19 @@ Shader "XNShader/Road"
 
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
-            float4 noise = tex2D(_MainTex, IN.worldPos.xz * 0.02);
+            float4 noise = tex2D(_NoiseTex, IN.worldPos.xz * 0.02);
             fixed4 c = _Color * (noise.y * 0.75 + 0.25);
-            float blend = IN.uv_MainTex.x;
-            blend *= noise.x + 0.5;
-            blend = smoothstep(0.4, 0.7, blend);
-
             o.Albedo = c.rgb;
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;
+#if defined(_ROAD_BLEND_ALPHA)
+            float blend = IN.uv_MainTex.x;
+            blend *= noise.x + 0.5;
+            blend = smoothstep(0.4, 0.7, blend);
             o.Alpha = blend;
+#else
+            o.Alpha = 1;
+#endif
         }
         ENDCG
     }
