@@ -135,6 +135,7 @@ namespace XNClient.ChessBoard
                 cell.centerPosInChunk + edgeCornerOffsets.Item2
             );
             groundMesh.AddTriangleColor(color1);
+            groundMesh.AddTriangleUV1(GetSingleTextureIndices(cell));
         }
 
         // 外侧混色梯形
@@ -154,6 +155,9 @@ namespace XNClient.ChessBoard
             Color pointColor2 = GetRelativeOuterPointColor2(cell, dir);
             Color edgeLerpColor1 = Color.Lerp(pointColor1, lineMidColor, ChessBoardConfig.blendFactor);
             Color edgeLerpColor2 = Color.Lerp(pointColor2, lineMidColor, ChessBoardConfig.blendFactor);
+            Vector4 cellTextureIndices = GetSingleTextureIndices(cell);
+            Vector4 pointTextureIndices1 = GetRelativeOuterPointTextureIndices1(cell, dir);
+            Vector4 pointTextureIndices2 = GetRelativeOuterPointTextureIndices2(cell, dir);
 
             // 中部过渡矩形
             groundMesh.AddQuad(
@@ -168,6 +172,12 @@ namespace XNClient.ChessBoard
                 edgeLerpColor1,
                 edgeLerpColor2
             );
+            groundMesh.AddQuadUV1(
+                cellTextureIndices,
+                cellTextureIndices,
+                pointTextureIndices1,
+                pointTextureIndices2
+            );
 
             // 左右两侧三角
             groundMesh.AddTriangle(
@@ -180,6 +190,11 @@ namespace XNClient.ChessBoard
                 pointColor1,
                 edgeLerpColor1
             );
+            groundMesh.AddTriangleUV1(
+                cellTextureIndices,
+                pointTextureIndices1,
+                pointTextureIndices1
+            );
 
             groundMesh.AddTriangle(
                 cell.centerPosInChunk + innerCornerOffsets.Item2,
@@ -190,6 +205,11 @@ namespace XNClient.ChessBoard
                 cellColor,
                 edgeLerpColor2,
                 pointColor2
+            );
+            groundMesh.AddTriangleUV1(
+                cellTextureIndices,
+                pointTextureIndices2,
+                pointTextureIndices2
             );
         }
 
@@ -250,6 +270,55 @@ namespace XNClient.ChessBoard
             }
 
             return relativeColor / colorCount;
+        }
+
+        private Vector4 GetSingleTextureIndices(RectCell cell)
+        {
+            return new Vector4(cell.textureIndex, cell.textureIndex, cell.textureIndex, cell.textureIndex);
+        }
+
+        // 获取当前方向第一个外角的贴图索引，按 self -> dir -> point(dir) -> prevDir 的通道顺序写入
+        private Vector4 GetRelativeOuterPointTextureIndices1(RectCell cell, RectDirection dir)
+        {
+            int selfTextureIndex = cell.textureIndex;
+            int lineTextureIndex = selfTextureIndex;
+            int pointTextureIndex = selfTextureIndex;
+            int prevLineTextureIndex = selfTextureIndex;
+            RectDirection prevDir = dir.GetPrevDirection();
+
+            if (cell.TryGetLineNeighbor(dir, out RectCell lineNeighbor)) {
+                lineTextureIndex = lineNeighbor.textureIndex;
+            }
+            if (cell.TryGetPointNeighbor(dir, out RectCell pointNeighbor)) {
+                pointTextureIndex = pointNeighbor.textureIndex;
+            }
+            if (cell.TryGetLineNeighbor(prevDir, out RectCell prevLineNeighbor)) {
+                prevLineTextureIndex = prevLineNeighbor.textureIndex;
+            }
+
+            return new Vector4(selfTextureIndex, lineTextureIndex, pointTextureIndex, prevLineTextureIndex);
+        }
+
+        // 获取当前方向第二个外角的贴图索引，按 self -> dir -> point(nextDir) -> nextDir 的通道顺序写入
+        private Vector4 GetRelativeOuterPointTextureIndices2(RectCell cell, RectDirection dir)
+        {
+            int selfTextureIndex = cell.textureIndex;
+            int lineTextureIndex = selfTextureIndex;
+            int pointTextureIndex = selfTextureIndex;
+            int nextLineTextureIndex = selfTextureIndex;
+            RectDirection nextDir = dir.GetNextDirection();
+
+            if (cell.TryGetLineNeighbor(dir, out RectCell lineNeighbor)) {
+                lineTextureIndex = lineNeighbor.textureIndex;
+            }
+            if (cell.TryGetPointNeighbor(nextDir, out RectCell pointNeighbor)) {
+                pointTextureIndex = pointNeighbor.textureIndex;
+            }
+            if (cell.TryGetLineNeighbor(nextDir, out RectCell nextLineNeighbor)) {
+                nextLineTextureIndex = nextLineNeighbor.textureIndex;
+            }
+
+            return new Vector4(selfTextureIndex, lineTextureIndex, pointTextureIndex, nextLineTextureIndex);
         }
 
         private void TriangulateCellRoad(RectCell cell, RectDirection dir)

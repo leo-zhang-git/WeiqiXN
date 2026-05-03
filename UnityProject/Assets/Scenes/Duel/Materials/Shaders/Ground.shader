@@ -3,7 +3,7 @@ Shader "XNShader/Ground"
     Properties
     {
         _Color ("Color", Color) = (1,1,1,1)
-        _MainTex ("Albedo (RGB)", 2D) = "white" {}
+        _MainTex ("Ground Texture Array", 2DArray) = "white" {}
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
     }
@@ -14,17 +14,18 @@ Shader "XNShader/Ground"
 
         CGPROGRAM
         // Physically based Standard lighting model, and enable shadows on all light types
-        #pragma surface surf Standard fullforwardshadows
+        #pragma surface surf Standard fullforwardshadows vertex:vert
 
-        // Use shader model 3.0 target, to get nicer looking lighting
-        #pragma target 3.0
+        // 使用TextureArray需要3.5
+        #pragma target 3.5
 
-        sampler2D _MainTex;
+        UNITY_DECLARE_TEX2DARRAY(_MainTex);
 
         struct Input
         {
-            float2 uv_MainTex;
             float4 color : COLOR;
+            float3 worldPos;
+            float4 textureIndex;
         };
 
         half _Glossiness;
@@ -38,11 +39,25 @@ Shader "XNShader/Ground"
             // put more per-instance properties here
         UNITY_INSTANCING_BUFFER_END(Props)
 
+        float4 GetTextureColor(Input IN, int channel){
+            float3 uvw = float3(IN.worldPos.xz * 0.02, IN.textureIndex[channel]);
+            float4 c = UNITY_SAMPLE_TEX2DARRAY(_MainTex, uvw);
+            return c * IN.color[channel];
+        }
+
+        void vert(inout appdata_full v, out Input data){
+            UNITY_INITIALIZE_OUTPUT(Input, data);
+            data.textureIndex = v.texcoord1;
+        }
+
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
-            // Albedo comes from a texture tinted by color
-            fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-            o.Albedo = c.rgb * IN.color;
+            float4 c = 
+                GetTextureColor(IN, 0) +
+                GetTextureColor(IN, 1) +
+                GetTextureColor(IN, 2) +
+                GetTextureColor(IN, 3);
+            o.Albedo = c.rgb * _Color;
             // Metallic and smoothness come from slider variables
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;

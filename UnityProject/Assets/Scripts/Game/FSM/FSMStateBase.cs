@@ -49,7 +49,7 @@ public abstract class FSMStateBase
 
 public abstract class FSMStateFixed<TFSM> : FSMStateBase where TFSM : FSMBase
 {
-    public TFSM fsm;
+    public new TFSM fsm;
 
     public FSMStateFixed(TFSM fsm) : base(fsm)
     {
