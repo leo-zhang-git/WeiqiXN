@@ -5,10 +5,9 @@ using XNClient.Logger;
 #if UNITY_EDITOR
 public class AssetDatabaseLoader : ResourceLoaderBase
 {
-    public override bool CheckAssetExisits(string assetFullPath)
+    public AssetDatabaseLoader(ResourceManager manager) : base(manager)
     {
-        string assetGuid = AssetDatabase.AssetPathToGUID(assetFullPath);
-        return !string.IsNullOrEmpty(assetGuid);
+
     }
 
     public override T Loadasset<T>(string assetFullPath)
@@ -36,6 +35,12 @@ public class AssetDatabaseLoader : ResourceLoaderBase
             return request;
         }
         return null;
+    }
+
+    private bool CheckAssetExisits(string assetFullPath)
+    {
+        string assetGuid = AssetDatabase.AssetPathToGUID(assetFullPath);
+        return !string.IsNullOrEmpty(assetGuid);
     }
 }
 #endif

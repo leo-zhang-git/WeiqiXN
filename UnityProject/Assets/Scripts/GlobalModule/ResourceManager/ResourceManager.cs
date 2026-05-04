@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using XNLogger = XNClient.Logger.XNLogger;
 
@@ -7,16 +9,31 @@ public class ResourceManager : ModuleBase
 {
     public static uint ResourceBinderInstanceIds;
     public ResourceLoaderBase resLoader;
+    public Dictionary<string, AssetBundle> bundleDict = new Dictionary<string, AssetBundle>();
+    public Dictionary<string, string> path2BundleName = new Dictionary<string, string>();
+
     private Dictionary<string, IAssetRequest> requestMap = new Dictionary<string, IAssetRequest>();
     private Dictionary<string, IResourceLoadHandler> loadHandlerMap = new Dictionary<string, IResourceLoadHandler>();
     private Dictionary<string, IResourceLoadBinder> binderMap = new Dictionary<string, IResourceLoadBinder>();
 
+    protected class PackInfoFile
+    {
+        [JsonProperty("bundles")] public Dictionary<string, BundleInfo> Bundles { get; set; }
+    }
+
+    protected class BundleInfo
+    {
+        [JsonProperty("hash")] public string Hash { get; set; }
+        [JsonProperty("size")] public int Size { get; set; }
+    }
+
     public override void Init()
     {
+        PreloadAssetBundles();
 #if UNITY_EDITOR
-        resLoader = new AssetDatabaseLoader();
+        resLoader = new AssetDatabaseLoader(this);
 #else
-        // TODO
+        resLoader = new AssetBundleLoader(this);
 #endif
     }
 
@@ -66,6 +83,28 @@ public class ResourceManager : ModuleBase
         }
         foreach (string binderId in pendingDeleteBinder) {
             binderMap.Remove(binderId);
+        }
+    }
+
+    public void PreloadAssetBundles()
+    {
+        if (!Directory.Exists(GlobalConfig.PATH_ASSET_BUNDLE)) {
+            XNLogger.LogError("Asset bundle directory not found.", ("bundleDir", GlobalConfig.PATH_ASSET_BUNDLE));
+            return;
+        }
+
+        foreach (string filePath in Directory.GetFiles(GlobalConfig.PATH_ASSET_BUNDLE)) {
+            string bundleName = Path.GetFileName(filePath);
+            AssetBundle bundle = AssetBundle.LoadFromFile(filePath);
+            if (bundle == null) {
+                XNLogger.LogError("Load asset bundle failed.", ("bundlePath", filePath));
+                continue;
+            }
+
+            bundleDict[bundleName] = bundle;
+            foreach (string assetPath in bundle.GetAllAssetNames()) {
+                path2BundleName[assetPath] = bundleName;
+            }
         }
     }
 
@@ -167,5 +206,4 @@ public class ResourceManager : ModuleBase
         }
     }
 }
-
 
