@@ -26,6 +26,7 @@ public class AssetBundleGenerator
         PackAllSceneFiles();
         PackAllUIPrefabFiles();
 
+        CompatibilityBuildPipeline.BuildAssetBundles
         BuildPipeline.BuildAssetBundles(outputPath, BuildAssetBundleOptions.None, BuildTarget.StandaloneWindows);
         AssetDatabase.Refresh();
         Debug.Log("AssetBundle打包完成！输出路径：" + outputPath);

@@ -14,9 +14,10 @@ public class ResourceManager : ModuleBase
     public override void Init()
     {
 #if UNITY_EDITOR
-        resLoader = new AssetDatabaseLoader();
+        //resLoader = new AssetDatabaseLoader();
+        resLoader = new AssetBundleLoader();
 #else
-        // TODO
+        resLoader = new AssetBundleLoader();
 #endif
     }
 
@@ -167,5 +168,4 @@ public class ResourceManager : ModuleBase
         }
     }
 }
-
 
