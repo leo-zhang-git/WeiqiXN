@@ -2,6 +2,7 @@ using UnityEngine;
 
 public static class BuildConfig
 {
+    public static bool BUILD_BUNDLE_DISABLE_WRITE_TYPE_TREE = false;
     public readonly static string PATH_BUILDIN_ASSETBUNDLE = Application.streamingAssetsPath + "/AssetBundles";
 
     public readonly static string PATH_PACK_SCENE = Application.dataPath + "/Scenes";

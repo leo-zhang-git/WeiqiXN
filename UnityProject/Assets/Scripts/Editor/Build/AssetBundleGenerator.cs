@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using UnityEditor;
+using UnityEditor.Build.Pipeline;
 using UnityEngine;
 
 public class AssetBundleGenerator
@@ -26,10 +27,24 @@ public class AssetBundleGenerator
         PackAllSceneFiles();
         PackAllUIPrefabFiles();
 
-        CompatibilityBuildPipeline.BuildAssetBundles
-        BuildPipeline.BuildAssetBundles(outputPath, BuildAssetBundleOptions.None, BuildTarget.StandaloneWindows);
-        AssetDatabase.Refresh();
-        Debug.Log("AssetBundle打包完成！输出路径：" + outputPath);
+        BuildAssetBundleOptions options = BuildAssetBundleOptions.None;
+        // 开启了DisableWriteTypeTree后编辑器会无法正常序列化AB包，仅在打正式包时开启
+        if (BuildConfig.BUILD_BUNDLE_DISABLE_WRITE_TYPE_TREE) {
+            options |= BuildAssetBundleOptions.DisableWriteTypeTree;
+        }
+
+        options |= BuildAssetBundleOptions.UseContentHash;
+        options |= BuildAssetBundleOptions.DisableLoadAssetByFileName;  // 要求必须通过完整路径查ab包资源
+        options |= BuildAssetBundleOptions.DisableLoadAssetByFileNameWithExtension;
+        options |= BuildAssetBundleOptions.ChunkBasedCompression;
+
+        var manifest = CompatibilityBuildPipeline.BuildAssetBundles(outputPath, options, BuildTarget.StandaloneWindows);
+        if (manifest != null) {
+            AssetDatabase.Refresh();
+            Debug.Log("AssetBundle打包完成！输出路径：" + outputPath);
+        } else {
+            throw new Exception($"Build windows asset bundle failed, outputPath: {outputPath}.");
+        }
     }
 
     [MenuItem("Assets/打包/打包预处理/检查json表打包标签")]

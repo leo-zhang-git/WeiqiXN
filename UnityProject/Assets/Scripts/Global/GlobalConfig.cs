@@ -6,7 +6,7 @@ public static class GlobalConfig
 {
     public static string INGAME_DEBUG_CONSOLE_PREFAB_CONFIG_ID = "IngameDebugConsole";
     public readonly static string PATH_START_SCENE = "Assets/Scenes/Main.unity";
-    public readonly static string PATH_ASSET_BUNDLE = Application.streamingAssetsPath + "/AssetBundle";
+    public readonly static string PATH_ASSET_BUNDLE = Application.streamingAssetsPath + "/AssetBundles";
 #if UNITY_EDITOR
     private readonly static string PATH_CONFIG_JSON = Application.dataPath + "/Config/DataJson";
     public static JObject GetJsonConfigJObject(string jsonConfigName)

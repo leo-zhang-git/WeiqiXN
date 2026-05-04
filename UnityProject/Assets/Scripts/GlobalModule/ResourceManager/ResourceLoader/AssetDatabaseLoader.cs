@@ -5,6 +5,11 @@ using XNClient.Logger;
 #if UNITY_EDITOR
 public class AssetDatabaseLoader : ResourceLoaderBase
 {
+    public AssetDatabaseLoader(ResourceManager manager) : base(manager)
+    {
+
+    }
+
     public override T Loadasset<T>(string assetFullPath)
     {
         if (!CheckAssetExisits(assetFullPath)) {

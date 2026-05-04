@@ -1,13 +1,27 @@
 public class UnityLoadAsyncRequest<TAsset> : AssetRequest<TAsset> where TAsset : UnityEngine.Object
 {
-    public UnityLoadAsyncRequest(string assetFullPath) : base(assetFullPath)
-    {
-    }
+    private UnityEngine.AssetBundleRequest unityRequest;
+    private bool _isLoaded = false;
+    public override bool isLoaded => _isLoaded;
 
-    public override bool isLoaded => false;
+    public UnityLoadAsyncRequest(string assetFullPath, UnityEngine.AssetBundleRequest unityRequest) : base(assetFullPath)
+    {
+        this.unityRequest = unityRequest;
+    }
 
     protected override bool CheckLoadDone()
     {
-        return true;
+        if (!isLoaded && unityRequest != null && unityRequest.isDone) {
+            _asset = unityRequest.asset as TAsset;
+            _isLoaded = true;
+            return true;
+        }
+        return false;
+    }
+
+    public override void Dispose()
+    {
+        unityRequest = null;
+        base.Dispose();
     }
 }
