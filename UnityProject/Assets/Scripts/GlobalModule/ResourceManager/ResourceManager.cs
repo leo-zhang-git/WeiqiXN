@@ -31,8 +31,7 @@ public class ResourceManager : ModuleBase
     {
         PreloadAssetBundles();
 #if UNITY_EDITOR
-        //resLoader = new AssetDatabaseLoader(this);
-        resLoader = new AssetBundleLoader(this);
+        resLoader = new AssetDatabaseLoader(this);
 #else
         resLoader = new AssetBundleLoader(this);
 #endif
