@@ -24,6 +24,7 @@ public class AssetBundleGenerator
         }
 
         PackAllJsonCfgFiles();
+        PackAllModelFiles();
         PackAllSceneFiles();
         PackAllUIPrefabFiles();
 
@@ -53,10 +54,115 @@ public class AssetBundleGenerator
         PackAssetsByType(BuildConfig.PATH_PACK_JSON, "TextAsset", BuildConfig.AB_LABEL_JSON);
     }
 
+    [MenuItem("Assets/打包/打包预处理/检查model资源打包标签")]
+    public static void PackAllModelFiles()
+    {
+        string rootFolderPath = FullPathToAssetPath(BuildConfig.PATH_PACK_MODEL);
+        if (string.IsNullOrEmpty(rootFolderPath) || !Directory.Exists(BuildConfig.PATH_PACK_MODEL)) {
+            Debug.LogWarning($"找不到资源目录：{BuildConfig.PATH_PACK_MODEL}");
+            return;
+        }
+
+        string[] modelFolderFullPaths = Directory.GetDirectories(BuildConfig.PATH_PACK_MODEL);
+        int newImportCount = 0;
+        int packedModelTypeCount = 0;
+
+        foreach (string folderFullPath in modelFolderFullPaths) {
+            string folderPath = FullPathToAssetPath(folderFullPath);
+            if (string.IsNullOrEmpty(folderPath) || !AssetDatabase.IsValidFolder(folderPath))
+                continue;
+
+            string modelTypeName = Path.GetFileName(folderPath);
+            if (string.IsNullOrEmpty(modelTypeName))
+                continue;
+
+            string assetBundleName = $"{BuildConfig.AB_LABEL_MODEL}_{modelTypeName}".ToLowerInvariant();
+            string[] assetGuids = AssetDatabase.FindAssets(string.Empty, new[] { folderPath });
+            int modelAssetCount = 0;
+            foreach (string assetGuid in assetGuids) {
+                string assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
+                if (AssetDatabase.IsValidFolder(assetPath))
+                    continue;
+
+                AssetImporter importer = AssetImporter.GetAtPath(assetPath);
+                if (importer == null)
+                    continue;
+
+                if (importer.assetBundleName != assetBundleName) {
+                    importer.assetBundleName = assetBundleName;
+                    newImportCount++;
+                }
+
+                modelAssetCount++;
+            }
+
+            if (modelAssetCount > 0) {
+                packedModelTypeCount++;
+            }
+        }
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        Debug.Log($"新增/更新 {newImportCount} 个model资源标签，按类型打包 {packedModelTypeCount} 个目录");
+
+    }
+
     [MenuItem("Assets/打包/打包预处理/检查scene资源打包标签")]
     public static void PackAllSceneFiles()
     {
         PackAssetsByType(BuildConfig.PATH_PACK_SCENE, "SceneAsset", BuildConfig.AB_LABEL_SCENE);
+
+        string rootFolderPath = FullPathToAssetPath(BuildConfig.PATH_PACK_SCENE);
+        if (string.IsNullOrEmpty(rootFolderPath) || !Directory.Exists(BuildConfig.PATH_PACK_SCENE)) {
+            Debug.LogError($"找不到资源目录：{BuildConfig.PATH_PACK_SCENE}");
+            return;
+        }
+
+        string[] sceneFolderFullPaths = Directory.GetDirectories(BuildConfig.PATH_PACK_SCENE);
+        int newImportCount = 0;
+        int packedSceneCount = 0;
+
+        // 逐个按文件夹分场景资源包
+        foreach (string folderFullPath in sceneFolderFullPaths) {
+            string folderPath = FullPathToAssetPath(folderFullPath);
+            if (string.IsNullOrEmpty(folderPath) || !AssetDatabase.IsValidFolder(folderPath))
+                continue;
+
+            string sceneName = Path.GetFileName(folderPath);
+            if (string.IsNullOrEmpty(sceneName))
+                continue;
+
+            string assetBundleName = $"{BuildConfig.AB_LABEL_SCENE}_{sceneName}".ToLowerInvariant();
+            string[] assetGuids = AssetDatabase.FindAssets(string.Empty, new[] { folderPath });
+            int sceneAssetCount = 0;
+            foreach (string assetGuid in assetGuids) {
+                string assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
+                if (AssetDatabase.IsValidFolder(assetPath))
+                    continue;
+
+                if (string.Equals(Path.GetExtension(assetPath), ".unity", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                AssetImporter importer = AssetImporter.GetAtPath(assetPath);
+                if (importer == null)
+                    continue;
+
+                if (importer.assetBundleName != assetBundleName) {
+                    importer.assetBundleName = assetBundleName;
+                    newImportCount++;
+                }
+
+                sceneAssetCount++;
+            }
+
+            if (sceneAssetCount > 0) {
+                packedSceneCount++;
+            }
+        }
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        Debug.Log($"新增/更新 {newImportCount} 个资源标签，按场景打包 {packedSceneCount} 个目录");
     }
 
     [MenuItem("Assets/打包/打包预处理/检查UI prefab资源打包标签")]

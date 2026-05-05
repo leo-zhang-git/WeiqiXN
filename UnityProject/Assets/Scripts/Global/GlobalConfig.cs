@@ -1,6 +1,7 @@
 using Newtonsoft.Json.Linq;
 using System.IO;
 using UnityEngine;
+using XNClient.Logger;
 
 public static class GlobalConfig
 {
@@ -17,6 +18,7 @@ public static class GlobalConfig
         if (File.Exists(jsonPath)) {
             return JObject.Parse(File.ReadAllText(jsonPath));
         } else {
+            XNLogger.LogError("Json config asset not found.", ("jsonConfigName", jsonConfigName));
             return null;
         }
     }

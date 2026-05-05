@@ -6,10 +6,12 @@ public static class BuildConfig
     public readonly static string PATH_BUILDIN_ASSETBUNDLE = Application.streamingAssetsPath + "/AssetBundles";
 
     public readonly static string PATH_PACK_SCENE = Application.dataPath + "/Scenes";
+    public readonly static string PATH_PACK_MODEL = Application.dataPath + "/Models";
     public readonly static string PATH_PACK_JSON = Application.dataPath + "/Config/DataJson";
     public readonly static string PATH_PACK_UI_PREFAB = Application.dataPath + "/UI/Prefab";
 
-    public const string AB_LABEL_SCENE = "scene_main";
+    public const string AB_LABEL_SCENE = "scene";
+    public const string AB_LABEL_MODEL = "model";
     public const string AB_LABEL_JSON = "config_json";
     public const string AB_LABEL_UI_PREFAB = "ui_main_prefab";
 }
