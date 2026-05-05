@@ -3,67 +3,83 @@ Shader "XNShader/Ground"
     Properties
     {
         _Color ("Color", Color) = (1,1,1,1)
-        _MainTex ("Ground Texture Array", 2DArray) = "white" {}
-        _Glossiness ("Smoothness", Range(0,1)) = 0.5
-        _Metallic ("Metallic", Range(0,1)) = 0.0
+        _MainTex ("Ground Texture Array", 2DArray) = "" {}
     }
+
     SubShader
     {
-        Tags { "RenderType"="Opaque" "Queue"="Geometry"}
-        LOD 200
-
-        CGPROGRAM
-        // Physically based Standard lighting model, and enable shadows on all light types
-        #pragma surface surf Standard fullforwardshadows vertex:vert
-
-        // 使用TextureArray需要3.5
-        #pragma target 3.5
-
-        UNITY_DECLARE_TEX2DARRAY(_MainTex);
-
-        struct Input
+        Tags
         {
-            float4 color : COLOR;
-            float3 worldPos;
-            float4 textureIndex;
-        };
-
-        half _Glossiness;
-        half _Metallic;
-        fixed4 _Color;
-
-        // Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
-        // See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
-        // #pragma instancing_options assumeuniformscaling
-        UNITY_INSTANCING_BUFFER_START(Props)
-            // put more per-instance properties here
-        UNITY_INSTANCING_BUFFER_END(Props)
-
-        float4 GetTextureColor(Input IN, int channel){
-            float3 uvw = float3(IN.worldPos.xz * 0.02, IN.textureIndex[channel]);
-            float4 c = UNITY_SAMPLE_TEX2DARRAY(_MainTex, uvw);
-            return c * IN.color[channel];
+            "RenderPipeline"="UniversalPipeline"
+            "RenderType"="Opaque"
+            "Queue"="Geometry"
         }
 
-        void vert(inout appdata_full v, out Input data){
-            UNITY_INITIALIZE_OUTPUT(Input, data);
-            data.textureIndex = v.texcoord1;
-        }
-
-        void surf (Input IN, inout SurfaceOutputStandard o)
+        Pass
         {
-            float4 c = 
-                GetTextureColor(IN, 0) +
-                GetTextureColor(IN, 1) +
-                GetTextureColor(IN, 2) +
-                GetTextureColor(IN, 3);
-            o.Albedo = c.rgb * _Color;
-            // Metallic and smoothness come from slider variables
-            o.Metallic = _Metallic;
-            o.Smoothness = _Glossiness;
-            o.Alpha = c.a;
+            Name "Forward"
+            Tags { "LightMode"="UniversalForward" }
+
+            ZWrite On
+            Cull Back
+
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            TEXTURE2D_ARRAY(_MainTex);
+            SAMPLER(sampler_MainTex);
+
+            CBUFFER_START(UnityPerMaterial)
+                float4 _Color;
+            CBUFFER_END
+
+            struct Attributes
+            {
+                float4 positionOS : POSITION;
+                float4 color : COLOR;
+                float4 uv : TEXCOORD0;
+            };
+
+            struct Varyings
+            {
+                float4 positionCS : SV_POSITION;
+                float3 positionWS : TEXCOORD0;
+                float4 color : COLOR;
+                float4 uv : TEXCOORD1;
+            };
+
+            Varyings vert(Attributes input)
+            {
+                Varyings output;
+                VertexPositionInputs positionInputs = GetVertexPositionInputs(input.positionOS.xyz);
+                output.positionCS = positionInputs.positionCS;
+                output.positionWS = positionInputs.positionWS;
+                output.color = input.color;
+                output.uv = input.uv;
+                return output;
+            }
+
+            half4 SampleLayer(float3 positionWS, half weight, float layerIndex)
+            {
+                half4 color = SAMPLE_TEXTURE2D_ARRAY(_MainTex, sampler_MainTex, positionWS.xz * 0.02, layerIndex);
+                return color * weight;
+            }
+
+            half4 frag(Varyings input) : SV_Target
+            {
+                half4 color =
+                    SampleLayer(input.positionWS, input.color.r, input.uv.x) +
+                    SampleLayer(input.positionWS, input.color.g, input.uv.y) +
+                    SampleLayer(input.positionWS, input.color.b, input.uv.z) +
+                    SampleLayer(input.positionWS, input.color.a, input.uv.w);
+
+                return half4(color.rgb * _Color.rgb, 1.0h);
+            }
+            ENDHLSL
         }
-        ENDCG
     }
-    FallBack "Diffuse"
 }

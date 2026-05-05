@@ -29,10 +29,10 @@ public class ResourceManager : ModuleBase
 
     public override void Init()
     {
-        PreloadAssetBundles();
 #if UNITY_EDITOR
         resLoader = new AssetDatabaseLoader(this);
 #else
+        PreloadAssetBundles();
         resLoader = new AssetBundleLoader(this);
 #endif
     }

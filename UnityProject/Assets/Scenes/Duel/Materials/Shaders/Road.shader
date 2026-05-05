@@ -2,64 +2,82 @@ Shader "XNShader/Road"
 {
     Properties
     {
-        _Color ("Color", Color) = (1,1,1,1)
-        _MainTex ("Albedo (RGB)", 2D) = "white" {}
+        _Color ("Road Color", Color) = (1,1,1,1)
         _NoiseTex ("Noise Tex", 2D) = "white" {}
-        [Toggle(_ROAD_BLEND_ALPHA)] _UseBlendAlpha ("Use Blend Alpha", Float) = 0
-        _Glossiness ("Smoothness", Range(0,1)) = 0.5
-        _Metallic ("Metallic", Range(0,1)) = 0.0
+        [Toggle(_ROAD_USE_NOISE)] _UseNoise ("Use Noise", Float) = 1
     }
+
     SubShader
     {
-        Tags { "RenderType"="Opaque" "Queue"="Geometry+1"}
-        LOD 200
-        OFFSET -1, -1
-
-        CGPROGRAM
-        // 加入unity built-in shader的贴花指令，在opaque渲染队列之后之后执行透明度混合
-        #pragma surface surf Standard fullforwardshadows decal:blend
-        #pragma shader_feature_local _ROAD_BLEND_ALPHA
-
-        // Use shader model 3.0 target, to get nicer looking lighting
-        #pragma target 3.0
-
-        sampler2D _MainTex;
-        sampler2D _NoiseTex;
-
-        struct Input
+        Tags
         {
-            float2 uv_MainTex;
-            float3 worldPos;
-        };
-
-        half _Glossiness;
-        half _Metallic;
-        fixed4 _Color;
-
-        // Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
-        // See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
-        // #pragma instancing_options assumeuniformscaling
-        UNITY_INSTANCING_BUFFER_START(Props)
-            // put more per-instance properties here
-        UNITY_INSTANCING_BUFFER_END(Props)
-
-        void surf (Input IN, inout SurfaceOutputStandard o)
-        {
-            float4 noise = tex2D(_NoiseTex, IN.worldPos.xz * 0.02);
-            fixed4 c = _Color * (noise.y * 0.75 + 0.25);
-            o.Albedo = c.rgb;
-            o.Metallic = _Metallic;
-            o.Smoothness = _Glossiness;
-#if defined(_ROAD_BLEND_ALPHA)
-            float blend = IN.uv_MainTex.x;
-            blend *= noise.x + 0.5;
-            blend = smoothstep(0.4, 0.7, blend);
-            o.Alpha = blend;
-#else
-            o.Alpha = 1;
-#endif
+            "RenderPipeline"="UniversalPipeline"
+            "RenderType"="TransparentCutout"
+            "Queue"="Geometry+1"
         }
-        ENDCG
+
+        Pass
+        {
+            Name "Forward"
+            Tags { "LightMode"="UniversalForward" }
+
+            ZWrite On
+            Cull Back
+            Offset -1, -1
+
+            HLSLPROGRAM
+            #pragma target 3.0
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma shader_feature_local _ROAD_USE_NOISE
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            TEXTURE2D(_NoiseTex);
+            SAMPLER(sampler_NoiseTex);
+
+            CBUFFER_START(UnityPerMaterial)
+                float4 _Color;
+            CBUFFER_END
+
+            struct Attributes
+            {
+                float4 positionOS : POSITION;
+                float2 uv : TEXCOORD0;
+            };
+
+            struct Varyings
+            {
+                float4 positionCS : SV_POSITION;
+                float3 positionWS : TEXCOORD0;
+                float2 uv : TEXCOORD1;
+            };
+
+            Varyings vert(Attributes input)
+            {
+                Varyings output;
+                VertexPositionInputs positionInputs = GetVertexPositionInputs(input.positionOS.xyz);
+                output.positionCS = positionInputs.positionCS;
+                output.positionWS = positionInputs.positionWS;
+                output.uv = input.uv;
+                return output;
+            }
+
+            half4 frag(Varyings input) : SV_Target
+            {
+                half alpha = 1.0h;
+
+            #if defined(_ROAD_USE_NOISE)
+                half noise = SAMPLE_TEXTURE2D(_NoiseTex, sampler_NoiseTex, input.positionWS.xz * 0.02).r;
+                half blend = input.uv.x;
+                blend *= noise + 0.5h;
+                alpha = smoothstep(0.4h, 0.7h, blend);
+            #endif
+
+                clip(_Color.a * alpha - 0.5h);
+                return half4(_Color.rgb, 1.0h);
+            }
+            ENDHLSL
+        }
     }
-    FallBack "Diffuse"
 }
