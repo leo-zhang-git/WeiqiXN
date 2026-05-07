@@ -104,7 +104,6 @@ public class AssetBundleGenerator
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Debug.Log($"新增/更新 {newImportCount} 个model资源标签，按类型打包 {packedModelTypeCount} 个目录");
-
     }
 
     [MenuItem("Assets/打包/打包预处理/检查scene资源打包标签")]

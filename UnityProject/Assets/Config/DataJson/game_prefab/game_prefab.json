@@ -6,5 +6,9 @@
   "IngameDebugConsole": {
     "id": "IngameDebugConsole",
     "resPath": "Plugins/IngameDebugConsole/IngameDebugConsole"
+  },
+  "FX_LootDrop_Blue": {
+    "id": "FX_LootDrop_Blue",
+    "resPath": "Models/VFX/FX_LootDrop_Blue"
   }
 }

@@ -3,7 +3,7 @@ guid: 47e95282ee495b94396029d66b36df25
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
-  serializedVersion: 12
+  serializedVersion: 13
   mipmaps:
     mipMapMode: 0
     enableMipMap: 1
@@ -149,12 +149,5 @@ TextureImporter:
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
-  assetBundleName: 
+  assetBundleName: model_vfx
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 302065
-  packageName: Game VFX - Magic Circle Collection
-  packageVersion: 1.0
-  assetPath: Assets/Game VFX Collection Vol 2(URP)/FX_LootDrop/Textures/Spark Blur.png
-  uploadId: 707253
