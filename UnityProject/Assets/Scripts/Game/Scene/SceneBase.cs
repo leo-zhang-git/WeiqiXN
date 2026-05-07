@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using XNLogger = XNClient.Logger.XNLogger;
 
-public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
+public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver, IResourceLoadBinder
 {
     public readonly SceneDataType configData;
     public SceneCreateParams sceneCreateParams;
@@ -78,6 +78,7 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
         }
         OnTimerAttacherDestroyed();
         OnEventReceiverDestroyed();
+        OnResourceBinderDestroyed();
 
         if (isMainScene) {
             EmitSystemEvent(new OnExitMainScene(this));
@@ -168,7 +169,7 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
         Global.Instance.eventManager.UnregisterSystemEvent(handler);
     }
 
-    public void EmitEntityEvent<TEntity, TEvent>(TEntity entity, TEvent entityEvent) where TEntity : EntityBase where TEvent : EntityEventBase
+    public void EmitEntityEvent(EntityBase entity, EntityEventBase entityEvent)
     {
         Global.Instance.eventManager.EmitEntityEvent(entity, entityEvent);
     }
@@ -186,6 +187,29 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
     public void OnEventReceiverDestroyed()
     {
         Global.Instance.eventManager.UnregisterEventsByReceiver(this);
+    }
+    #endregion
+
+    #region Resource
+    private string _binderId;
+    public string binderId
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(_binderId)) {
+                _binderId = $"{GetType().Name}_{ResourceManager.ResourceBinderInstanceIds}";
+                ResourceManager.ResourceBinderInstanceIds += 1;
+            }
+            return _binderId;
+        }
+    }
+
+    private HashSet<string> _loadHandlerIds = new HashSet<string>();
+    public HashSet<string> loadHandlerIds => _loadHandlerIds;
+
+    public void OnResourceBinderDestroyed()
+    {
+        Global.Instance.resourceManager.OnResourceBinderDestroyed(binderId);
     }
     #endregion
 
@@ -216,6 +240,10 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
 
     public void AddEntity(EntityBase entity)
     {
+        if (entity == null) {
+            XNLogger.LogError("Try add null entity, add entity failed.", ("sceneTypeId", configData.id));
+            return;
+        }
         if (entityDict.ContainsKey(entity.guid)) {
             XNLogger.LogError("Duplicated entity guid, add entity failed.", ("guid", entity.guid));
             return;
@@ -228,6 +256,7 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
             entityTypeDict[entity.entityType] = entSet;
         }
         entSet.Add(entity);
+        EmitEntityEvent(entity, new OnEntityCreated());
         XNLogger.LogInfo("Add entity success.", ("guid", entity.guid));
     }
 
@@ -237,6 +266,7 @@ public class SceneBase : SavableObj, ITimerAttacher, IEventReceiver
             XNLogger.LogError("Target entity not in scene, remove entity failed.", ("guid", entity.guid), ("sceneTypeId", configData.id));
             return;
         }
+        EmitEntityEvent(entity, new OnEntityDestroyed());
         entityDict.Remove(entity.guid);
 
         HashSet<EntityBase> entSet;

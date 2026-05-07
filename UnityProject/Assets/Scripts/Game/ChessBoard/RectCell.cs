@@ -9,7 +9,7 @@ namespace XNClient.ChessBoard
         public bool isOnEdge;
         // 共用边的四个邻接cell
         public RectCell[] neighbors = new RectCell[4];
-        public int textureIndex = Random.Range(0, 5);
+        public int textureIndex = 0;
         public Vector3 centerPosInChunk
         {
             get

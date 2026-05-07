@@ -1,4 +1,6 @@
 using System;
+using UnityEngine;
+using XNClient.ChessBoard;
 
 public static class EntityUtils
 {
@@ -23,5 +25,19 @@ public static class EntityUtils
         scene.AddEntity(player);
 
         return player;
+    }
+
+    public static void CreateChess(SceneBase scene, PlayerFlag playerFlag, RectCoordinates coords)
+    {
+        string gamePrefabTypeId = DuelUtils.GetGamePrefabTypeIdWithPlayerFlag(playerFlag);
+        var gamePrefabCfg = GamePrefabDataType.GetConfigData(gamePrefabTypeId);
+        if (gamePrefabCfg != null) {
+            Global.Instance.resourceManager.LoadGamePrefabAsync(scene, gamePrefabCfg.resPath, (GameObject go) =>
+            {
+                string guid = CreateGuidWithEntityType(EntityBase.GetEntityType<Chess>());
+                Chess chess = new Chess(scene, guid, go, playerFlag, coords);
+                scene.AddEntity(chess);
+            });
+        }
     }
 }

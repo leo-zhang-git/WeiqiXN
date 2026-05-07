@@ -11,6 +11,8 @@ public class DuelSystem : SystemBase
     {
         base.Init();
 
+        scene.RegisterSystemEvent<OnAfterAddChessToBoard>(OnAfterAddChessToBoard);
+
         // 非读档进来的需要手动初始化
         if (scene.sceneCreateParams.saveFilePath == null) {
             var compDuel = scene.GetComponent<SceneComponentDuel>();
@@ -33,10 +35,18 @@ public class DuelSystem : SystemBase
         base.OnUpdate();
 
         var compDuel = scene.GetComponent<SceneComponentDuel>();
-        if (compDuel != null) {
-            if (compDuel.duelFSM.isActivated) {
-                compDuel.duelFSM.Update();
-            }
+        if (compDuel != null && compDuel.duelFSM.isActivated) {
+            compDuel.duelFSM.Update();
+        }
+    }
+
+    public void OnAfterAddChessToBoard(OnAfterAddChessToBoard evt)
+    {
+        // TODO traverse chessboard and clear chess
+
+        var compDuel = scene.GetComponent<SceneComponentDuel>();
+        if (compDuel != null && compDuel.duelFSM.isActivated) {
+            compDuel.duelFSM.SetParamterTrigger(DuelParamDefine.TRIGGER_PARAM_TURN_INPUT_FINISH);
         }
     }
 }

@@ -191,7 +191,7 @@ public abstract class UILogicBase : ITimerAttacher, IEventReceiver, IResourceLoa
         Global.Instance.eventManager.UnregisterSystemEvent(handler);
     }
 
-    public void EmitEntityEvent<TEntity, TEvent>(TEntity entity, TEvent entityEvent) where TEntity : EntityBase where TEvent : EntityEventBase
+    public void EmitEntityEvent(EntityBase entity, EntityEventBase entityEvent)
     {
         Global.Instance.eventManager.EmitEntityEvent(entity, entityEvent);
     }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using XNClient.Logger;
 
@@ -15,6 +16,8 @@ public class ChessBoardSystem : SystemBase
     {
         base.Init();
 
+        scene.RegisterSystemEvent<OnAddChessToBoard>(OnAddChessToBoard);
+
         var compChessBoard = scene.GetComponent<SceneComponentChessBoard>();
         if (compChessBoard == null) return;
 
@@ -31,10 +34,27 @@ public class ChessBoardSystem : SystemBase
         chessBoardData = ChessBoardDataType.GetConfigData(compChessBoard.boardCfgId.value);
         if (chessBoardData != null) {
             compChessBoard.chessBoardGrid.InitGrid(chessBoardData.boardSize);
+            int chessBoardCellCount = compChessBoard.chessBoardGrid.gridSize * compChessBoard.chessBoardGrid.gridSize;
+            compChessBoard.chessFlagMap = new List<int>(new int[chessBoardCellCount]);
             Bounds gridBounds = compChessBoard.chessBoardGrid.GetGridBounds();
             InitDuelVCam(gridBounds);
         } else {
             XNLogger.LogError("Chess board config not found!", ("chessBoardCfgId", compChessBoard.boardCfgId.value));
+        }
+    }
+
+    public void OnAddChessToBoard(OnAddChessToBoard evt)
+    {
+        var compDuel = scene.GetComponent<SceneComponentDuel>();
+        var compChessBoard = scene.GetComponent<SceneComponentChessBoard>();
+        if (compDuel != null && compChessBoard != null) {
+            int posIndex = compChessBoard.GetPosIndexByCoords(evt.coords);
+            var curPlayer = scene.GetEntity<Player>(compDuel.curTurnPlayerGuid.value);
+            if (posIndex >= 0 && compChessBoard.chessFlagMap[posIndex] == 0 && curPlayer != null) {
+                compChessBoard.chessFlagMap[posIndex] = curPlayer.playerFlag.value;
+                EntityUtils.CreateChess(scene, (PlayerFlag)curPlayer.playerFlag.value, evt.coords);
+                scene.EmitSystemEvent(new OnAfterAddChessToBoard());
+            }
         }
     }
 

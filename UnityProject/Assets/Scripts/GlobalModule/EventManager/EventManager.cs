@@ -54,7 +54,19 @@ public class EventManager : ModuleBase
         XNLogger.LogInfo("Emit entity event.", ("eventName", entityEvent.GetEventType()), ("entityType", entity.entityType));
         if (entityEventHandlers.TryGetValue(entityEvent.GetEventType(), out var handlerSet)) {
             foreach (var handler in handlerSet) {
-                if (handler.entityType == entityEvent.GetEventType()) {
+                if (handler.CanHandle(entity)) {
+                    handler.Execute(entity, entityEvent);
+                }
+            }
+        }
+    }
+
+    public void EmitEntityEvent(EntityBase entity, EntityEventBase entityEvent)
+    {
+        XNLogger.LogInfo("Emit entity event.", ("eventName", entityEvent.GetEventType()), ("entityType", entity.entityType));
+        if (entityEventHandlers.TryGetValue(entityEvent.GetEventType(), out var handlerSet)) {
+            foreach (var handler in handlerSet) {
+                if (handler.CanHandle(entity)) {
                     handler.Execute(entity, entityEvent);
                 }
             }

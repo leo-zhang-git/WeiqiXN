@@ -5,6 +5,7 @@ public class DuelPage : UIPageWithBinder<DuelPageUI>
 {
     public override string pageName => UIPage.GetPageName<DuelPage>();
     public GameObject aimVFX;
+    public RectCoordinates aimCoords = new RectCoordinates(-1, -1);
     private const string AIM_VFX_GAME_PREFAB_TYPEID = "FX_LootDrop_Blue";
 
     protected override void OnLoaded()
@@ -37,46 +38,45 @@ public class DuelPage : UIPageWithBinder<DuelPageUI>
 
         RefreshDebugPanel();
 
+        aimCoords.SetValue(-1, -1);
         var mainScene = Global.Instance.sceneManager.mainScene;
         var compDuel = mainScene.GetComponent<SceneComponentDuel>();
-        if (compDuel != null) {
-            if (compDuel.duelFSM.isActivated) {
-                compDuel.duelFSM.Update();
-            }
+        if (compDuel != null && aimVFX != null) {
+            if (compDuel.duelFSM.curState.stateName == DuelStateDefine.STATE_TURN_INPUT) {
+                Ray mouseRay = Global.Instance.uiManager.uiCamera.ScreenPointToRay(Input.mousePosition);
+                // UI射线把落子vfx放到指定位置
+                if (Physics.Raycast(mouseRay.origin, mouseRay.direction, out var hitInfo, 500)) {
+                    aimVFX.SetActive(true);
+                    var compChessBoard = mainScene.GetComponent<SceneComponentChessBoard>();
+                    if (compChessBoard != null) {
+                        Transform gridTransform = compChessBoard.chessBoardGrid.transform;
+                        Vector3 localHitPoint = gridTransform.InverseTransformPoint(hitInfo.point);
+                        float cellSideLength = ChessBoardConfig.rectCellSideLength;
 
-            if (aimVFX != null) {
-                if (compDuel.duelFSM.curState.stateName == DuelStateDefine.STATE_TURN_INPUT) {
-                    Ray mouseRay = Global.Instance.uiManager.uiCamera.ScreenPointToRay(Input.mousePosition);
-                    // UI射线把落子vfx放到指定位置
-                    if (Physics.Raycast(mouseRay.origin, mouseRay.direction, out var hitInfo, 500)) {
-                        aimVFX.SetActive(true);
-                        var compChessBoard = mainScene.GetComponent<SceneComponentChessBoard>();
-                        if (compChessBoard != null) {
-                            Transform gridTransform = compChessBoard.chessBoardGrid.transform;
-                            Vector3 localHitPoint = gridTransform.InverseTransformPoint(hitInfo.point);
-                            float cellSideLength = ChessBoardConfig.rectCellSideLength;
+                        int nearestCellX = Mathf.RoundToInt(localHitPoint.x / cellSideLength - 0.5f);
+                        int nearestCellZ = Mathf.RoundToInt(localHitPoint.z / cellSideLength - 0.5f);
 
-                            int nearestCellX = Mathf.RoundToInt(localHitPoint.x / cellSideLength - 0.5f);
-                            int nearestCellZ = Mathf.RoundToInt(localHitPoint.z / cellSideLength - 0.5f);
+                        int maxCellIndex = Mathf.Max(compChessBoard.chessBoardGrid.gridSize - 1, 0);
+                        nearestCellX = Mathf.Clamp(nearestCellX, 0, maxCellIndex);
+                        nearestCellZ = Mathf.Clamp(nearestCellZ, 0, maxCellIndex);
 
-                            int maxCellIndex = Mathf.Max(compChessBoard.chessBoardGrid.gridSize - 1, 0);
-                            nearestCellX = Mathf.Clamp(nearestCellX, 0, maxCellIndex);
-                            nearestCellZ = Mathf.Clamp(nearestCellZ, 0, maxCellIndex);
-
-                            Vector3 nearestCellCenterLocalPos = new Vector3(
-                                (nearestCellX + 0.5f) * cellSideLength,
-                                0f,
-                                (nearestCellZ + 0.5f) * cellSideLength
-                            );
-                            aimVFX.transform.position = gridTransform.TransformPoint(nearestCellCenterLocalPos);
-                        }
-                    } else {
-                        aimVFX.SetActive(false);
+                        Vector3 nearestCellCenterLocalPos = new Vector3(
+                            (nearestCellX + 0.5f) * cellSideLength,
+                            0f,
+                            (nearestCellZ + 0.5f) * cellSideLength
+                        );
+                        aimVFX.transform.position = gridTransform.TransformPoint(nearestCellCenterLocalPos);
+                        aimCoords.SetValue(nearestCellX, nearestCellZ);
                     }
                 } else {
                     aimVFX.SetActive(false);
                 }
             }
+        }
+
+        // TODO input manager
+        if (UnityEngine.Input.GetKeyDown(KeyCode.Mouse0)) {
+            OnMouse0Down();
         }
     }
 
@@ -111,6 +111,15 @@ public class DuelPage : UIPageWithBinder<DuelPageUI>
                     }
                     break;
             }
+        }
+    }
+
+    public void OnMouse0Down()
+    {
+        var mainScene = Global.Instance.sceneManager.mainScene;
+        var compDuel = mainScene.GetComponent<SceneComponentDuel>();
+        if (compDuel != null && compDuel.duelFSM.curState.stateName == DuelStateDefine.STATE_TURN_INPUT) {
+            EmitSystemEvent(new OnAddChessToBoard(aimCoords.Clone()));
         }
     }
 

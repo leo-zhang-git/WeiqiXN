@@ -11,8 +11,18 @@ namespace XNClient.ChessBoard
 
         public RectCoordinates(int x, int z)
         {
+            SetValue(x, z);
+        }
+
+        public void SetValue(int x, int z)
+        {
             this.x = x;
             this.z = z;
+        }
+
+        public RectCoordinates Clone()
+        {
+            return new RectCoordinates(x, z);
         }
 
         public override string ToString()

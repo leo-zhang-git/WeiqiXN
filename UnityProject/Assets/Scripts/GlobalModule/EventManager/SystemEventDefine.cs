@@ -1,4 +1,5 @@
 ﻿using System;
+using XNClient.ChessBoard;
 using XNClient.Logger;
 
 public interface ISystemEventHandler
@@ -70,4 +71,20 @@ public class OnDuelStateChanged : SystemEventBase
     {
         this.curStateName = curStateName;
     }
+}
+
+public class OnAddChessToBoard : SystemEventBase
+{
+    public override string GetEventType() => GetEventType<OnAddChessToBoard>();
+
+    public RectCoordinates coords;
+    public OnAddChessToBoard(RectCoordinates coords)
+    {
+        this.coords = coords;
+    }
+}
+
+public class OnAfterAddChessToBoard : SystemEventBase
+{
+    public override string GetEventType() => GetEventType<OnAfterAddChessToBoard>();
 }

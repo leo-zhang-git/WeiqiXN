@@ -10,5 +10,13 @@
   "FX_LootDrop_Blue": {
     "id": "FX_LootDrop_Blue",
     "resPath": "Models/VFX/FX_LootDrop_Blue"
+  },
+  "ChessBlack": {
+    "id": "ChessBlack",
+    "resPath": "Models/Chess/ChessBlack"
+  },
+  "ChessWhite": {
+    "id": "ChessWhite",
+    "resPath": "Models/Chess/ChessWhite"
   }
 }

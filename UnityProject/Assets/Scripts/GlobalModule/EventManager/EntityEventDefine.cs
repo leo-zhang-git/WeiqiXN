@@ -6,6 +6,7 @@ public interface IEntityEventHandler
     string entityType { get; }
     string eventType { get; }
     IEventReceiver receiver { get; }
+    bool CanHandle(EntityBase entity);
     public void Execute(EntityBase entity, EntityEventBase entityEvent);
 }
 
@@ -20,6 +21,11 @@ public class EntityEventHandler<TEntity, TEvent> : IEntityEventHandler where TEn
     {
         this.receiver = receiver;
         this.callback = callback;
+    }
+
+    public bool CanHandle(EntityBase entity)
+    {
+        return entity is TEntity;
     }
 
     public void Execute(EntityBase entity, EntityEventBase entityEvent)
@@ -48,4 +54,9 @@ public abstract class EntityEventBase
 public class OnEntityCreated : EntityEventBase
 {
     public override string GetEventType() => EntityEventBase.GetEventType<OnEntityCreated>();
+}
+
+public class OnEntityDestroyed : EntityEventBase
+{
+    public override string GetEventType() => EntityEventBase.GetEventType<OnEntityDestroyed>();
 }

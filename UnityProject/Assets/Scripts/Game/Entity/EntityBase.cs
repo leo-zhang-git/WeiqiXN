@@ -52,8 +52,8 @@ public abstract class EntityBase : SavableObj, ITimerAttacher
 
     public void Destroy()
     {
-        OnDestroy();
         scene.RemoveEntity(this);
+        OnDestroy();
     }
     #endregion
 
