@@ -1,6 +1,11 @@
-﻿public class DuelPage : UIPageWithBinder<DuelPageUI>
+﻿using UnityEngine;
+using XNClient.ChessBoard;
+
+public class DuelPage : UIPageWithBinder<DuelPageUI>
 {
     public override string pageName => UIPage.GetPageName<DuelPage>();
+    public GameObject aimVFX;
+    private const string AIM_VFX_GAME_PREFAB_TYPEID = "FX_LootDrop_Blue";
 
     protected override void OnLoaded()
     {
@@ -10,6 +15,13 @@
 
         binder.btn_save.onClick.AddListener(OnClickBtnSave);
         binder.btn_exit.onClick.AddListener(OnClickBtnExit);
+
+        if (aimVFX == null) {
+            var gamePrefabCfg = GamePrefabDataType.GetConfigData(AIM_VFX_GAME_PREFAB_TYPEID);
+            if (gamePrefabCfg != null) {
+                aimVFX = Global.Instance.resourceManager.LoadGamePrefab(gamePrefabCfg.resPath);
+            }
+        }
     }
 
     protected override void OnOpen()
@@ -24,6 +36,56 @@
         base.OnUpdate();
 
         RefreshDebugPanel();
+
+        var mainScene = Global.Instance.sceneManager.mainScene;
+        var compDuel = mainScene.GetComponent<SceneComponentDuel>();
+        if (compDuel != null) {
+            if (compDuel.duelFSM.isActivated) {
+                compDuel.duelFSM.Update();
+            }
+
+            if (aimVFX != null) {
+                if (compDuel.duelFSM.curState.stateName == DuelStateDefine.STATE_TURN_INPUT) {
+                    Ray mouseRay = Global.Instance.uiManager.uiCamera.ScreenPointToRay(Input.mousePosition);
+                    // UI射线把落子vfx放到指定位置
+                    if (Physics.Raycast(mouseRay.origin, mouseRay.direction, out var hitInfo, 500)) {
+                        aimVFX.SetActive(true);
+                        var compChessBoard = mainScene.GetComponent<SceneComponentChessBoard>();
+                        if (compChessBoard != null) {
+                            Transform gridTransform = compChessBoard.chessBoardGrid.transform;
+                            Vector3 localHitPoint = gridTransform.InverseTransformPoint(hitInfo.point);
+                            float cellSideLength = ChessBoardConfig.rectCellSideLength;
+
+                            int nearestCellX = Mathf.RoundToInt(localHitPoint.x / cellSideLength - 0.5f);
+                            int nearestCellZ = Mathf.RoundToInt(localHitPoint.z / cellSideLength - 0.5f);
+
+                            int maxCellIndex = Mathf.Max(compChessBoard.chessBoardGrid.gridSize - 1, 0);
+                            nearestCellX = Mathf.Clamp(nearestCellX, 0, maxCellIndex);
+                            nearestCellZ = Mathf.Clamp(nearestCellZ, 0, maxCellIndex);
+
+                            Vector3 nearestCellCenterLocalPos = new Vector3(
+                                (nearestCellX + 0.5f) * cellSideLength,
+                                0f,
+                                (nearestCellZ + 0.5f) * cellSideLength
+                            );
+                            aimVFX.transform.position = gridTransform.TransformPoint(nearestCellCenterLocalPos);
+                        }
+                    } else {
+                        aimVFX.SetActive(false);
+                    }
+                } else {
+                    aimVFX.SetActive(false);
+                }
+            }
+        }
+    }
+
+    protected override void OnClose()
+    {
+        base.OnClose();
+        if (aimVFX != null) {
+            GameObject.DestroyImmediate(aimVFX);
+        }
     }
 
     public void OnDuelStateChanged(OnDuelStateChanged evt)
