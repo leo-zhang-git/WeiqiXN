@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using UnityEngine;
+using XNClient.ChessBoard;
 using XNClient.Logger;
 
 public class ChessBoardSystem : SystemBase
@@ -16,6 +16,7 @@ public class ChessBoardSystem : SystemBase
     {
         base.Init();
 
+        scene.RegisterEntityEvent<Chess, OnEntityCreated>(OnChessCreated);
         scene.RegisterSystemEvent<OnAddChessToBoard>(OnAddChessToBoard);
 
         var compChessBoard = scene.GetComponent<SceneComponentChessBoard>();
@@ -35,11 +36,32 @@ public class ChessBoardSystem : SystemBase
         if (chessBoardData != null) {
             compChessBoard.chessBoardGrid.InitGrid(chessBoardData.boardSize);
             int chessBoardCellCount = compChessBoard.chessBoardGrid.gridSize * compChessBoard.chessBoardGrid.gridSize;
-            compChessBoard.chessFlagMap = new List<int>(new int[chessBoardCellCount]);
+            compChessBoard.chessInfoMap = new ChessInfo[chessBoardCellCount];
             Bounds gridBounds = compChessBoard.chessBoardGrid.GetGridBounds();
             InitDuelVCam(gridBounds);
         } else {
             XNLogger.LogError("Chess board config not found!", ("chessBoardCfgId", compChessBoard.boardCfgId.value));
+        }
+    }
+
+    public void OnChessCreated(Chess chess, OnEntityCreated evt)
+    {
+        var compChessBoard = scene.GetComponent<SceneComponentChessBoard>();
+        if (compChessBoard != null) {
+            int posIndex = compChessBoard.GetPosIndexByCoords(chess.coords);
+            if (posIndex >= 0) {
+                if (compChessBoard.chessInfoMap[posIndex].chessGuid == chess.guid) {
+                    Transform gridTransform = compChessBoard.chessBoardGrid.transform;
+                    Vector3 localChessPos = new Vector3(
+                        (chess.coords.x + 0.5f) * ChessBoardConfig.rectCellSideLength,
+                        0f,
+                        (chess.coords.z + 0.5f) * ChessBoardConfig.rectCellSideLength
+                    );
+                    chess.transform.position = gridTransform.TransformPoint(localChessPos);
+                } else {
+                    chess.Destroy();
+                }
+            }
         }
     }
 
@@ -50,10 +72,12 @@ public class ChessBoardSystem : SystemBase
         if (compDuel != null && compChessBoard != null) {
             int posIndex = compChessBoard.GetPosIndexByCoords(evt.coords);
             var curPlayer = scene.GetEntity<Player>(compDuel.curTurnPlayerGuid.value);
-            if (posIndex >= 0 && compChessBoard.chessFlagMap[posIndex] == 0 && curPlayer != null) {
-                compChessBoard.chessFlagMap[posIndex] = curPlayer.playerFlag.value;
-                EntityUtils.CreateChess(scene, (PlayerFlag)curPlayer.playerFlag.value, evt.coords);
-                scene.EmitSystemEvent(new OnAfterAddChessToBoard());
+            if (posIndex >= 0 && compChessBoard.chessInfoMap[posIndex].chessFlag == 0 && curPlayer != null) {
+                string guid = EntityUtils.CreateGuidWithEntityType(EntityBase.GetEntityType<Chess>());
+                compChessBoard.chessInfoMap[posIndex].chessGuid = guid;
+                compChessBoard.chessInfoMap[posIndex].chessFlag = curPlayer.playerFlag.value;
+                EntityUtils.CreateChess(scene, guid, (PlayerFlag)curPlayer.playerFlag.value, evt.coords);
+                scene.EmitSystemEvent(new OnAfterAddChessToBoard((PlayerFlag)curPlayer.playerFlag.value, evt.coords.Clone()));
             }
         }
     }

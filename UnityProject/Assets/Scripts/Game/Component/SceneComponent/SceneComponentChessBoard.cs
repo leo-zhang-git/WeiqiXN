@@ -1,13 +1,18 @@
 using Cinemachine;
-using System.Collections.Generic;
 using XNClient.ChessBoard;
+
+public struct ChessInfo
+{
+    public string chessGuid;
+    public int chessFlag;
+}
 
 public class SceneComponentChessBoard : SceneComponentBase
 {
     public SavableField<string> boardCfgId = SavableFieldFactory.CreateStringField(string.Empty);
 
     public RectGrid chessBoardGrid;
-    public List<int> chessFlagMap;
+    public ChessInfo[] chessInfoMap;
     public CinemachineVirtualCamera duelVCam;
 
     public SceneComponentChessBoard(DuelScene scene) : base(scene)
@@ -31,7 +36,7 @@ public class SceneComponentChessBoard : SceneComponentBase
         }
 
         int posIndex = coords.z * gridSize + coords.x;
-        if (posIndex < 0 || posIndex >= chessFlagMap.Count) {
+        if (posIndex < 0 || posIndex >= chessInfoMap.Length) {
             return -1;
         }
 

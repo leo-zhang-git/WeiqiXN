@@ -87,4 +87,12 @@ public class OnAddChessToBoard : SystemEventBase
 public class OnAfterAddChessToBoard : SystemEventBase
 {
     public override string GetEventType() => GetEventType<OnAfterAddChessToBoard>();
+
+    public PlayerFlag playerFlag;
+    public RectCoordinates coords;
+    public OnAfterAddChessToBoard(PlayerFlag playerFlag, RectCoordinates coords)
+    {
+        this.playerFlag = playerFlag;
+        this.coords = coords;
+    }
 }

@@ -15,4 +15,10 @@ public abstract class EntityWithGO : EntityBase
     {
         this.gameObject = gameObject;
     }
+
+    protected override void OnDestroy()
+    {
+        GameObject.Destroy(gameObject);
+        base.OnDestroy();
+    }
 }
