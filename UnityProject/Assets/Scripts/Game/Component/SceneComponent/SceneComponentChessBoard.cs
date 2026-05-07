@@ -5,6 +5,12 @@ public struct ChessInfo
 {
     public string chessGuid;
     public int chessFlag;
+
+    public void Clear()
+    {
+        chessGuid = string.Empty;
+        chessFlag = 0;
+    }
 }
 
 public class SceneComponentChessBoard : SceneComponentBase

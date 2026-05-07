@@ -42,8 +42,6 @@ public class DuelSystem : SystemBase
 
     public void OnAfterAddChessToBoard(OnAfterAddChessToBoard evt)
     {
-        // TODO traverse chessboard and clear chess
-
         var compDuel = scene.GetComponent<SceneComponentDuel>();
         if (compDuel != null && compDuel.duelFSM.isActivated) {
             compDuel.duelFSM.SetParamterTrigger(DuelParamDefine.TRIGGER_PARAM_TURN_INPUT_FINISH);
