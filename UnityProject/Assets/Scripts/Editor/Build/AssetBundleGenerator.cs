@@ -2,12 +2,13 @@
 using System.IO;
 using UnityEditor;
 using UnityEditor.Build.Pipeline;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 public class AssetBundleGenerator
 {
-    [MenuItem("Assets/打包/Build AssetBundles (Windows)")]
-    public static void BuildAllAssetBundles()
+    [MenuItem("Assets/打包/打PC包")]
+    public static void BuildWindows()
     {
         // 清空StreamingAssets目录
         string outputPath = BuildConfig.PATH_BUILDIN_ASSETBUNDLE;
@@ -39,13 +40,30 @@ public class AssetBundleGenerator
         options |= BuildAssetBundleOptions.DisableLoadAssetByFileNameWithExtension;
         options |= BuildAssetBundleOptions.ChunkBasedCompression;
 
-        var manifest = CompatibilityBuildPipeline.BuildAssetBundles(outputPath, options, BuildTarget.StandaloneWindows);
+        var manifest = CompatibilityBuildPipeline.BuildAssetBundles(outputPath, options, BuildTarget.StandaloneWindows64);
         if (manifest != null) {
             AssetDatabase.Refresh();
             Debug.Log("AssetBundle打包完成！输出路径：" + outputPath);
         } else {
             throw new Exception($"Build windows asset bundle failed, outputPath: {outputPath}.");
         }
+
+        PrepareBuildRootDirectory(BuildConfig.BUILD_PATH_ROOT);
+        // c#先转c++再转windows可执行文件，注意这里vs需要装windows10/11 sdk
+        PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone, ScriptingImplementation.IL2CPP);
+        // 最高级别IL2CPP优化
+        PlayerSettings.SetIl2CppCompilerConfiguration(BuildTargetGroup.Standalone, Il2CppCompilerConfiguration.Master);
+        // 只输出脚本层堆栈
+        PlayerSettings.SetStackTraceLogType(LogType.Log, StackTraceLogType.ScriptOnly);
+        var scenes = new[] { "Assets/Scenes/Main.unity" };
+        string buildOutputPath = Path.GetFullPath(BuildConfig.BUILD_PATH_WINDOWS);
+        var buildOptions = BuildOptions.CompressWithLz4HC | BuildOptions.Development;
+        BuildReport report = BuildPipeline.BuildPlayer(scenes, buildOutputPath, BuildTarget.StandaloneWindows64, buildOptions);
+        if (report.summary.result != BuildResult.Succeeded) {
+            throw new Exception($"Build windows player failed, outputPath: {buildOutputPath}, result: {report.summary.result}.");
+        }
+
+        Debug.Log($"Windows Player打包完成！输出路径：{buildOutputPath}");
     }
 
     [MenuItem("Assets/打包/打包预处理/检查json表打包标签")]
@@ -205,5 +223,15 @@ public class AssetBundleGenerator
             return null;
 
         return "Assets" + normalizedPath.Substring(dataPath.Length);
+    }
+
+    private static void PrepareBuildRootDirectory(string buildRootPath)
+    {
+        string fullBuildRootPath = Path.GetFullPath(buildRootPath);
+        if (Directory.Exists(fullBuildRootPath)) {
+            Directory.Delete(fullBuildRootPath, true);
+        }
+
+        Directory.CreateDirectory(fullBuildRootPath);
     }
 }

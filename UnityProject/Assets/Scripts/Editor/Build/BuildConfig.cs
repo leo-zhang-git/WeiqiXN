@@ -14,4 +14,7 @@ public static class BuildConfig
     public const string AB_LABEL_MODEL = "model";
     public const string AB_LABEL_JSON = "config_json";
     public const string AB_LABEL_UI_PREFAB = "ui_main_prefab";
+
+    public const string BUILD_PATH_ROOT = "../Build";
+    public readonly static string BUILD_PATH_WINDOWS = $"{BUILD_PATH_ROOT}/PC/WeiqiXN.exe";
 }
