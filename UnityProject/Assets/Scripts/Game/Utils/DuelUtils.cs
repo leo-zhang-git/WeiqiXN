@@ -10,4 +10,13 @@ public static class DuelUtils
         }
         return string.Empty;
     }
+
+    public static PlayerFlag GetOpponentPlayerFlag(this PlayerFlag playerFlag)
+    {
+        if (playerFlag == PlayerFlag.Player1) {
+            return PlayerFlag.Player2;
+        } else {
+            return PlayerFlag.Player1;
+        }
+    }
 }

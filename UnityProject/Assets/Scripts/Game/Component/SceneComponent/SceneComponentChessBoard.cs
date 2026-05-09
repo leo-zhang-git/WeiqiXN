@@ -19,6 +19,7 @@ public class SceneComponentChessBoard : SceneComponentBase
 
     public RectGrid chessBoardGrid;
     public ChessInfo[] chessInfoMap;
+    public ChessInfo[] lastChessInfoMap;
     public CinemachineVirtualCamera duelVCam;
 
     public SceneComponentChessBoard(DuelScene scene) : base(scene)
@@ -47,5 +48,15 @@ public class SceneComponentChessBoard : SceneComponentBase
         }
 
         return posIndex;
+    }
+
+    public bool CheckChessFlagChanged()
+    {
+        for (int i = 0; i < chessInfoMap.Length; i++) {
+            if (lastChessInfoMap[i].chessFlag != chessInfoMap[i].chessFlag) {
+                return true;
+            }
+        }
+        return false;
     }
 }
