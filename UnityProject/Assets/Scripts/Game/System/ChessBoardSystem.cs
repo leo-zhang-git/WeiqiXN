@@ -33,7 +33,6 @@ public class ChessBoardSystem : SystemBase
                 compChessBoard.boardCfgId.value = "9x9";
             }
         }
-
         chessBoardData = ChessBoardDataType.GetConfigData(compChessBoard.boardCfgId.value);
         if (chessBoardData != null) {
             compChessBoard.chessBoardGrid.InitGrid(chessBoardData.boardSize);
@@ -42,6 +41,19 @@ public class ChessBoardSystem : SystemBase
             InitDuelVCam(gridBounds);
         } else {
             XNLogger.LogError("Chess board config not found!", ("chessBoardCfgId", compChessBoard.boardCfgId.value));
+        }
+
+        // 读档进来的还原棋子entity
+        if (scene.sceneCreateParams.saveFilePath != null) {
+            foreach (var kvp in compChessBoard.chessInfoDict) {
+                int posIndex = int.Parse(kvp.Key);
+                RectCoordinates coords = compChessBoard.GetCoordsByPosIndex(posIndex);
+                ChessInfo chessInfo = kvp.Value;
+
+                if (coords.x >= 0 && coords.z >= 0) {
+                    EntityUtils.CreateChess(scene, chessInfo.chessGuid.value, (PlayerFlag)chessInfo.chessFlag.value, coords);
+                }
+            }
         }
     }
 

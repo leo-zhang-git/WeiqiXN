@@ -38,10 +38,6 @@ public class SceneComponentChessBoard : SceneComponentBase
         }
 
         int gridSize = chessBoardGrid.gridSize;
-        if (gridSize <= 0) {
-            return -1;
-        }
-
         if (coords.x < 0 || coords.x >= gridSize || coords.z < 0 || coords.z >= gridSize) {
             return -1;
         }
@@ -52,6 +48,17 @@ public class SceneComponentChessBoard : SceneComponentBase
         }
 
         return posIndex;
+    }
+
+    public RectCoordinates GetCoordsByPosIndex(int posIndex)
+    {
+        RectCoordinates coords = new RectCoordinates(-1, -1);
+
+        int gridSize = chessBoardGrid.gridSize;
+        coords.z = posIndex / gridSize;
+        coords.x = posIndex - gridSize * coords.z;
+
+        return coords;
     }
 
     // 双向检查落子前后局面有没有发生变化

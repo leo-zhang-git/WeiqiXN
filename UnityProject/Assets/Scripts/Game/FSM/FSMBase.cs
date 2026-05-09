@@ -13,10 +13,18 @@ public abstract class FSMBase
     public Dictionary<string, bool> boolParamDict = new Dictionary<string, bool>();
     public Dictionary<string, bool> triggerParamDict = new Dictionary<string, bool>();
 
-    public void Activate()
+    public void Activate(string defaultStateName = "")
     {
-        curState = defaultState;
-        defaultState.OnEnterState();
+        if (!string.IsNullOrEmpty(defaultStateName)) {
+            if (TryGetState(defaultStateName, out var state)) {
+                curState = state;
+            } else {
+                curState = defaultState;
+            }
+        } else {
+            curState = defaultState;
+        }
+        curState.OnEnterState();
         isActivated = true;
     }
 

@@ -1,9 +1,14 @@
 public class DuelScene : SceneBase
 {
+    public SceneComponentChessBoard compChessBoard;
+    public SceneComponentDuel compDuel;
+
     public DuelScene(SceneDataType configData, SceneCreateParams sceneCreateParams) : base(configData, sceneCreateParams)
     {
-        AddComponent(new SceneComponentChessBoard(this));
-        AddComponent(new SceneComponentDuel(this));
+        compChessBoard = new SceneComponentChessBoard(this);
+        AddComponent(compChessBoard);
+        compDuel = new SceneComponentDuel(this);
+        AddComponent(compDuel);
     }
 
     public override void OnSceneLoaded()

@@ -17,16 +17,24 @@ public class DuelSystem : SystemBase
         if (scene.sceneCreateParams.saveFilePath == null) {
             var compDuel = scene.GetComponent<SceneComponentDuel>();
             if (compDuel != null) {
-                Player player1 = EntityUtils.CreatePlayer(scene, PlayerFlag.Player1);
-                compDuel.player1Guid.value = player1.guid;
-                Player player2 = EntityUtils.CreatePlayer(scene, PlayerFlag.Player2);
-                compDuel.player2Guid.value = player2.guid;
-                compDuel.curTurnPlayerGuid.value = player1.guid;
+                string player1Guid = EntityUtils.CreateGuidWithEntityType(EntityBase.GetEntityType<Player>());
+                Player player1 = EntityUtils.CreatePlayer(scene, player1Guid, PlayerFlag.Player1);
+                compDuel.player1Guid.value = player1Guid;
+                string player2Guid = EntityUtils.CreateGuidWithEntityType(EntityBase.GetEntityType<Player>());
+                Player player2 = EntityUtils.CreatePlayer(scene, player2Guid, PlayerFlag.Player2);
+                compDuel.player2Guid.value = player2Guid;
+                compDuel.curTurnPlayerGuid.value = player1Guid;
 
                 compDuel.duelFSM.Activate();
             }
         } else {
-            // TODO restore duelFSM
+            var compDuel = scene.GetComponent<SceneComponentDuel>();
+            if (compDuel != null) {
+                Player player1 = EntityUtils.CreatePlayer(scene, compDuel.player1Guid.value, PlayerFlag.Player1);
+                Player player2 = EntityUtils.CreatePlayer(scene, compDuel.player2Guid.value, PlayerFlag.Player2);
+
+                compDuel.duelFSM.Activate(DuelStateDefine.STATE_TURN_INPUT);
+            }
         }
     }
 
