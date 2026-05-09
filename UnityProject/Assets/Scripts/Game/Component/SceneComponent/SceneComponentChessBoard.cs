@@ -1,30 +1,34 @@
 using Cinemachine;
 using XNClient.ChessBoard;
 
-public struct ChessInfo
+public class ChessInfo : SavableObj
 {
-    public string chessGuid;
-    public int chessFlag;
-
-    public void Clear()
-    {
-        chessGuid = string.Empty;
-        chessFlag = 0;
-    }
+    public SavableField<string> chessGuid = SavableFieldFactory.CreateStringField("");
+    public SavableField<int> chessFlag = SavableFieldFactory.CreateIntField(0);
 }
 
 public class SceneComponentChessBoard : SceneComponentBase
 {
     public SavableField<string> boardCfgId = SavableFieldFactory.CreateStringField(string.Empty);
+    public SavableObjectDict<ChessInfo> chessInfoDict = new SavableObjectDict<ChessInfo>();
+    [SkipSavableCheck]
+    public SavableObjectDict<ChessInfo> lastChessInfoDict = new SavableObjectDict<ChessInfo>();
 
     public RectGrid chessBoardGrid;
-    public ChessInfo[] chessInfoMap;
-    public ChessInfo[] lastChessInfoMap;
     public CinemachineVirtualCamera duelVCam;
 
     public SceneComponentChessBoard(DuelScene scene) : base(scene)
     {
 
+    }
+
+    public int GetGridMaxSize()
+    {
+        if (chessBoardGrid != null) {
+            return chessBoardGrid.gridSize * chessBoardGrid.gridSize;
+        }
+
+        return 0;
     }
 
     public int GetPosIndexByCoords(RectCoordinates coords)
@@ -43,20 +47,71 @@ public class SceneComponentChessBoard : SceneComponentBase
         }
 
         int posIndex = coords.z * gridSize + coords.x;
-        if (posIndex < 0 || posIndex >= chessInfoMap.Length) {
+        if (posIndex < 0 || posIndex >= gridSize * gridSize) {
             return -1;
         }
 
         return posIndex;
     }
 
+    // 双向检查落子前后局面有没有发生变化
     public bool CheckChessFlagChanged()
     {
-        for (int i = 0; i < chessInfoMap.Length; i++) {
-            if (lastChessInfoMap[i].chessFlag != chessInfoMap[i].chessFlag) {
+        if (chessInfoDict == null || lastChessInfoDict == null) {
+            return false;
+        }
+
+        foreach (var kvp in chessInfoDict) {
+            string posKey = kvp.Key;
+            ChessInfo chessInfo = kvp.Value;
+            if (chessInfo == null) {
+                continue;
+            }
+
+            if (!lastChessInfoDict.TryGetValue(posKey, out var lastChessInfo)) {
+                if (chessInfo.chessFlag.value != 0) {
+                    return true;
+                }
+                continue;
+            }
+
+            if (lastChessInfo == null || lastChessInfo.chessFlag.value != chessInfo.chessFlag.value) {
                 return true;
             }
         }
+
+        foreach (var kvp in lastChessInfoDict) {
+            string posKey = kvp.Key;
+            ChessInfo lastChessInfo = kvp.Value;
+            if (lastChessInfo == null) {
+                continue;
+            }
+
+            if (!chessInfoDict.TryGetValue(posKey, out var chessInfo)) {
+                if (lastChessInfo.chessFlag.value != 0) {
+                    return true;
+                }
+                continue;
+            }
+
+            if (chessInfo == null || chessInfo.chessFlag.value != lastChessInfo.chessFlag.value) {
+                return true;
+            }
+        }
+
         return false;
+    }
+
+    // 深拷贝创建缓存infoDict
+    public SavableObjectDict<ChessInfo> CreateCacheChessInfoDict()
+    {
+        SavableObjectDict<ChessInfo> cacheChessInfoDict = new SavableObjectDict<ChessInfo>();
+        foreach (var kvp in chessInfoDict) {
+            ChessInfo chessInfo = new ChessInfo();
+            chessInfo.chessGuid.value = kvp.Value.chessGuid.value;
+            chessInfo.chessFlag.value = kvp.Value.chessFlag.value;
+            cacheChessInfoDict.SetValue(kvp.Key, chessInfo);
+        }
+        return cacheChessInfoDict;
     }
 }
