@@ -182,10 +182,11 @@ public class AssetBundleGenerator
         Debug.Log($"新增/更新 {newImportCount} 个资源标签，按场景打包 {packedSceneCount} 个目录");
     }
 
-    [MenuItem("Assets/打包/打包预处理/检查UI prefab资源打包标签")]
+    [MenuItem("Assets/打包/打包预处理/检查UI资源打包标签")]
     public static void PackAllUIPrefabFiles()
     {
         PackAssetsByType(BuildConfig.PATH_PACK_UI_PREFAB, "GameObject", BuildConfig.AB_LABEL_UI_PREFAB);
+        PackAssetsByType(BuildConfig.PATH_PACK_UI_TEXTUER, "Texture2D", BuildConfig.AB_LABEL_UI_TEXTURE);
     }
 
     private static void PackAssetsByType(string rootFolderFullPath, string typeName, string assetBundleName)

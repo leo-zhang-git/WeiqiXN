@@ -456,6 +456,7 @@ MonoBehaviour:
   startCellZ: 0
   chunkSizeX: 0
   chunkSizeZ: 0
+  gridSize: 0
   groundMesh: {fileID: 361099704}
   roadMesh: {fileID: 1984334815}
 --- !u!1 &909276520
