@@ -36,6 +36,36 @@ namespace XNClient.ChessBoard
             }
         }
 
+        public static bool CheckIsStarPoint(int x, int z, int gridSize)
+        {
+            switch (gridSize) {
+                case 9:
+                    return CheckStarPoint(x, z, 2, 4, 6, true);
+                case 13:
+                    return CheckStarPoint(x, z, 3, 6, 9, true);
+                case 19:
+                    return CheckStarPoint(x, z, 3, 9, 15, false);
+                default:
+                    return false;
+            }
+        }
+
+        private static bool CheckStarPoint(int x, int z, int low, int mid, int high, bool onlyCornersAndCenter)
+        {
+            bool xMatch = x == low || x == mid || x == high;
+            bool zMatch = z == low || z == mid || z == high;
+            if (!xMatch || !zMatch) {
+                return false;
+            }
+
+            if (!onlyCornersAndCenter) {
+                return true;
+            }
+
+            bool isCorner = (x == low || x == high) && (z == low || z == high);
+            bool isCenter = x == mid && z == mid;
+            return isCorner || isCenter;
+        }
         public static (Vector3, Vector3) GetInnerCornerOffsets(RectDirection dir)
         {
             return (ChessBoardConfig.rectCornerOffsets[(int)dir] * ChessBoardConfig.shrinkFactor, ChessBoardConfig.rectCornerOffsets[(int)dir.GetNextDirection()] * ChessBoardConfig.shrinkFactor);

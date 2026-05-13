@@ -8,6 +8,7 @@ namespace XNClient.ChessBoard
     {
         public int startCellX, startCellZ;
         public int chunkSizeX, chunkSizeZ;
+        public int gridSize;
         public RectMesh groundMesh, roadMesh;
 
         private List<RectCell> cellList = new List<RectCell>();
@@ -27,7 +28,7 @@ namespace XNClient.ChessBoard
             }
         }
 
-        public void InitChunk(int startCellX, int startCellZ, int chunkSizeX, int chunkSizeZ)
+        public void InitChunk(int startCellX, int startCellZ, int chunkSizeX, int chunkSizeZ, int gridSize)
         {
             if (startCellX < 0 || startCellZ < 0) {
                 XNLogger.LogError("Chunk start cell should be positive, init chunk failed.", ("startCellX", startCellX.ToString()), ("startCellZ", startCellZ.ToString()));
@@ -42,6 +43,12 @@ namespace XNClient.ChessBoard
             }
             this.chunkSizeX = chunkSizeX;
             this.chunkSizeZ = chunkSizeZ;
+
+            if (gridSize <= 0) {
+                XNLogger.LogError("Grid size should be positive, init chunk failed.", ("gridSize", gridSize.ToString()));
+                return;
+            }
+            this.gridSize = gridSize;
 
             // 整个棋盘以左下为(0, 0)原点往右上扩张，chunk gameObject的位置为chunk的左下原点
             transform.localPosition = new Vector3(
@@ -106,6 +113,7 @@ namespace XNClient.ChessBoard
             foreach (RectCell cell in cellList) {
                 TriangulateCell(cell);
             }
+            TriangulateStarPoints();
             groundMesh.RefreshMesh();
             roadMesh.RefreshMesh();
         }
@@ -115,6 +123,38 @@ namespace XNClient.ChessBoard
             // 将方格拆分为东南西北四个方向进行构建
             foreach (RectDirection dir in ChessBoardUtils.GetAllRectDirections()) {
                 TriangulateCellByDirection(cell, dir);
+            }
+        }
+
+        private void TriangulateStarPoints()
+        {
+            foreach (RectCell cell in cellList) {
+                if (cell?.coordinates == null) {
+                    continue;
+                }
+                if (!ChessBoardUtils.CheckIsStarPoint(cell.coordinates.x, cell.coordinates.z, gridSize)) {
+                    continue;
+                }
+
+                TriangulateStarPoint(cell.centerPosInChunk);
+            }
+        }
+
+        private void TriangulateStarPoint(Vector3 center)
+        {
+            int segmentCount = ChessBoardConfig.starPointSegmentCount;
+            float radius = ChessBoardConfig.rectCellSideLength * ChessBoardConfig.starPointRadiusFactor;
+            Vector3 starCenter = center + Vector3.up * ChessBoardConfig.starPointYOffset;
+            Vector4 uv = new Vector4(1f, 0f, 0f, 0f);
+
+            for (int i = 0; i < segmentCount; i++) {
+                float angle1 = Mathf.PI * 2f * i / segmentCount;
+                float angle2 = Mathf.PI * 2f * (i + 1) / segmentCount;
+                Vector3 p1 = starCenter + new Vector3(Mathf.Cos(angle1) * radius, 0f, Mathf.Sin(angle1) * radius);
+                Vector3 p2 = starCenter + new Vector3(Mathf.Cos(angle2) * radius, 0f, Mathf.Sin(angle2) * radius);
+
+                roadMesh.AddTriangle(starCenter, p2, p1);
+                roadMesh.AddTriangleUV0(uv);
             }
         }
 

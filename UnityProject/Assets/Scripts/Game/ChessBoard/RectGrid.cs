@@ -63,7 +63,7 @@ namespace XNClient.ChessBoard
                     chunkGO.name = $"RectGridChunk_{startCellX}_{startCellZ}";
 
                     RectGridChunk chunk = chunkGO.GetComponent<RectGridChunk>();
-                    chunk.InitChunk(startCellX, startCellZ, curChunkSizeX, curChunkSizeZ);
+                    chunk.InitChunk(startCellX, startCellZ, curChunkSizeX, curChunkSizeZ, gridSize);
                     chunkList.Add(chunk);
 
                     chunk.SetDirty();
