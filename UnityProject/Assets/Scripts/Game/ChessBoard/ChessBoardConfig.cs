@@ -18,10 +18,10 @@ namespace XNClient.ChessBoard
         public const float rectCellOuterRadius = rectCellSideLength / 2f * sqrt_2; // 方格外切圆半径（中心到顶点长度）
         public const float shrinkFactor = 0.6f; // 方格内圈收缩部分比例
         public const float blendFactor = 1 - shrinkFactor; // 方格外圈过渡部分比例
-        public const float roadBoderFactor = 0.2f; // 边界道路从中心扩散出的内侧小三角比例，影响道路宽度
-        public const float roadNormalFactor = 0.1f;
+        public const float roadBoderFactor = 0.1f; // 边界道路从中心扩散出的内侧小三角比例，影响道路宽度
+        public const float roadNormalFactor = 0.05f;
         public const int starPointSegmentCount = 16;
-        public const float starPointRadiusFactor = 0.18f;
+        public const float starPointRadiusFactor = 0.1f;
         public const float starPointYOffset = 0.03f;
 
         // 正方格四个顶点相对偏移，按右上 -> 右下 -> 左下 -> 左上的顺时针顺序存储
