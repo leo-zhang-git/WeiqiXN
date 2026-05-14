@@ -1,69 +1,128 @@
-﻿using System;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Build.Pipeline;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using UnityEngine.Build.Pipeline;
 
 public class AssetBundleGenerator
 {
+    private static readonly string[] PlayerScenes = { "Assets/Scenes/Main.unity" };
+
     [MenuItem("Assets/打包/打PC包")]
     public static void BuildWindows()
     {
-        // 清空StreamingAssets目录
-        string outputPath = BuildConfig.PATH_BUILDIN_ASSETBUNDLE;
-        if (!Directory.Exists(outputPath)) {
-            Directory.CreateDirectory(outputPath);
-        } else {
-            foreach (string filePath in Directory.GetFiles(outputPath)) {
-                File.Delete(filePath);
-            }
-
-            foreach (string subDirectoryPath in Directory.GetDirectories(outputPath)) {
-                Directory.Delete(subDirectoryPath, true);
-            }
-        }
-
-        PackAllJsonCfgFiles();
-        PackAllModelFiles();
-        PackAllSceneFiles();
-        PackAllUIPrefabFiles();
-
-        BuildAssetBundleOptions options = BuildAssetBundleOptions.None;
-        // 开启了DisableWriteTypeTree后编辑器会无法正常序列化AB包，仅在打正式包时开启
-        if (BuildConfig.BUILD_BUNDLE_DISABLE_WRITE_TYPE_TREE) {
-            options |= BuildAssetBundleOptions.DisableWriteTypeTree;
-        }
-
-        options |= BuildAssetBundleOptions.UseContentHash;
-        options |= BuildAssetBundleOptions.DisableLoadAssetByFileName;  // 要求必须通过完整路径查ab包资源
-        options |= BuildAssetBundleOptions.DisableLoadAssetByFileNameWithExtension;
-        options |= BuildAssetBundleOptions.ChunkBasedCompression;
-
-        var manifest = CompatibilityBuildPipeline.BuildAssetBundles(outputPath, options, BuildTarget.StandaloneWindows64);
-        if (manifest != null) {
-            AssetDatabase.Refresh();
-            Debug.Log("AssetBundle打包完成！输出路径：" + outputPath);
-        } else {
-            throw new Exception($"Build windows asset bundle failed, outputPath: {outputPath}.");
-        }
+        BuildAssetBundlesForTarget(BuildTarget.StandaloneWindows64);
 
         PrepareBuildRootDirectory(BuildConfig.BUILD_PATH_ROOT);
-        // c#先转c++再转windows可执行文件，注意这里vs需要装windows10/11 sdk
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone, ScriptingImplementation.IL2CPP);
-        // 最高级别IL2CPP优化
         PlayerSettings.SetIl2CppCompilerConfiguration(BuildTargetGroup.Standalone, Il2CppCompilerConfiguration.Master);
-        // 只输出脚本层堆栈
         PlayerSettings.SetStackTraceLogType(LogType.Log, StackTraceLogType.ScriptOnly);
-        var scenes = new[] { "Assets/Scenes/Main.unity" };
+
         string buildOutputPath = Path.GetFullPath(BuildConfig.BUILD_PATH_WINDOWS);
         var buildOptions = BuildOptions.CompressWithLz4HC | BuildOptions.Development;
-        BuildReport report = BuildPipeline.BuildPlayer(scenes, buildOutputPath, BuildTarget.StandaloneWindows64, buildOptions);
+        BuildReport report = BuildPipeline.BuildPlayer(PlayerScenes, buildOutputPath, BuildTarget.StandaloneWindows64, buildOptions);
         if (report.summary.result != BuildResult.Succeeded) {
             throw new Exception($"Build windows player failed, outputPath: {buildOutputPath}, result: {report.summary.result}.");
         }
 
         Debug.Log($"Windows Player打包完成！输出路径：{buildOutputPath}");
+    }
+
+    [MenuItem("Assets/打包/打WebGL包")]
+    public static void BuildWebGL()
+    {
+        BuildAssetBundlesForTarget(BuildTarget.WebGL);
+
+        string buildOutputPath = Path.GetFullPath(BuildConfig.BUILD_PATH_WEBGL);
+        PrepareBuildRootDirectory(BuildConfig.BUILD_PATH_WEBGL);
+
+        PlayerSettings.SetScriptingBackend(BuildTargetGroup.WebGL, ScriptingImplementation.IL2CPP);
+        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
+        PlayerSettings.WebGL.decompressionFallback = false;
+        PlayerSettings.WebGL.dataCaching = true;
+        PlayerSettings.SetStackTraceLogType(LogType.Log, StackTraceLogType.ScriptOnly);
+
+        BuildReport report = BuildPipeline.BuildPlayer(PlayerScenes, buildOutputPath, BuildTarget.WebGL, BuildOptions.Development);
+        if (report.summary.result != BuildResult.Succeeded) {
+            throw new Exception($"Build WebGL player failed, outputPath: {buildOutputPath}, result: {report.summary.result}.");
+        }
+
+        Debug.Log($"WebGL Player打包完成！输出路径：{buildOutputPath}");
+    }
+
+    private static void BuildAssetBundlesForTarget(BuildTarget target)
+    {
+        SwitchActiveBuildTarget(target);
+        PrepareAssetBundleOutputDirectory();
+        PackAllJsonCfgFiles();
+        PackAllModelFiles();
+        PackAllSceneFiles();
+        PackAllUIPrefabFiles();
+        PackDebugConsolePrefab();
+
+        BuildAssetBundleOptions options = BuildAssetBundleOptions.None;
+        if (BuildConfig.BUILD_BUNDLE_DISABLE_WRITE_TYPE_TREE) {
+            options |= BuildAssetBundleOptions.DisableWriteTypeTree;
+        }
+
+        options |= BuildAssetBundleOptions.DisableLoadAssetByFileName;
+        options |= BuildAssetBundleOptions.DisableLoadAssetByFileNameWithExtension;
+        options |= BuildAssetBundleOptions.ChunkBasedCompression;
+
+        var manifest = CompatibilityBuildPipeline.BuildAssetBundles(BuildConfig.PATH_BUILDIN_ASSETBUNDLE, options, target);
+        if (manifest == null) {
+            throw new Exception($"Build asset bundle failed, target: {target}, outputPath: {BuildConfig.PATH_BUILDIN_ASSETBUNDLE}.");
+        }
+
+        WriteAssetBundleManifestFile(manifest);
+        AssetDatabase.Refresh();
+        Debug.Log($"AssetBundle打包完成！target: {target}, 输出路径：{BuildConfig.PATH_BUILDIN_ASSETBUNDLE}");
+    }
+
+    private static void SwitchActiveBuildTarget(BuildTarget target)
+    {
+        BuildTargetGroup group = BuildPipeline.GetBuildTargetGroup(target);
+        if (EditorUserBuildSettings.activeBuildTarget != target) {
+            bool switchSuccess = EditorUserBuildSettings.SwitchActiveBuildTarget(group, target);
+            if (!switchSuccess) {
+                throw new Exception($"Switch active build target failed. target: {target}, group: {group}");
+            }
+        }
+    }
+
+    private static void PrepareAssetBundleOutputDirectory()
+    {
+        string outputPath = BuildConfig.PATH_BUILDIN_ASSETBUNDLE;
+        if (!Directory.Exists(outputPath)) {
+            Directory.CreateDirectory(outputPath);
+            return;
+        }
+
+        foreach (string filePath in Directory.GetFiles(outputPath)) {
+            File.Delete(filePath);
+        }
+
+        foreach (string subDirectoryPath in Directory.GetDirectories(outputPath)) {
+            Directory.Delete(subDirectoryPath, true);
+        }
+    }
+
+    private static void WriteAssetBundleManifestFile(CompatibilityAssetBundleManifest manifest)
+    {
+        string manifestFilePath = Path.Combine(BuildConfig.PATH_BUILDIN_ASSETBUNDLE, BuildConfig.ASSET_BUNDLE_MANIFEST_FILE_NAME);
+        JArray bundleNames = new JArray();
+        foreach (string bundleName in manifest.GetAllAssetBundles()) {
+            if (!string.IsNullOrEmpty(bundleName)) {
+                bundleNames.Add(bundleName);
+            }
+        }
+
+        File.WriteAllText(manifestFilePath, bundleNames.ToString());
+        Debug.Log($"AssetBundle清单生成完成：{manifestFilePath}");
     }
 
     [MenuItem("Assets/打包/打包预处理/检查json表打包标签")]
@@ -87,24 +146,28 @@ public class AssetBundleGenerator
 
         foreach (string folderFullPath in modelFolderFullPaths) {
             string folderPath = FullPathToAssetPath(folderFullPath);
-            if (string.IsNullOrEmpty(folderPath) || !AssetDatabase.IsValidFolder(folderPath))
+            if (string.IsNullOrEmpty(folderPath) || !AssetDatabase.IsValidFolder(folderPath)) {
                 continue;
+            }
 
             string modelTypeName = Path.GetFileName(folderPath);
-            if (string.IsNullOrEmpty(modelTypeName))
+            if (string.IsNullOrEmpty(modelTypeName)) {
                 continue;
+            }
 
             string assetBundleName = $"{BuildConfig.AB_LABEL_MODEL}_{modelTypeName}".ToLowerInvariant();
             string[] assetGuids = AssetDatabase.FindAssets(string.Empty, new[] { folderPath });
             int modelAssetCount = 0;
             foreach (string assetGuid in assetGuids) {
                 string assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
-                if (AssetDatabase.IsValidFolder(assetPath))
+                if (AssetDatabase.IsValidFolder(assetPath)) {
                     continue;
+                }
 
                 AssetImporter importer = AssetImporter.GetAtPath(assetPath);
-                if (importer == null)
+                if (importer == null) {
                     continue;
+                }
 
                 if (importer.assetBundleName != assetBundleName) {
                     importer.assetBundleName = assetBundleName;
@@ -139,30 +202,34 @@ public class AssetBundleGenerator
         int newImportCount = 0;
         int packedSceneCount = 0;
 
-        // 逐个按文件夹分场景资源包
         foreach (string folderFullPath in sceneFolderFullPaths) {
             string folderPath = FullPathToAssetPath(folderFullPath);
-            if (string.IsNullOrEmpty(folderPath) || !AssetDatabase.IsValidFolder(folderPath))
+            if (string.IsNullOrEmpty(folderPath) || !AssetDatabase.IsValidFolder(folderPath)) {
                 continue;
+            }
 
             string sceneName = Path.GetFileName(folderPath);
-            if (string.IsNullOrEmpty(sceneName))
+            if (string.IsNullOrEmpty(sceneName)) {
                 continue;
+            }
 
             string assetBundleName = $"{BuildConfig.AB_LABEL_SCENE}_{sceneName}".ToLowerInvariant();
             string[] assetGuids = AssetDatabase.FindAssets(string.Empty, new[] { folderPath });
             int sceneAssetCount = 0;
             foreach (string assetGuid in assetGuids) {
                 string assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
-                if (AssetDatabase.IsValidFolder(assetPath))
+                if (AssetDatabase.IsValidFolder(assetPath)) {
                     continue;
+                }
 
-                if (string.Equals(Path.GetExtension(assetPath), ".unity", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(Path.GetExtension(assetPath), ".unity", StringComparison.OrdinalIgnoreCase)) {
                     continue;
+                }
 
                 AssetImporter importer = AssetImporter.GetAtPath(assetPath);
-                if (importer == null)
+                if (importer == null) {
                     continue;
+                }
 
                 if (importer.assetBundleName != assetBundleName) {
                     importer.assetBundleName = assetBundleName;
@@ -189,6 +256,23 @@ public class AssetBundleGenerator
         PackAssetsByType(BuildConfig.PATH_PACK_UI_TEXTUER, "Texture2D", BuildConfig.AB_LABEL_UI_TEXTURE);
     }
 
+    [MenuItem("Assets/打包/打包预处理/检查调试资源打包标签")]
+    public static void PackDebugConsolePrefab()
+    {
+        AssetImporter importer = AssetImporter.GetAtPath(BuildConfig.PATH_DEBUG_CONSOLE_PREFAB);
+        if (importer == null) {
+            Debug.LogWarning($"找不到调试控制台预制体：{BuildConfig.PATH_DEBUG_CONSOLE_PREFAB}");
+            return;
+        }
+
+        if (importer.assetBundleName != BuildConfig.AB_LABEL_DEBUG) {
+            importer.assetBundleName = BuildConfig.AB_LABEL_DEBUG;
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log($"设置调试资源 AB 标签：{BuildConfig.AB_LABEL_DEBUG}");
+        }
+    }
+
     private static void PackAssetsByType(string rootFolderFullPath, string typeName, string assetBundleName)
     {
         string rootFolderPath = FullPathToAssetPath(rootFolderFullPath);
@@ -202,8 +286,9 @@ public class AssetBundleGenerator
         foreach (string guid in guids) {
             string assetPath = AssetDatabase.GUIDToAssetPath(guid);
             AssetImporter importer = AssetImporter.GetAtPath(assetPath);
-            if (importer == null)
+            if (importer == null) {
                 continue;
+            }
 
             if (importer.assetBundleName != assetBundleName) {
                 importer.assetBundleName = assetBundleName;
@@ -220,8 +305,9 @@ public class AssetBundleGenerator
     {
         string dataPath = Application.dataPath.Replace('\\', '/');
         string normalizedPath = fullPath.Replace('\\', '/');
-        if (!normalizedPath.StartsWith(dataPath, StringComparison.OrdinalIgnoreCase))
+        if (!normalizedPath.StartsWith(dataPath, StringComparison.OrdinalIgnoreCase)) {
             return null;
+        }
 
         return "Assets" + normalizedPath.Substring(dataPath.Length);
     }

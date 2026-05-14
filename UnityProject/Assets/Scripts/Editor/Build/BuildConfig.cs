@@ -16,7 +16,11 @@ public static class BuildConfig
     public const string AB_LABEL_JSON = "config_json";
     public const string AB_LABEL_UI_PREFAB = "ui_main_prefab";
     public const string AB_LABEL_UI_TEXTURE = "ui_main_texture";
+    public const string AB_LABEL_DEBUG = "debug";
+    public const string PATH_DEBUG_CONSOLE_PREFAB = "Assets/Plugins/IngameDebugConsole/IngameDebugConsole.prefab";
 
     public const string BUILD_PATH_ROOT = "../Build";
     public readonly static string BUILD_PATH_WINDOWS = $"{BUILD_PATH_ROOT}/PC/WeiqiXN.exe";
+    public const string BUILD_PATH_WEBGL = "../WebGL";
+    public const string ASSET_BUNDLE_MANIFEST_FILE_NAME = "bundle_manifest.json";
 }

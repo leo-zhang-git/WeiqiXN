@@ -1,0 +1,57 @@
+ManifestFileVersion: 1
+CompatibilityAssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: scene_duel
+      Hash: d05c8d5f44edf1ae6ab676c30838b2e8
+      CRC: 578756649
+      Dependencies: {}
+    Info_1:
+      Name: config_json
+      Hash: 2f2a68b5098e6b551177dc129b4b33b6
+      CRC: 3830492616
+      Dependencies: {}
+    Info_2:
+      Name: scene
+      Hash: d73f46d6e001fcd87f93b351e25ccd08
+      CRC: 1465140586
+      Dependencies: {}
+        Dependency_0: scene_duel
+        Dependency_1: scene_mainmenu
+    Info_3:
+      Name: model_vfx
+      Hash: ecf849cd4d9ed27fcac0937368afcb4c
+      CRC: 152675560
+      Dependencies: {}
+    Info_4:
+      Name: ui_main_prefab
+      Hash: 158b283aff85bd03189f9fd180c3b520
+      CRC: 1628827163
+      Dependencies: {}
+        Dependency_0: font
+        Dependency_1: ui_main_texture
+    Info_5:
+      Name: font
+      Hash: 34bc39d9db9cce85097600577e2386ff
+      CRC: 135220051
+      Dependencies: {}
+    Info_6:
+      Name: model_chess
+      Hash: b70810e50072eff4c2b69fdacb3ab22c
+      CRC: 3620985993
+      Dependencies: {}
+    Info_7:
+      Name: ui_main_texture
+      Hash: 3bddf2a8510f45409f5f9ad3c28fecf8
+      CRC: 329740926
+      Dependencies: {}
+    Info_8:
+      Name: scene_mainmenu
+      Hash: 0ed467ae6106da88b1df95f46985ae3a
+      CRC: 2732434752
+      Dependencies: {}
+    Info_9:
+      Name: debug
+      Hash: 1a4d8318cd0146c08ac814695cc5fe11
+      CRC: 2369055384
+      Dependencies: {}

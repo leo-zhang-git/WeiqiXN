@@ -1,0 +1,12 @@
+[
+  "config_json",
+  "debug",
+  "font",
+  "model_chess",
+  "model_vfx",
+  "scene",
+  "scene_duel",
+  "scene_mainmenu",
+  "ui_main_prefab",
+  "ui_main_texture"
+]

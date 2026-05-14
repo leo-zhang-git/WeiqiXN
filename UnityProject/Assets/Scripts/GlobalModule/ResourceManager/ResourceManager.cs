@@ -1,20 +1,43 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Networking;
 using XNLogger = XNClient.Logger.XNLogger;
 
 public class ResourceManager : ModuleBase
 {
+    private const string ASSET_BUNDLE_MANIFEST_FILE_NAME = "bundle_manifest.json";
+
     public static uint ResourceBinderInstanceIds;
     public ResourceLoaderBase resLoader;
-    public Dictionary<string, AssetBundle> bundleDict = new Dictionary<string, AssetBundle>();
-    public Dictionary<string, string> path2BundleName = new Dictionary<string, string>();
+    public Dictionary<string, AssetBundle> bundleDict = new Dictionary<string, AssetBundle>(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, string> path2BundleName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    public bool isReady { get; private set; }
+    public bool isFailed { get; private set; }
 
     private Dictionary<string, IAssetRequest> requestMap = new Dictionary<string, IAssetRequest>();
     private Dictionary<string, IResourceLoadHandler> loadHandlerMap = new Dictionary<string, IResourceLoadHandler>();
     private Dictionary<string, IResourceLoadBinder> binderMap = new Dictionary<string, IResourceLoadBinder>();
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    private enum WebGLPreloadState
+    {
+        None,
+        LoadingManifest,
+        LoadingBundle,
+        Done,
+        Failed,
+    }
+
+    private WebGLPreloadState webGLPreloadState = WebGLPreloadState.None;
+    private UnityWebRequest webGLManifestRequest;
+    private UnityWebRequest webGLBundleRequest;
+    private Queue<string> webGLPendingBundleNames = new Queue<string>();
+    private string webGLCurrentBundleName;
+#endif
 
     protected class PackInfoFile
     {
@@ -29,16 +52,28 @@ public class ResourceManager : ModuleBase
 
     public override void Init()
     {
+        isReady = false;
+        isFailed = false;
+
 #if UNITY_EDITOR
         resLoader = new AssetDatabaseLoader(this);
+        isReady = true;
+#elif UNITY_WEBGL
+        resLoader = new AssetBundleLoader(this);
+        StartPreloadAssetBundlesWebGL();
 #else
         PreloadAssetBundles();
         resLoader = new AssetBundleLoader(this);
+        isReady = !isFailed;
 #endif
     }
 
     public override void Update()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        UpdatePreloadAssetBundlesWebGL();
+#endif
+
         // AssetRequest
         List<string> pendingDeleteRequest = new List<string>();
         foreach (var requestKV in requestMap) {
@@ -90,10 +125,15 @@ public class ResourceManager : ModuleBase
     {
         if (!Directory.Exists(GlobalConfig.PATH_ASSET_BUNDLE)) {
             XNLogger.LogError("Asset bundle directory not found.", ("bundleDir", GlobalConfig.PATH_ASSET_BUNDLE));
+            isFailed = true;
             return;
         }
 
         foreach (string filePath in Directory.GetFiles(GlobalConfig.PATH_ASSET_BUNDLE)) {
+            if (ShouldSkipAssetBundleFile(filePath)) {
+                continue;
+            }
+
             string bundleName = Path.GetFileName(filePath);
             AssetBundle bundle = AssetBundle.LoadFromFile(filePath);
             if (bundle == null) {
@@ -101,12 +141,166 @@ public class ResourceManager : ModuleBase
                 continue;
             }
 
-            bundleDict[bundleName] = bundle;
-            foreach (string assetPath in bundle.GetAllAssetNames()) {
-                path2BundleName[assetPath] = bundleName;
-            }
+            RegisterLoadedAssetBundle(bundleName, bundle);
         }
     }
+
+    private static bool ShouldSkipAssetBundleFile(string filePath)
+    {
+        string fileName = Path.GetFileName(filePath);
+        string extension = Path.GetExtension(filePath);
+        return string.Equals(fileName, ASSET_BUNDLE_MANIFEST_FILE_NAME, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(extension, ".manifest", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(extension, ".meta", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(extension, ".json", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void RegisterLoadedAssetBundle(string bundleName, AssetBundle bundle)
+    {
+        if (bundle == null) {
+            XNLogger.LogError("Register null asset bundle failed.", ("bundleName", bundleName));
+            return;
+        }
+
+        string canonicalBundleName = string.IsNullOrEmpty(bundle.name) ? bundleName : bundle.name;
+        bundleDict[bundleName] = bundle;
+        if (!string.Equals(bundleName, canonicalBundleName, StringComparison.OrdinalIgnoreCase)) {
+            bundleDict[canonicalBundleName] = bundle;
+        }
+
+        foreach (string assetPath in bundle.GetAllAssetNames()) {
+            path2BundleName[assetPath] = canonicalBundleName;
+        }
+    }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    private void StartPreloadAssetBundlesWebGL()
+    {
+        string manifestUrl = $"{GlobalConfig.PATH_ASSET_BUNDLE}/{ASSET_BUNDLE_MANIFEST_FILE_NAME}";
+        webGLManifestRequest = UnityWebRequest.Get(manifestUrl);
+        webGLManifestRequest.SendWebRequest();
+        webGLPreloadState = WebGLPreloadState.LoadingManifest;
+        XNLogger.LogInfo("Start preload WebGL asset bundle manifest.", ("manifestUrl", manifestUrl));
+    }
+
+    private void UpdatePreloadAssetBundlesWebGL()
+    {
+        switch (webGLPreloadState) {
+            case WebGLPreloadState.LoadingManifest:
+                UpdateWebGLManifestRequest();
+                break;
+            case WebGLPreloadState.LoadingBundle:
+                UpdateWebGLBundleRequest();
+                break;
+        }
+    }
+
+    private void UpdateWebGLManifestRequest()
+    {
+        if (webGLManifestRequest == null || !webGLManifestRequest.isDone) {
+            return;
+        }
+
+        if (webGLManifestRequest.result != UnityWebRequest.Result.Success) {
+            XNLogger.LogError(
+                "Load WebGL asset bundle manifest failed.",
+                ("url", webGLManifestRequest.url),
+                ("error", webGLManifestRequest.error)
+            );
+            FinishWebGLPreload(false);
+            return;
+        }
+
+        try {
+            JArray bundleNameArray = JArray.Parse(webGLManifestRequest.downloadHandler.text);
+            foreach (JToken bundleNameToken in bundleNameArray) {
+                string bundleName = bundleNameToken.Value<string>();
+                if (!string.IsNullOrEmpty(bundleName)) {
+                    webGLPendingBundleNames.Enqueue(bundleName);
+                }
+            }
+        }
+        catch (Exception ex) {
+            XNLogger.LogError("Parse WebGL asset bundle manifest failed.", ("error", ex.Message));
+            FinishWebGLPreload(false);
+            return;
+        }
+        finally {
+            webGLManifestRequest.Dispose();
+            webGLManifestRequest = null;
+        }
+
+        if (webGLPendingBundleNames.Count <= 0) {
+            XNLogger.LogWarn("WebGL asset bundle manifest is empty.");
+            FinishWebGLPreload(true);
+            return;
+        }
+
+        StartNextWebGLBundleRequest();
+    }
+
+    private void StartNextWebGLBundleRequest()
+    {
+        if (webGLPendingBundleNames.Count <= 0) {
+            FinishWebGLPreload(true);
+            return;
+        }
+
+        webGLCurrentBundleName = webGLPendingBundleNames.Dequeue();
+        string bundleUrl = $"{GlobalConfig.PATH_ASSET_BUNDLE}/{webGLCurrentBundleName}";
+        webGLBundleRequest = UnityWebRequestAssetBundle.GetAssetBundle(bundleUrl);
+        webGLBundleRequest.SendWebRequest();
+        webGLPreloadState = WebGLPreloadState.LoadingBundle;
+        XNLogger.LogInfo("Start preload WebGL asset bundle.", ("bundleName", webGLCurrentBundleName), ("bundleUrl", bundleUrl));
+    }
+
+    private void UpdateWebGLBundleRequest()
+    {
+        if (webGLBundleRequest == null || !webGLBundleRequest.isDone) {
+            return;
+        }
+
+        if (webGLBundleRequest.result != UnityWebRequest.Result.Success) {
+            XNLogger.LogError(
+                "Load WebGL asset bundle failed.",
+                ("bundleName", webGLCurrentBundleName),
+                ("url", webGLBundleRequest.url),
+                ("error", webGLBundleRequest.error)
+            );
+            FinishWebGLPreload(false);
+            return;
+        }
+
+        AssetBundle bundle = DownloadHandlerAssetBundle.GetContent(webGLBundleRequest);
+        if (bundle == null) {
+            XNLogger.LogError("Downloaded WebGL asset bundle is null.", ("bundleName", webGLCurrentBundleName));
+            FinishWebGLPreload(false);
+            return;
+        }
+
+        RegisterLoadedAssetBundle(webGLCurrentBundleName, bundle);
+        webGLBundleRequest.Dispose();
+        webGLBundleRequest = null;
+        webGLCurrentBundleName = string.Empty;
+        StartNextWebGLBundleRequest();
+    }
+
+    private void FinishWebGLPreload(bool success)
+    {
+        webGLPreloadState = success ? WebGLPreloadState.Done : WebGLPreloadState.Failed;
+        isReady = success;
+        isFailed = !success;
+
+        webGLManifestRequest?.Dispose();
+        webGLManifestRequest = null;
+        webGLBundleRequest?.Dispose();
+        webGLBundleRequest = null;
+
+        if (success) {
+            XNLogger.LogInfo("Preload WebGL asset bundles success.", ("bundleCount", bundleDict.Count.ToString()));
+        }
+    }
+#endif
 
     public GameObject LoadGamePrefabWithConfigId(string configId)
     {
@@ -158,7 +352,7 @@ public class ResourceManager : ModuleBase
 
     public TAsset LoadAsset<TAsset>(string assetPath) where TAsset : UnityEngine.Object
     {
-        string assetFullPath = ResourceUtils.GetAssetFullPath<GameObject>(assetPath);
+        string assetFullPath = ResourceUtils.GetAssetFullPath<TAsset>(assetPath);
         if (string.IsNullOrEmpty(assetFullPath)) {
             return null;
         }
@@ -205,5 +399,31 @@ public class ResourceManager : ModuleBase
             binderMap.Remove(binderId);
         }
     }
-}
 
+    public override void OnDestroy()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        webGLManifestRequest?.Dispose();
+        webGLBundleRequest?.Dispose();
+        webGLPendingBundleNames.Clear();
+#endif
+        HashSet<AssetBundle> unloadedBundles = new HashSet<AssetBundle>();
+        foreach (AssetBundle bundle in bundleDict.Values) {
+            if (bundle != null) {
+                if (unloadedBundles.Contains(bundle)) {
+                    continue;
+                }
+
+                bundle.Unload(false);
+                unloadedBundles.Add(bundle);
+            }
+        }
+
+        bundleDict.Clear();
+        path2BundleName.Clear();
+        requestMap.Clear();
+        loadHandlerMap.Clear();
+        binderMap.Clear();
+        base.OnDestroy();
+    }
+}

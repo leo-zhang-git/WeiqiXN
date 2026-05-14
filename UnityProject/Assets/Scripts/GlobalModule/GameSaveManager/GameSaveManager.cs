@@ -15,6 +15,10 @@ public class GameSaveManager : ModuleBase
 
     public void SaveData(SavableObj savableObj, string saveFilePath)
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        XNLogger.LogWarn("Save data is skipped on WebGL platform.", ("saveFilePath", saveFilePath));
+        return;
+#else
         if (savingLock) {
             XNLogger.LogError("Saving lock is being occupied, save data failed.");
             return;
@@ -33,10 +37,16 @@ public class GameSaveManager : ModuleBase
         JObject saveJObject = savableObj.SaveObj();
         File.WriteAllText(saveFilePath, saveJObject.ToString());
         XNLogger.LogInfo("Save data success.", ("saveRootName", saveRootName), ("saveFilePath", saveFilePath));
+#endif
     }
 
     public async Task SaveDataAsync(SavableObj savableObj, string saveFilePath)
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        XNLogger.LogWarn("Save data async is skipped on WebGL platform.", ("saveFilePath", saveFilePath));
+        await Task.CompletedTask;
+        return;
+#else
         if (savingLock) {
             XNLogger.LogError("Saving lock is being occupied, save data async failed.");
             return;
@@ -59,10 +69,15 @@ public class GameSaveManager : ModuleBase
         savingLock = false;
         Global.Instance.uiManager.ClosePage<SavingPopup>();
         XNLogger.LogInfo("Save data async success.", ("saveRootName", saveRootName), ("saveFilePath", saveFilePath));
+#endif
     }
 
     public void LoadData(SavableObj savableObj, string saveFilePath)
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        XNLogger.LogWarn("Load data is skipped on WebGL platform.", ("saveFilePath", saveFilePath));
+        return;
+#else
         if (!File.Exists(saveFilePath)) {
             XNLogger.LogError("Save file not exists, load save data failed.", ("saveFilePath", saveFilePath));
             return;
@@ -81,6 +96,7 @@ public class GameSaveManager : ModuleBase
         catch (Exception ex) {
             XNLogger.LogError("Load data failed.", ("saveRootName", saveRootName), ("saveFilePath", saveFilePath), ("err", ex.Message));
         }
+#endif
     }
 }
 

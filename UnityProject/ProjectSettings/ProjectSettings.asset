@@ -634,7 +634,7 @@ PlayerSettings:
   webGLTemplate: APPLICATION:Default
   webGLAnalyzeBuildSize: 0
   webGLUseEmbeddedResources: 0
-  webGLCompressionFormat: 1
+  webGLCompressionFormat: 2
   webGLWasmArithmeticExceptions: 0
   webGLLinkerTarget: 1
   webGLThreadsSupport: 0
@@ -651,6 +651,7 @@ PlayerSettings:
   platformArchitecture: {}
   scriptingBackend:
     Standalone: 1
+    WebGL: 1
   il2cppCompilerConfiguration:
     Standalone: 2
   il2cppCodeGeneration:

@@ -4,6 +4,14 @@ using XNClient.Logger;
 
 public class Global
 {
+    private enum StartupState
+    {
+        None,
+        LoadingResources,
+        Running,
+        Failed,
+    }
+
     public static Global _instance;
     public static Global Instance
     {
@@ -25,6 +33,8 @@ public class Global
     public UIManager uiManager;
     public SceneManager sceneManager;
 
+    private StartupState startupState = StartupState.None;
+
     public void Start()
     {
         eventManager = new EventManager();
@@ -42,6 +52,26 @@ public class Global
         reddotManager = new ReddotManager();
         moduleList.Add(reddotManager);
 
+        startupState = StartupState.LoadingResources;
+        TryFinishStartup();
+    }
+
+    private void TryFinishStartup()
+    {
+        if (startupState != StartupState.LoadingResources || resourceManager == null) {
+            return;
+        }
+
+        if (resourceManager.isFailed) {
+            startupState = StartupState.Failed;
+            XNLogger.LogError("Global startup failed because resource manager preload failed.");
+            return;
+        }
+
+        if (!resourceManager.isReady) {
+            return;
+        }
+
         uiManager = new UIManager();
         moduleList.Add(uiManager);
 
@@ -57,6 +87,7 @@ public class Global
 #endif
         sceneManager.EnterMainScene(SceneConfig.MAIN_MENU_SCENE_TYPE_ID, SceneCreateParams.Default);
         User.Instance.Init();
+        startupState = StartupState.Running;
     }
 
     public void Update()
@@ -64,6 +95,8 @@ public class Global
         foreach (var module in moduleList) {
             module.Update();
         }
+
+        TryFinishStartup();
     }
 
     public void FixedUpdate()
@@ -87,6 +120,7 @@ public class Global
         }
         moduleList.Clear();
         User.Instance.Destroy();
+        startupState = StartupState.None;
         _instance = null;
     }
 }
